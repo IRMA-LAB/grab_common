@@ -13,9 +13,14 @@ TEMPLATE = lib
 DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
-    inc/threads.h
+    inc/threads.h \
+    inc/clocks.h \
+    ../grabcommon.h
 
 SOURCES += \
-    src/threads.cpp
+    src/threads.cpp \
+    src/clocks.cpp
 
-INCLUDEPATH += inc
+INCLUDEPATH += inc \
+      ../libnumeric/inc \
+      ../

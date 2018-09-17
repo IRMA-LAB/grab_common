@@ -1,14 +1,15 @@
 
 HEADERS += inc/threads.h \
     inc/clocks.h \
-    grabcommon.h
+    ../grabcommon.h
 
 SOURCES += test/libgrabrt_test.cpp \
       src/threads.cpp \
     src/clocks.cpp
 
 INCLUDEPATH += inc \
-      ../libnumeric/inc
+      ../libnumeric/inc\
+      ../
 
 QT       += testlib
 QT       -= gui
