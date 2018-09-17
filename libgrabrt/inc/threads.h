@@ -2,8 +2,10 @@
  * @file threads.h
  * @author Simone Comari
  * @date 14 Sep 2018
- * @brief This file collects utilities to create a new thread in a user-friendly way, hiding most
- * of the complexity linked to multi-threading. It also allows the setup of a real-time thread.
+ * @brief This file collects utilities to create a new thread in a user-friendly way,
+ * hiding most
+ * of the complexity linked to multi-threading. It also allows the setup of a real-time
+ * thread.
  */
 
 #ifndef GRABCOMMON_LIBGRABRT_THREADS_H
@@ -12,11 +14,15 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <iostream>
 #include <vector>
 #include <limits.h>
+#include <malloc.h>
 
 #include "grabcommon.h"
 #include "clocks.h"
@@ -57,6 +63,21 @@ enum CpuCores
   END_CORE = -1, /**< select end physical core on the machine (#CPU_CORES_NUM - 1). */
   ALL_CORES = -2 /**< select all physical cores on the machine. */
 };
+
+/**
+ * @brief Configure malloc behavior before new thread generation to avoid pagefaults.
+ * @note This function should be called _before_ ReserveProcessMemory().
+ * @see ReserveProcessMemory()
+ */
+void ConfigureMallocBehavior(); // Memory managment
+
+/**
+ * @brief Reserve process memory before new thread generation to avoid pagefaults.
+ * @param size (Optional) Preallocation memory size.
+ * @note This function should be called _after_ ConfigureMallocBehavior().
+ * @see ConfigureMallocBehavior()
+ */
+void ReserveProcessMemory(const uint32_t size = 0xa00000); // Memory locks
 
 /**
  * @brief Build a valid CPU set with a single core or all of them.
@@ -298,10 +319,12 @@ public:
   /**
    * @brief Set thread _initial_ function.
    *
-   * The _initial_ function is called once after the creation of the new thread, before its
+   * The _initial_ function is called once after the creation of the new thread, before
+   *its
    * main loop.
    * @param fun_ptr Pointer to function to be called at the beginning of the new thread.
-   * @param args Pointer to optional arguments to the initial function. Set it to @c NULL if
+   * @param args Pointer to optional arguments to the initial function. Set it to @c NULL
+   *if
    * not needed.
    * @see SetLoopFunc() SetEndFunc()
    */
@@ -309,7 +332,8 @@ public:
   /**
    * @brief Set thread _loop_ function.
    *
-   * The _loop_ function is called continuosly after the initial function until thread is paused or
+   * The _loop_ function is called continuosly after the initial function until thread is
+   *paused or
    * stopped, either from an internal or external call to the thread.
    * @param fun_ptr Pointer to function to be looped forever.
    * @param args Pointer to optional arguments to the loop function. Set it to @c NULL if
@@ -320,7 +344,8 @@ public:
   /**
    * @brief Set thread _end_ function.
    *
-   * The _end_ function is called once after the end of main loop, consequent to a stopping call,
+   * The _end_ function is called once after the end of main loop, consequent to a
+   *stopping call,
    * right before thread is closed.
    * @param fun_ptr Pointer to function to be called before thread is closed.
    * @param args Pointer to optional arguments to the end function. Set it to @c NULL if
@@ -367,7 +392,8 @@ public:
   int GetPolicy() const;
   /**
    * @brief Get thread scheduling priority.
-   * @return %Thread scheduling priority. Valid options are [1, 99] for real-time policies and 0
+   * @return %Thread scheduling priority. Valid options are [1, 99] for real-time policies
+   * and 0
    * for normal policies. Default value is 1 for the former and 0 for the latter.
    * @note For further details about _scheduling priority_ click
    * <a href="http://man7.org/linux/man-pages/man7/sched.7.html">here</a>.
@@ -399,7 +425,8 @@ public:
   const char* GetNameCstr() const { return name_.c_str(); }
 
   /**
-   * @brief Set thread loop cycle time and verifies if thread setup is completed before creation.
+   * @brief Set thread loop cycle time and verifies if thread setup is completed before
+   * creation.
    * @param cycle_time_nsec (Optional) %Thread loop cycle time in nanoseconds.
    * @return 0 if thread is ready to be created. Non-zero error number otherwise.
    * @exception EFAULT Loop function is not set.
@@ -409,7 +436,8 @@ public:
    */
   int GetReady(const uint64_t cycle_time_nsec = 1000LL);
   /**
-   * @brief Pauses a running thread. This stops the loop until thread is unpaused (or closed).
+   * @brief Pauses a running thread. This stops the loop until thread is unpaused (or
+   * closed).
    * @see Unpause()
    */
   void Pause() { run_ = false; }
@@ -421,7 +449,8 @@ public:
   /**
    * @brief Stops and terminates the thread.
    *
-   * This operation is not reversible and terminates the thread after completion of last cycle.
+   * This operation is not reversible and terminates the thread after completion of last
+   *cycle.
    * @see THREAD_RUN Pause()
    */
   void Stop();
@@ -476,7 +505,9 @@ public:
   [[noreturn]] void HandleErrorEnWrapper(const int en, const char* msg) const;
 
 private:
-  static constexpr unsigned long kStackSize = 10 * 1024 * 1024; // 10 Mb
+  static constexpr uint32_t kStackSize = 10 * 1024 * 1024; /**< 10 Mb */
+  static constexpr uint32_t kPreAllocationSize =
+    100 * 1024 * 1024;  /**< 100MB pagefault free buffer */
 
   pthread_t thread_id_;
   pthread_attr_t attr_;

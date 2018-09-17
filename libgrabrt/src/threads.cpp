@@ -10,6 +10,39 @@
 namespace grabrt
 {
 
+void ConfigureMallocBehavior()
+{
+  // Lock all current and future pages from preventing of being paged.
+  if (mlockall(MCL_CURRENT | MCL_FUTURE))
+    perror("mlockall failed:");
+  // Turn off malloc trimming.
+  mallopt(M_TRIM_THRESHOLD, -1);
+  // Turn off shared memory (mmap) usage.
+  mallopt(M_MMAP_MAX, 0);
+}
+
+void ReserveProcessMemory(const uint32_t size)
+{
+  char* buffer;
+  buffer = static_cast<char*>(malloc(size));
+
+  // Touch each page in this piece of memory to get it mapped into RAM.
+  for (uint32_t i = 0; i < size; i += sysconf(_SC_PAGESIZE))
+    // Each write to this buffer will generate a pagefault.
+    // Once the pagefault is handled a page will be locked in memory and never given back
+    // to
+    // the system.
+    buffer[i] = 0;
+
+  // buffer will now be released. As Glibc is configured such that it never gives back
+  // memory to the kernel, the memory allocated above is locked for this process. All
+  // malloc() and new() calls come from the memory pool reserved and locked above.
+  // Issuing free() and delete() does NOT make this locking undone. So, with this locking
+  // mechanism we can build C++ applications that will never run into a major/minor
+  // pagefault, even with swapping enabled.
+  free(buffer);
+}
+
 cpu_set_t BuildCPUSet(const int cpu_core /*= ALL_CORES*/)
 {
   // init
@@ -66,7 +99,7 @@ void SetThreadCPUs(const cpu_set_t& cpu_set,
 }
 
 void SetThreadSchedAttr(const int policy, const int priority /*= -1*/,
-                     const pthread_t thread_id /*= pthread_self()*/)
+                        const pthread_t thread_id /*= pthread_self()*/)
 {
   struct sched_param param;
   if (priority < 0)
@@ -176,7 +209,7 @@ void Thread::SetAttr(const pthread_attr_t& attr)
     HandleErrorEnWrapper(ret, "pthread_attr_getaffinity_np ");
   ret = pthread_attr_getschedparam(&attr_, &sched_param_);
   if (ret != 0)
-    HandleErrorEnWrapper(ret, "pthread_attr_getschedparam ");  
+    HandleErrorEnWrapper(ret, "pthread_attr_getschedparam ");
 
   if (IsActive())
     printf(
@@ -401,6 +434,10 @@ void Thread::DispAttr() const
 
 void Thread::InitDefault()
 {
+  // Configure memory so to be pagefault free.
+  ConfigureMallocBehavior();
+  ReserveProcessMemory(kPreAllocationSize);
+
   int ret;
   ret = pthread_attr_init(&attr_);
   if (ret != 0)
