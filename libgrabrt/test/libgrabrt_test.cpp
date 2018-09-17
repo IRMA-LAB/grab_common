@@ -1,10 +1,3 @@
-/**
- * @file libgrabrt_test.cpp
- * @author Simone Comari
- * @date 14 Sep 2018
- * @brief ...
- */
-
 #include <QString>
 #include <QtTest>
 
@@ -12,36 +5,20 @@
 #include "threads.h"
 #include "clocks.h"
 
-/**
- * @brief The LibgrabrtTest class
- */
 class LibgrabrtTest : public QObject
 {
   Q_OBJECT
 
 private Q_SLOTS:
-  /**
-   * @brief testCPUSetBuilders
-   */
   void testCPUSetBuilders();
-  /**
-   * @brief testSetThisThread
-   */
+
   void testSetThisThread();
-  /**
-   * @brief testThreadClock
-   */
+
   void testThreadClock();
-  /**
-   * @brief testNewThread
-   */
+
   void testNewThread();
 
 private:
-  /**
-   * @brief loopFun
-   * @param obj
-   */
   static void loopFun(void* obj)
   {
     static uint counter = 1;
@@ -130,7 +107,6 @@ void LibgrabrtTest::testNewThread()
   grabrt::Thread t("TestSubThread");
   t.DispAttr();
   grabrt::DisplayThreadAffinitySet();
-  return;
   t.SetCPUs(std::vector<size_t>{2, 3});
   t.SetSchedAttr(SCHED_RR, 25);
   t.DispAttr();
