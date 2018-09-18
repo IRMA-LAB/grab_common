@@ -1,17 +1,13 @@
+/**
+ * @file ethercatmaster.h
+ * @author Edoardo Idà, Simone Comari
+ * @date 18 Sep 2018
+ * @brief This file includes an abstract class to setup an ethercat master-slave
+ * communication.
+ */
+
 #ifndef ETHERCATMASTER_H
 #define ETHERCATMASTER_H
-
-/* Ethercat Master interface. This class is used as base class
-   in our master. So we won't need every time to deal with:
-   - real time stuff
-   - memory locking
-   - ethercat initialization process
-   - how to cyclically loop
-   This way all the effort can be put in the design of our specific
-   master, with in mind that the ethercat master interface requires
-   to overload some function, which are actually called every loop
-   This functions are the ones marked as virtual
-*/
 
 #include <signal.h>
 #include <unistd.h>
@@ -31,44 +27,46 @@
 #include "ecrt.h" // ethercat library
 
 #include "threads.h"
-#include "ethercatslave.h" // ethercat slave degisn interface
+#include "types.h"
+#include "ethercatslave.h"
 
 namespace grabec
 {
-
+/**
+ * @brief Ethercat Master interface.
+ *
+ * This class is used as base class in our master. So we won't need every time to deal
+ * with:
+ * - real time stuff
+ * - memory locking
+ * - ethercat initialization process
+ * - how to cyclically loop
+ * This way all the effort can be put in the design of our specific master, reminding
+ * that the ethercat master interface requires to overload some functions, which are
+ * actually called every loop. This functions are the ones marked as @c virtual.
+ */
 class EthercatMaster
 {
-private:
-  static void TheRtThread(void* args); // The actual real time thread that is executed
-
-  void CheckDomainState();                          // ethercat utility
-  void CheckMasterState();                          // ethercat utility
-  void CheckConfigState();                          // ethercat utility
-  void GetDomainElements(ec_pdo_entry_reg_t* regs); // ethercat utility
-  uint8_t FlagManagement();                             // real time process management
-  uint8_t InitProtocol();                               // ethercat utility
-
 public:
+  /**
+   * @brief EthercatMaster
+   */
   EthercatMaster();
   virtual ~EthercatMaster() = 0;
 
-  // constexpr static members of a class can be viewed as #define replacement
-  constexpr static uint8_t kMasterOperational = 8;
-  constexpr static uint8_t kSlaveOperational = 8;
-  constexpr static uint8_t kDomainOperational = 2;
-  constexpr static uint8_t kOperationalState = 1;
-  constexpr static uint8_t kNotOperationalState = 0;
+  /**
+   * @brief SetThreadsParams
+   * @param params
+   */
+  void SetThreadsParams(const RtThreadsParams& params);
 
-  // Variables related to our project, must be gived as input
-  struct MasterData
-  {
-  public:
-    int gui_cpu_id = 0;
-    int rt_cpu_id = -1;
-    uint8_t gui_priority = 60;
-    uint8_t rt_priority = 98;
-    uint32_t cycle_cime_nsec = 1000000;
-  } master_data_;                             // Default Values
+  /**
+   * @brief Start
+   */
+  void Start();
+
+private:
+  RtThreadsParams threads_params_; // Default Values
 
   ec_master_t* master_ptr_ = NULL;            // ethercat utility
   ec_master_state_t master_state_ = {};       // ethercat utility
@@ -79,22 +77,57 @@ public:
   ec_sdo_request_t* sdo_ptr_ = NULL;          // ethercat utility
   uint8_t* domain_data_ptr_ = NULL;           // ethercat utility
 
-  struct EthercatFlags
-  {
-    uint8_t domain_state;
-    uint8_t master_state;
-    uint8_t config_state;
-    uint8_t not_sync;
-  } flags_; // ethercat utility
+  Bitfield8 check_state_flags_; // ethercat utility
 
-  pthread_mutex_t rt_mutex_ = PTHREAD_MUTEX_INITIALIZER; // real time process utility
-  EthercatSlave** slave_;                                // master utility
-  uint8_t num_domain_elements_ = 0;                      // master utility
-  int num_slaves_;                                       // master utility
+  EthercatSlave** slave_ = NULL;    // master utility
+  uint8_t num_domain_elements_ = 0; // master utility
+  int num_slaves_ = 0;              // master utility
 
-  void Start();                       // the only thing you need to callnin the main
+  /**
+   * @brief ThreadFunWrapper
+   * @param obj
+   */
+  static void ThreadFunWrapper(void* obj);
+  /**
+   * @brief ThreadFunction
+   */
+  void ThreadFunction();
+  /**
+   * @brief LoopFunction
+   */
+  virtual void LoopFunction() = 0;
+  /**
+   * @brief StartUpFunWrapper
+   * @param obj
+   */
+  static void StartUpFunWrapper(void* obj);
+  /**
+   * @brief StartUpFunction
+   */
   virtual void StartUpFunction() = 0; // called before the cycle begins
-  virtual void LoopFunction() = 0;    // called every cycle
+
+  /**
+   * @brief CheckDomainState
+   */
+  void CheckDomainState();
+  /**
+   * @brief CheckMasterState
+   */
+  void CheckMasterState();
+  /**
+   * @brief CheckConfigState
+   */
+  void CheckConfigState();
+  /**
+   * @brief GetDomainElements
+   * @param regs
+   */
+  void GetDomainElements(ec_pdo_entry_reg_t* regs);
+  /**
+   * @brief InitProtocol
+   * @return
+   */
+  uint8_t InitProtocol();
 };
 
 } // end namespace grabec

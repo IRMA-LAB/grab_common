@@ -1,13 +1,19 @@
+/**
+ * @file ethercatslave.cpp
+ * @author Simone Comari
+ * @date 18 Sep 2018
+ * @brief File containing definitions of functions and class declared in ethercatslave.h.
+ */
+
 #include "ethercatslave.h"
 
 namespace grabec
 {
-
-EthercatSlave::~EthercatSlave() {}
-
 /////////////////////////////////////////////////
 /// Public methods
 /////////////////////////////////////////////////
+
+EthercatSlave::~EthercatSlave() {}  // necessary for pure abstract class
 
 void EthercatSlave::Init(uint8_t* _domain_data_ptr)
 {
@@ -15,25 +21,25 @@ void EthercatSlave::Init(uint8_t* _domain_data_ptr)
   InitFun();
 }
 
-int EthercatSlave::Configure(ec_master_t* master_ptr, ec_slave_config_t* config_ptr)
+RetVal EthercatSlave::Configure(ec_master_t* master_ptr, ec_slave_config_t* config_ptr)
 {
   if (!(config_ptr = ecrt_master_slave_config(master_ptr, alias_, position_, vendor_id_,
                                               product_code_)))
   {
-    DispError(ECONFIG, "Configuring slave device... ");
+    DispRetVal(ECONFIG, "Configuring slave device... ");
     return ECONFIG;
   }
-  DispError(OK, "Configuring slave device... ");
+  DispRetVal(OK, "Configuring slave device... ");
 
   if (ecrt_slave_config_pdos(config_ptr, EC_END, slave_sync_ptr_))
   {
-    DispError(ECONFIG, "Configuring PDOs... ");
+    DispRetVal(ECONFIG, "Configuring PDOs... ");
     return ECONFIG;
   }
-  DispError(OK, "Configuring PDOs... ");
+  DispRetVal(OK, "Configuring PDOs... ");
 
-  int ret = SdoRequests(config_ptr);
-  DispError(ret, "Creating SDO request... ");
+  RetVal ret = SdoRequests(config_ptr);
+  DispRetVal(ret, "Creating SDO request... ");
   return ret;
 }
 
@@ -55,7 +61,7 @@ void EthercatSlave::SetDomainDataPtr(uint8_t* _domain_data_ptr)
 /// Protected methods
 /////////////////////////////////////////////////
 
-int EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)
+RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)
 {
   static ec_sdo_request_t* sdo_ptr = NULL;
 

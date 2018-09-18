@@ -1,7 +1,7 @@
 /**
  * @file ethercatslave.h
  * @author Edoardo Idà, Simone Comari
- * @date 17 Sep 2018
+ * @date 18 Sep 2018
  * @brief File containing EtherCAT slaves to be included in the GRAB EtherCAT library.
  */
 
@@ -32,16 +32,16 @@ public:
 
   /**
    * @brief Initial function called before the cyclical task begins.
-   * @param domain_data_ptr_ext
+   * @param _domain_data_ptr
    */
   void Init(uint8_t* _domain_data_ptr);
 
   /**
    * @brief Configure
    * @param[in] master_ptr
-   * @param[out] config_ptr_
+   * @param[out] config_ptr
    */
-  int Configure(ec_master_t* master_ptr, ec_slave_config_t* config_ptr);
+  RetVal Configure(ec_master_t* master_ptr, ec_slave_config_t* config_ptr);
 
   /**
    * @brief Slave's main function to be cycled.
@@ -105,11 +105,10 @@ protected:
 
   /**
    * @brief SdoRequests
-   * @param sdo_ptr
    * @param config_ptr
    * @return
    */
-  virtual int SdoRequests(ec_slave_config_t* config_ptr);
+  virtual RetVal SdoRequests(ec_slave_config_t* config_ptr);
 };
 
 } // end namespace grabec

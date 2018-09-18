@@ -1,10 +1,19 @@
+/**
+ * @file types.cpp
+ * @author Simone Comari
+ * @date 18 Sep 2018
+ * @brief File containing definitions of functions declared in types.h.
+ */
+
 #include "types.h"
 
 namespace grabec
 {
 
-void DispError(const int err, const std::string& msg)
+void DispRetVal(const int err, const char * msg, ...)
 {
+  va_list args;
+  va_start(args, msg);
   std::string description;
   switch (err)
   {
@@ -20,15 +29,19 @@ void DispError(const int err, const std::string& msg)
   case EACTIVE:
     description = "Activation FAILED";
     break;
-    case EINIT:
-      description = "Initialization FAILED";
-      break;
-    case EINV:
-      description = "Invalid value";
-      break;
+  case EINIT:
+    description = "Initialization FAILED";
+    break;
+  case EINV:
+    description = "Invalid value";
+    break;
+  case FAIL:
+    description = "FAILED";
+    break;
   }
-  std::cerr << ANSI_COLOR_RED << msg << description << ANSI_COLOR_RESET
-            << std::endl;
+  std::string full_msg = ANSI_COLOR_RED + (msg + description + ANSI_COLOR_RESET);
+  vprintf(full_msg.c_str(), args);
+  va_end(args);
 }
 
 } // end namespace grabec
