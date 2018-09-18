@@ -19,16 +19,6 @@ namespace grabec
 {
 
 /**
-*@brief The EthercatStateFlagsBit enum
-*/
-enum EthercatStateFlagsBit
-{
-  DOMAIN,
-  MASTER,
-  CONFIG
-};
-
-/**
  * @brief The RtThreadsParams struct
  */
 struct RtThreadsParams

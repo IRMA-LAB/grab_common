@@ -32,6 +32,7 @@
 
 namespace grabec
 {
+
 /**
  * @brief Ethercat Master interface.
  *
@@ -66,6 +67,27 @@ public:
   void Start();
 
 private:
+  /**
+  *@brief Ethercat state check flags bit position enum.
+  *
+  * The check_state_flags_ is a bitfield object where every bit represents the state of an
+  * element. 1 means element is _operational_, 0 that it is not. This enum helps grabbing the
+  * right element without remembering its position index.
+  *
+  * For instance, to check if master is operational:
+  * @code{.cpp}
+  * Bitfield8 check_state_flags;
+  * bool master_state = check_state_flags.CheckBit(MASTER);
+  * @endcode
+  * @todo understand why this can't go in types.h
+  */
+  enum EthercatStateFlagsBit
+  {
+    DOMAIN,
+    MASTER,
+    CONFIG
+  };
+
   RtThreadsParams threads_params_; // Default Values
 
   ec_master_t* master_ptr_ = NULL;            // ethercat utility
