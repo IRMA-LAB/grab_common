@@ -28,6 +28,6 @@ INCLUDEPATH += inc \
       ../ \
       /opt/etherlab/include/
 
-DEPENDPATH  += /opt/etherlab/lib/
+DEPENDPATH  += /opt/etherlab/lib/ ../libgrabrt/build/
 
-LIBS        += /opt/etherlab/lib/libethercat.a ../libgrabrt/build/libgrart.a
+LIBS        += /opt/etherlab/lib/libethercat.a ../libgrabrt/build/libgrabrt.a
