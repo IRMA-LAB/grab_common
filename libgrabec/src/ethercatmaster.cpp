@@ -14,7 +14,7 @@ namespace grabec
 /// Public methods
 /////////////////////////////////////////////////
 
-EthercatMaster::EthercatMaster() { check_state_flags_.clear_all(); }
+EthercatMaster::EthercatMaster() { check_state_flags_.ClearAll(); }
 
 void EthercatMaster::SetThreadsParams(const RtThreadsParams& params)
 {
@@ -63,7 +63,7 @@ void EthercatMaster::ThreadFunction()
   CheckMasterState();
   CheckDomainState();
   // If everything is in order, execute main function of master
-  if (check_state_flags_.any_off())
+  if (check_state_flags_.AnyOff())
     LoopFunction();
   // Write data
   ecrt_domain_queue(domain_ptr_);
@@ -86,7 +86,7 @@ void EthercatMaster::CheckDomainState()
   if (domain_state_local.wc_state != domain_state_.wc_state)
   {
     std::cout << "Domain: State " << domain_state_local.wc_state << std::endl;
-    check_state_flags_.set(DOMAIN,
+    check_state_flags_.Set(DOMAIN,
                            domain_state_local.wc_state == EC_WC_COMPLETE); // operational?
   }
   domain_state_ = domain_state_local;
@@ -104,7 +104,7 @@ void EthercatMaster::CheckMasterState()
   if (master_state_local.al_states != master_state_.al_states)
   {
     std::cout << "Master states: " << master_state_local.al_states << std::endl;
-    check_state_flags_.set(MASTER, master_state_local.al_states ==
+    check_state_flags_.Set(MASTER, master_state_local.al_states ==
                                      EC_AL_STATE_OP); // operational?
   }
   if (master_state_local.link_up != master_state_.link_up)
@@ -122,7 +122,7 @@ void EthercatMaster::CheckConfigState()
   if (config_state_local.al_state != config_state_.al_state)
   {
     std::cout << "Slaves State " << config_state_local.al_state << std::endl;
-    check_state_flags_.set(CONFIG,
+    check_state_flags_.Set(CONFIG,
                            config_state_local.al_state == EC_AL_STATE_OP); // operational?
   }
   if (config_state_local.online != config_state_.online)
@@ -158,15 +158,15 @@ uint8_t EthercatMaster::InitProtocol()
   // Requesting to initialize master 0
   if (!(master_ptr_ = ecrt_request_master(0)))
   {
-    DispRetVal(FAIL, "Requesting master... ");
-    return FAIL;
+    DispRetVal(EINIT, "Requesting master... ");
+    return EINIT;
   }
 
   // Creating Domain Process associated with master 0
   if (!(domain_ptr_ = ecrt_master_create_domain(master_ptr_)))
   {
-    DispRetVal(FAIL, "Creating domain... ");
-    return FAIL;
+    DispRetVal(EINIT, "Creating domain... ");
+    return EINIT;
   }
 
   // Configuring Slaves

@@ -142,7 +142,7 @@ public:
   operator[](const PosType pos);
 
   /** Set all bits to true. */
-  void set_all_true();
+  void SetAllTrue();
 
   /**
    * @brief Set particular bit in bitfield.
@@ -151,18 +151,18 @@ public:
    * @param [in] pos bit within bitfield to set.
    * @param [in] value value to which bit should be set, default is true.
    */
-  void set(const PosType pos, const bool value = true);
+  void Set(const PosType pos, const bool value = true);
 
   /**
    * @brief Set all bits in bitfield to 0.
    */
-  void clear_all();
+  void ClearAll();
 
   /**
    * Set particular bit in bitfield to 0.
    * @param [in] pos bit within bitfield to set.
    */
-  void clear(const PosType pos);
+  void Clear(const PosType pos);
 
   /**
    * Flip particular bit in bitfield.
@@ -170,7 +170,7 @@ public:
    * If bit was 1, set it to 0. If it was 0, set it to 1.
    * @param [in] pos bit within bitfield to set.
    */
-  void flip(const PosType pos);
+  void Flip(const PosType pos);
 
   /**
    * @brief Check value of particular bit in bitfield.
@@ -180,22 +180,22 @@ public:
    * @return value of bit, or -1 if bitfield does not contain bit (because it is
    * too small).
    */
-  bool check_bit(const PosType pos) const;
+  bool CheckBit(const PosType pos) const;
 
   /**
    * Check how many bits are true.
    * @return size_t number of bits that are true
    */
-  size_t count() const;
+  size_t Count() const;
 
   /** Check if any bits are on. */
-  bool any_on() const;
+  bool AnyOn() const;
 
   /** Check if any bits are off. */
-  bool any_off() const;
+  bool AnyOff() const;
 
   /** Return whole bitset. */
-  typename std::bitset<Bitfield<T>::bitset_size> get_bitset() const;
+  typename std::bitset<Bitfield<T>::bitset_size> GetBitset() const;
 
   /**
    * Return bitfield with bitset cast to underlying type.
@@ -203,25 +203,25 @@ public:
    * For unsigned integral types T, this will be of type T.
    * For enums or enum classes E, this will be of std::underlying_type<E>::type.
    */
-  typename Bitfield<T>::UnderlyingBitsetType get_bitfield() const;
+  typename Bitfield<T>::UnderlyingBitsetType GetBitfield() const;
 
   /**
    * Set whole bitset.
    * @param [in] bitset desired bitset of same size.
    */
-  void set_bitset(const typename std::bitset<bitset_size>& bitset);
+  void SetBitset(const typename std::bitset<bitset_size>& bitset);
 
   /**
    * Set whole bitset.
    * @param [in] bitset_value type (e.g. number) to be interpreted as bitset,
    * needs to be smaller or equal in size to current bitset type size.
    */
-  template <typename U> void set_bitset(const U& bitset_value);
+  template <typename U> void SetBitset(const U& bitset_value);
 
   /** Set whole bitfield.
    * @param [in] bitfield bitfield of same type from which to extract bitset.
    */
-  void set_bitfield(const Bitfield<T>& bitfield);
+  void SetBitfield(const Bitfield<T>& bitfield);
 
 private:
   std::bitset<bitset_size> bitset_;
@@ -242,70 +242,70 @@ operator[](const PosType pos)
   return bitset_[static_cast<size_t>(pos)];
 } // for b[i] as l value
 
-template <typename T> void Bitfield<T>::set_all_true() { bitset_.set(); }
+template <typename T> void Bitfield<T>::SetAllTrue() { bitset_.set(); }
 
 template <typename T>
-void Bitfield<T>::set(const PosType pos, const bool value /*= true*/)
+void Bitfield<T>::Set(const PosType pos, const bool value /*= true*/)
 {
   bitset_.set(static_cast<size_t>(pos), value);
 }
 
-template <typename T> void Bitfield<T>::clear_all() { bitset_.reset(); }
+template <typename T> void Bitfield<T>::ClearAll() { bitset_.reset(); }
 
-template <typename T> void Bitfield<T>::clear(const PosType pos)
+template <typename T> void Bitfield<T>::Clear(const PosType pos)
 {
   bitset_.reset(static_cast<size_t>(pos));
 }
 
-template <typename T> void Bitfield<T>::flip(const PosType pos)
+template <typename T> void Bitfield<T>::Flip(const PosType pos)
 {
   bitset_.flip(static_cast<size_t>(pos));
 }
 
-template <typename T> bool Bitfield<T>::check_bit(const PosType pos) const
+template <typename T> bool Bitfield<T>::CheckBit(const PosType pos) const
 {
   return bitset_.test(static_cast<size_t>(pos));
 }
 
-template <typename T> size_t Bitfield<T>::count() const { return bitset_.count(); }
+template <typename T> size_t Bitfield<T>::Count() const { return bitset_.count(); }
 
-template <typename T> bool Bitfield<T>::any_on() const { return bitset_.any(); }
+template <typename T> bool Bitfield<T>::AnyOn() const { return bitset_.any(); }
 
-template <typename T> bool Bitfield<T>::any_off() const { return bitset_.all(); }
+template <typename T> bool Bitfield<T>::AnyOff() const { return bitset_.all(); }
 
 template <typename T>
-typename std::bitset<Bitfield<T>::bitset_size> Bitfield<T>::get_bitset() const
+typename std::bitset<Bitfield<T>::bitset_size> Bitfield<T>::GetBitset() const
 {
   return bitset_;
 }
 
 template <typename T>
-typename Bitfield<T>::UnderlyingBitsetType Bitfield<T>::get_bitfield() const
+typename Bitfield<T>::UnderlyingBitsetType Bitfield<T>::GetBitfield() const
 {
   return static_cast<UnderlyingBitsetType>(bitset_.to_ulong());
 }
 
 template <typename T>
-void Bitfield<T>::set_bitset(const typename std::bitset<bitset_size>& bitset)
+void Bitfield<T>::SetBitset(const typename std::bitset<bitset_size>& bitset)
 {
   this->bitset_ = bitset;
 }
 
 template <typename T>
 template <typename U>
-void Bitfield<T>::set_bitset(const U& bitset_value)
+void Bitfield<T>::SetBitset(const U& bitset_value)
 {
   // Prevent lossy casting. If desired, cast before passing.
   if (this->bitset_size < 8 * sizeof(U))
   {
     return;
   }
-  this->set_bitset(std::bitset<bitset_size>(bitset_value));
+  this->SetBitset(std::bitset<bitset_size>(bitset_value));
 }
 
-template <typename T> void Bitfield<T>::set_bitfield(const Bitfield<T>& bitfield)
+template <typename T> void Bitfield<T>::SetBitfield(const Bitfield<T>& bitfield)
 {
-  this->bitset_ = bitfield.get_bitset();
+  this->bitset_ = bitfield.GetBitset();
 }
 
 #endif // GRABCOMMON_H
