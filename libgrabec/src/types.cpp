@@ -14,7 +14,7 @@ void DispRetVal(const int err, const char * msg, ...)
 {
   va_list args;
   va_start(args, msg);
-  std::string description;
+  std::string description, full_msg;
   switch (err)
   {
   case OK:
@@ -39,7 +39,10 @@ void DispRetVal(const int err, const char * msg, ...)
     description = "FAILED";
     break;
   }
-  std::string full_msg = ANSI_COLOR_RED + (msg + description + ANSI_COLOR_RESET);
+  if  (!err)
+    full_msg = msg + description + "\n";
+  else
+    full_msg = ANSI_COLOR_RED + (msg + description + ANSI_COLOR_RESET + "\n");
   vprintf(full_msg.c_str(), args);
   va_end(args);
 }
