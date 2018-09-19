@@ -16,12 +16,14 @@ HEADERS += \
     ../grabcommon.h \
     inc/ethercatmaster.h \
     inc/ethercatslave.h \
-    inc/types.h
+    inc/types.h \
+    inc/slaves/easycatslave.h
 
 SOURCES += \
     src/ethercatmaster.cpp \
     src/ethercatslave.cpp \
-    src/types.cpp
+    src/types.cpp \
+    src/slaves/easycatslave.cpp
 
 INCLUDEPATH += inc \
       ../libgrabrt/inc \

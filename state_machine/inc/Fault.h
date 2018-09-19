@@ -29,7 +29,7 @@ extern "C" {
 /// Handles all software assertions in the system.
 /// @param[in] file - the file name that the software assertion occurred on
 /// @param[in] line - the line number that the software assertion occurred on
-[[noreturn]] void FaultHandler(const char* file, unsigned short line);
+void FaultHandler(const char* file, unsigned short line);
 
 #ifdef __cplusplus
 }

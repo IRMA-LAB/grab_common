@@ -31,9 +31,18 @@ struct RtThreadsParams
 };
 
 /**
+ * @brief The Status enum
+ */
+enum Status: uint8_t
+{
+  NOT_OPERATIONAL,
+  OPERATIONAL
+};
+
+/**
 *@brief The RetVal enum
 */
-enum RetVal
+enum RetVal: uint8_t
 {
   OK,      /**< success */
   ECONFIG, /**< configuration error */

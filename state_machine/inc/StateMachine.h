@@ -321,7 +321,7 @@ private:
 
 #define END_STATE_MAP_EX \
     }; \
-	C_ASSERT((sizeof(STATE_MAP)/sizeof(StateMapRowEx)) == ST_MAX_STATES); \
+        C_ASSERT((sizeof(STATE_MAP)/sizeof(StateMapRowEx)) == ST_MAX_STATES); \
    return &STATE_MAP[0]; }
 
 #endif // _STATE_MACHINE_H
