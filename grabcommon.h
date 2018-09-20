@@ -17,15 +17,39 @@
 #include <cstdint>
 #include <type_traits>
 
-#define ANSI_COLOR_RED "\x1b[31m"     /**< ANSI _red_ codex for colorful printings. */
-#define ANSI_COLOR_GREEN "\x1b[32m"   /**< ANSI _green_ codex for colorful printings. */
-#define ANSI_COLOR_YELLOW "\x1b[33m"  /**< ANSI _yellow_ codex for colorful printings. */
-#define ANSI_COLOR_BLUE "\x1b[34m"    /**< ANSI _blue_ codex for colorful printings. */
-#define ANSI_COLOR_MAGENTA "\x1b[35m" /**< ANSI _magenta_ codex for colorful printings.  \
-                                         */
-#define ANSI_COLOR_CYAN "\x1b[36m"    /**< ANSI _cyan_ codex for colorful printings. */
+#define ANSI_COLOR_RED "\x1b[31m"    /**< ANSI _red_ codex for colorful printings. */
+#define ANSI_COLOR_GREEN "\x1b[32m"  /**< ANSI _green_ codex for colorful printings. */
+#define ANSI_COLOR_YELLOW "\x1b[33m" /**< ANSI _yellow_ codex for colorful printings. */
+#define ANSI_COLOR_BLUE "\x1b[34m"   /**< ANSI _blue_ codex for colorful printings. */
+#define ANSI_COLOR_MAGENTA                                                               \
+  "\x1b[35m"                       /**< ANSI _magenta_ codex for colorful printings.     \
+                                      */
+#define ANSI_COLOR_CYAN "\x1b[36m" /**< ANSI _cyan_ codex for colorful printings. */
 #define ANSI_COLOR_RESET                                                                 \
   "\x1b[0m" /**< ANSI color reset codex after colorful printings. */
+
+/**
+ * @brief SETUP_ENUM_CLASS_ASSIGNMENTS
+ */
+#define SETUP_ENUM_CLASS_ASSIGNMENTS(EnumStruct, EType)                                  \
+  EType val;                                                                             \
+  EnumStruct() {}                                                                        \
+  EnumStruct(EType p_eVal) : val(p_eVal) {}                                              \
+  operator EType() const { return val; }                                                 \
+  void operator=(EType p_eVal) { val = p_eVal; }
+
+/**
+ * @brief ENUM_CLASS
+ */
+#define ENUM_CLASS(EName, ...)                                                           \
+  struct EName                                                                           \
+  {                                                                                      \
+    enum Type                                                                            \
+    {                                                                                    \
+      __VA_ARGS__                                                                        \
+    };                                                                                   \
+    SETUP_ENUM_CLASS_ASSIGNMENTS(EName, Type)                                            \
+  };
 
 /**
  * @brief Handle an error message accorging to @c errno convention and display a message.
@@ -76,7 +100,7 @@ struct safe_underlying_type
  */
 template <typename T> struct safe_underlying_type<T, std::true_type>
 {
-  using type = typename std::underlying_type<T>::type;  /**< ... */
+  using type = typename std::underlying_type<T>::type; /**< ... */
 };
 
 /**
@@ -124,7 +148,7 @@ public:
                               typename safe_underlying_type<T>::type, T>::type;
 
   // Definition up here for prototypes
-  const static size_t bitset_size = (8 * (sizeof(UnderlyingBitsetType)));  /**< ... */
+  const static size_t bitset_size = (8 * (sizeof(UnderlyingBitsetType))); /**< ... */
 
   // operators
   /**
@@ -138,8 +162,7 @@ public:
    * @param pos
    * @return
    */
-  typename std::bitset<Bitfield<T>::bitset_size>::reference
-  operator[](const PosType pos);
+  typename std::bitset<Bitfield<T>::bitset_size>::reference operator[](const PosType pos);
 
   /** Set all bits to true. */
   void SetAllTrue();
