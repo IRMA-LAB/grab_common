@@ -33,7 +33,7 @@ EasyCatSlave::EasyCatSlave(const uint8_t slave_position) : StateMachine(ST_MAX_S
   domain_registers_ptr_ = domain_registers_;
   slave_pdo_entries_ptr_ = const_cast<ec_pdo_entry_info_t*>(kPdoEntries);
   slave_pdos_ptr_ = const_cast<ec_pdo_info_t*>(kPDOs);
-  slave_sync_ptr_ = const_cast<ec_sync_info_t*>(slave_syncs_);
+  slave_sync_ptr_ = const_cast<ec_sync_info_t*>(kSyncs);
 
   output_pdos_.slave_status = OPERATIONAL;
 }

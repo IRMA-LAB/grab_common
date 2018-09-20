@@ -17,13 +17,15 @@ HEADERS += \
     inc/ethercatmaster.h \
     inc/ethercatslave.h \
     inc/types.h \
-    inc/slaves/easycatslave.h
+    inc/slaves/easycatslave.h \
+    inc/slaves/goldsolowhistledrive.h
 
 SOURCES += \
     src/ethercatmaster.cpp \
     src/ethercatslave.cpp \
     src/types.cpp \
-    src/slaves/easycatslave.cpp
+    src/slaves/easycatslave.cpp \
+    src/slaves/goldsolowhistledrive.cpp
 
 INCLUDEPATH += inc \
       ../libgrabrt/inc \

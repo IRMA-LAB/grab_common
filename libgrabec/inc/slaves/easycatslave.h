@@ -76,7 +76,7 @@ private:
   };
 
   // Ethercat utilities, can be retrieved in the xml config file provided by the vendor
-  static constexpr ec_sync_info_t slave_syncs_[3] = {
+  static constexpr ec_sync_info_t kSyncs[3] = {
     {0, EC_DIR_OUTPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs) + 0, EC_WD_ENABLE},
     {1, EC_DIR_INPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs) + 1, EC_WD_DISABLE},
     {0xff, static_cast<ec_direction_t>(0), 0, NULL, static_cast<ec_watchdog_mode_t>(0)}};
