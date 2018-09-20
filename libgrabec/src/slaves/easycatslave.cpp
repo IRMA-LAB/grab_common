@@ -5,18 +5,6 @@ namespace grabec
 
 EasyCatSlave::EasyCatSlave(const uint8_t slave_position) : StateMachine(ST_MAX_STATES)
 {
-  /* It is FUNDAMENTAL that the constructor has this form. There are several
-   * other ways we can program
-   * the slave interface so that we do not have to deal with the assignment of
-   * this variables in the constructor,
-   * but they will require the user to initialize some of the variables in the
-   * main file and then pass the as
-   * input variable in the constructor. I find that this way it is easy for "not
-   * experienced user" to write all their code
-   * in just two files, th .h and .cpp of their actual implementation of the
-   * ethercat slave
-  */
-  // From here, it must be edited by the user
   alias_ = kAlias;
   position_ = slave_position;
   vendor_id_ = kVendorID;
@@ -46,7 +34,6 @@ EasyCatSlave::EasyCatSlave(const uint8_t slave_position) : StateMachine(ST_MAX_S
   slave_pdo_entries_ptr_ = const_cast<ec_pdo_entry_info_t*>(kPdoEntries);
   slave_pdos_ptr_ = const_cast<ec_pdo_info_t*>(kPDOs);
   slave_sync_ptr_ = const_cast<ec_sync_info_t*>(slave_syncs_);
-  // and stop here, the rest is additional
 
   output_pdos_.slave_status = OPERATIONAL;
 }
@@ -57,12 +44,27 @@ EasyCatSlave::~EasyCatSlave()
   EC_WRITE_U8(domain_data_ptr_ + offset_out_.slave_status, output_pdos_.slave_status);
 }
 
+#if !METHOD
+void EasyCatSlave::Start()
+{
+  BEGIN_TRANSITION_MAP                  // - Current State -
+    TRANSITION_MAP_ENTRY(ST_UPDATE)     // ST_IDLE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // ST_UPDATE
+    END_TRANSITION_MAP(NULL)
+}
+#endif
+
 void EasyCatSlave::DoWork()
 {
-  BEGIN_TRANSITION_MAP                            // - Current State -
-    TRANSITION_MAP_ENTRY(ST_UPDATE)     // ST_IDLE
-    TRANSITION_MAP_ENTRY(ST_IDLE)          // ST_UPDATE
-    END_TRANSITION_MAP(NULL)
+BEGIN_TRANSITION_MAP                                        // - Current State -
+#if METHOD
+      TRANSITION_MAP_ENTRY(ST_UPDATE)             // ST_IDLE
+      TRANSITION_MAP_ENTRY(ST_IDLE)                   // ST_UPDATE
+#else
+      TRANSITION_MAP_ENTRY(EVENT_IGNORED)     // ST_IDLE
+      TRANSITION_MAP_ENTRY(EVENT_IGNORED)     // ST_UPDATE
+#endif
+  END_TRANSITION_MAP(NULL)
 }
 
 void EasyCatSlave::ReadInputs()
@@ -82,8 +84,12 @@ void EasyCatSlave::WriteOutputs()
 }
 
 // State machine sits here when slave is not running
-STATE_DEFINE(EasyCatSlave, Idle, NoEventData) { output_pdos_.control_word = ST_IDLE; }
+STATE_DEFINE(EasyCatSlave, Idle, NoEventData)
+{
+  output_pdos_.control_word = ST_IDLE;
+}
 
+#if METHOD
 // Guard condition to detemine whether Idle state is executed.
 GUARD_DEFINE(EasyCatSlave, GuardIdle, NoEventData)
 {
@@ -92,10 +98,15 @@ GUARD_DEFINE(EasyCatSlave, GuardIdle, NoEventData)
   else
     return FALSE; // otherwise
 }
+#endif
 
 // Update slave
 STATE_DEFINE(EasyCatSlave, Update, NoEventData)
 {
+#if !METHOD
+  if (input_pdos_.num_calls > temp_)
+    InternalEvent(ST_IDLE);
+ #endif
   output_pdos_.control_word = ST_UPDATE;
   temp_ = input_pdos_.num_calls;
 }

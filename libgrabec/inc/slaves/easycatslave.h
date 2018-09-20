@@ -1,11 +1,11 @@
 #ifndef GRABCOMMON_LIBGRABEC_EASYCATSLAVE_H
 #define GRABCOMMON_LIBGRABEC_EASYCATSLAVE_H
 
-// EasyCAT Slave class. Inherits Ethercat Slave base class
-
 #include "ethercatslave.h"
 #include "types.h"
 #include "state_machine/inc/StateMachine.h"
+
+#define METHOD 0
 
 namespace grabec
 {
@@ -24,11 +24,18 @@ public:
   EasyCatSlave(const uint8_t slave_position);
   ~EasyCatSlave();
 
+#if METHOD
   /**
    * @brief SetUpdateFlag
    * @param value
    */
-  void SetUpdateFlag(bool value);
+  void SetUpdateFlag(bool value) { can_update_ = value; }
+#else
+  /**
+   * @brief Start
+   */
+  void Start();
+#endif
 
   /**
    * @brief Slave's main function to be cycled.
@@ -120,13 +127,19 @@ private:
 
   // Define the state machine state functions with event data type
   STATE_DECLARE(EasyCatSlave, Idle, NoEventData)
+#if METHOD
   GUARD_DECLARE(EasyCatSlave, GuardIdle, NoEventData)
+#endif
   STATE_DECLARE(EasyCatSlave, Update, NoEventData)
   GUARD_DECLARE(EasyCatSlave, GuardUpdate, NoEventData)
 
   // State map to define state object order. Each state map entry defines a state object.
   BEGIN_STATE_MAP_EX
+#if METHOD
   STATE_MAP_ENTRY_ALL_EX(&Idle, &GuardIdle, 0, 0)
+#else
+  STATE_MAP_ENTRY_EX(&Idle)
+#endif
   STATE_MAP_ENTRY_ALL_EX(&Update, &GuardUpdate, 0, 0)
   END_STATE_MAP_EX
 };
