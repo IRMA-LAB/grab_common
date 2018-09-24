@@ -10,46 +10,133 @@
 
 namespace grabec
 {
+/**
+ * @brief The States enum
+ * @todo implement:
+ * - fast stop during operation
+ * - reaction to a specific fault
+ */
+enum GoldSoloWhistleDriveStates : BYTE
+{
+  ST_START,
+  ST_NOT_READY_TO_SWITCH_ON,
+  ST_SWITCH_ON_DISABLED,
+  ST_READY_TO_SWITCH_ON,
+  ST_SWITCHED_ON,
+  ST_OPERATION_ENABLED,
+  ST_QUICK_STOP_ACTIVE,
+  ST_FAULT_REACTION_ACTIVE,
+  ST_FAULT,
+  ST_MAX_STATES
+};
 
 /**
-*@brief The GoldSoloWhistleDrive class
-*/
+ * @brief The GoldSoloWhistleOperationModes enum
+ */
+enum GoldSoloWhistleOperationModes
+{
+  NULL_OPERATION = -1,
+  CYCLIC_POSITION = 8,
+  CYCLIC_VELOCITY = 9,
+  CYCLIC_TORQUE = 10,
+};
+
+/**
+ * @brief The GoldSoloWhistleDriveData class
+ */
+class GoldSoloWhistleDriveData : public EventData
+{
+public:
+  /**
+   * @brief GoldSoloWhistleDriveData
+   * @param _op_mode
+   * @param _value
+   */
+  GoldSoloWhistleDriveData(const int8_t _op_mode, const int32_t _value = 0);
+
+  int8_t op_mode = NULL_OPERATION; /**< .. */
+  int32_t value = 0;               /**< .. */
+};
+
+/**
+ *@brief The GoldSoloWhistleDrive class
+ */
 class GoldSoloWhistleDrive : public EthercatSlave, public StateMachine
 {
 public:
-  enum States: uint8_t
-  {
-    ST_IDLE,
-    ST_READY2SWITCH_ON,
-    ST_SWITCH_ON,
-    ST_OPERATION_ENABLED,
-    ST_QUICK_STOP_ACTIVE,     // To be implemented, fast stop during operation
-    ST_FAULT_REACTION_ACTIVE, // To be implemented, reaction to a specific fault
-    ST_FAULT,
-    ST_MAX_STATE
-  };
-
   /**
    * @brief GoldSoloWhistleDrive
    * @param slave_position
    */
-  GoldSoloWhistleDrive(uint8_t slave_position);
+  GoldSoloWhistleDrive(const uint8_t slave_position);
+  ~GoldSoloWhistleDrive() {}
 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  //// External events resembling the ones internal to physical drive
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  /**
+   * @brief Shutdown
+   */
+  void Shutdown();
+  /**
+   * @brief SwitchOn
+   */
+  void SwitchOn();
+  /**
+   * @brief EnableOperation
+   */
+  void EnableOperation();
+  /**
+   * @brief DisableOperation
+   */
+  void DisableOperation();
+  /**
+   * @brief DisableVoltage
+   */
+  void DisableVoltage();
+  /**
+   * @brief QuickStop
+   */
+  void QuickStop();
+  /**
+   * @brief FaultReset
+   */
+  void FaultReset();
+  //////////////////////////////////////////////////////////////////////////////////////////
+  //// Additional external events taken by this state machine
+  ///  when it's operational
+  //////////////////////////////////////////////////////////////////////////////////////////
+  /**
+   * @brief ChangePosition
+   * @param target_position
+   */
+  void ChangePosition(const int32_t target_position);
+  /**
+   * @brief ChangeVelocity
+   * @param target_velocity
+   */
+  void ChangeVelocity(const int32_t target_velocity);
+  /**
+   * @brief ChangeTorque
+   * @param target_torque
+   */
+  void ChangeTorque(const int16_t target_torque);
+  /**
+   * @brief ChangeOpMode
+   * @param target_op_mode
+   */
+  void ChangeOpMode(const int8_t target_op_mode);
   /**
    * @brief SetTargetDefaults
    */
   void SetTargetDefaults();
+
   /**
    * @brief GetDriveState
    */
-  States GetDriveState();
-  /**
-   * @brief DetermineOperationState
-   */
-  void DetermineOperationState();
+  GoldSoloWhistleDriveStates GetDriveState() const;
 
   virtual RetVal SdoRequests(ec_slave_config_t* config_ptr) final;
-  virtual void DoWork() final;
   virtual void ReadInputs() final;
   virtual void WriteOutputs() final;
 
@@ -118,26 +205,34 @@ private:
     {3, EC_DIR_INPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs) + 1, EC_WD_DISABLE},
     {0xff, EC_DIR_INVALID, 0, 0x00, EC_WD_DEFAULT}};
 
+  static constexpr char* kStatesStr[] = {
+    const_cast<char*>("START"), const_cast<char*>("NOT_READY_TO_SWITCH_ON"),
+    const_cast<char*>("NOT_SWITCH_ON_DISABLED"),
+    const_cast<char*>("READY_TO_SWITCH_ON"),
+    const_cast<char*>("SWITCHED_ON"), const_cast<char*>("OPERATION_ENABLED"),
+    const_cast<char*>("QUICK_STOP_ACTIVE"), const_cast<char*>("FAULT_REACTION_ACTIVE"),
+    const_cast<char*>("FAULT"), const_cast<char*>("MAX_STATE")};
+
   // A simple way to store the pdos input values
   struct InputPdos
   {
-    std::bitset<16> status_word;
-    signed char display_op_mode;
-    int pos_actual_value;
-    int vel_actual_value;
-    short torque_actual_value;
-    unsigned int digital_inputs;
+    Bitfield16 status_word;
+    int8_t display_op_mode;
+    int32_t pos_actual_value;
+    int32_t vel_actual_value;
+    int16_t torque_actual_value;
+    uint digital_inputs;
     int aux_pos_actual_value;
   } input_pdos_;
 
   // A simple way to store the pdos output values
   struct OutputPdos
   {
-    std::bitset<16> control_word;
-    signed char op_mode;
-    short target_torque;
-    int target_position;
-    int target_velocity;
+    Bitfield16 control_word;
+    int8_t op_mode;
+    int16_t target_torque;
+    int32_t target_position;
+    int32_t target_velocity;
   } output_pdos_;
 
   // Useful ethercat struct
@@ -163,112 +258,56 @@ private:
   } offset_in_;
 
   ENUM_CLASS(StatusBit,
-             READY2SWITCH_ON = 0,
-             SWITCH_ON = 1,
-             ENABLED = 2,
+             READY_TO_SWITCH_ON = 0,
+             SWITCHED_ON = 1,
+             OPERATION_ENABLED = 2,
              FAULT = 3,
-             ON = 5,
-             OFF = 6
-             )
+             QUICK_STOP = 5,
+             SWITCH_ON_DISABLED = 6)
 
   ENUM_CLASS(ControlBit,
              SWITCH_ON = 0,
              ENABLE_VOLTAGE = 1,
              QUICK_STOP = 2,
-             ENABLE = 3,
-             FAULT = 7
-             )
+             ENABLE_OPERATION = 3,
+             FAULT = 7)
 
-  enum Command : uint8_t
+  enum Commands : uint8_t
   {
     UNSET,
     SET
   };
 
-  States drive_state_, requested_state_;
-
-  enum GoldSoloWhistleOperationState
-  {
-    NULL_OPERATION = 0,
-    CYCLIC_POSITION = 8,
-    CYCLIC_VELOCITY = 9,
-    CYCLIC_TORQUE = 10,
-  } operation_state_,
-    requeste_operation_state_;
-
+  GoldSoloWhistleDriveStates drive_state_, prev_state_;
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries]; // ethercat utilities
 
-  void SwitchOnDisabledFun();
-  void ReadyToSwitchOnFun();
-  void SwitchOnFun();
-  void OperationEnabledFun();
-  void QuickStopActiveFun();
-  void FaultReactionActiveFun();
-  void FaultFun();
-
-  void SwitchOnDisabledTransitions();
-  void ReadyToSwitchOnTransitions();
-  void SwitchOnTransitions();
-  void OperationEnabledTransitions();
-  void QuickStopActiveTransitions();
-  void FaultReactionActiveTransitions();
-  void FaultTransitions();
-
-  void CyclicPositionFun();
-  void CyclicVelocityFun();
-  void CyclicTorqueFun();
-
-  void CyclicPositionTransition();
-  void CyclicVelocityTransition();
-  void CyclicTorqueTransition();
-
   // Define the state machine state functions with event data type
-  STATE_DECLARE(GoldSoloWhistleDrive, Idle, NoEventData)
-  STATE_DECLARE(GoldSoloWhistleDrive, Ready2SwitchOn, NoEventData)
-  STATE_DECLARE(GoldSoloWhistleDrive, SwitchOn, NoEventData)
-  STATE_DECLARE(GoldSoloWhistleDrive, OperationEnabled, NoEventData)
+  STATE_DECLARE(GoldSoloWhistleDrive, Start, NoEventData)
+  STATE_DECLARE(GoldSoloWhistleDrive, NotReadyToSwitchOn, NoEventData)
+  STATE_DECLARE(GoldSoloWhistleDrive, SwitchOnDisabled, NoEventData)
+  STATE_DECLARE(GoldSoloWhistleDrive, ReadyToSwitchOn, NoEventData)
+  STATE_DECLARE(GoldSoloWhistleDrive, SwitchedOn, NoEventData)
+  STATE_DECLARE(GoldSoloWhistleDrive, OperationEnabled, GoldSoloWhistleDriveData)
   STATE_DECLARE(GoldSoloWhistleDrive, QuickStopActive, NoEventData)
   STATE_DECLARE(GoldSoloWhistleDrive, FaultReactionActive, NoEventData)
   STATE_DECLARE(GoldSoloWhistleDrive, Fault, NoEventData)
 
   // State map to define state object order. Each state map entry defines a state object.
   BEGIN_STATE_MAP
-  STATE_MAP_ENTRY(&Idle)
-  STATE_MAP_ENTRY(&Ready2SwitchOn)
-  STATE_MAP_ENTRY(&SwitchOn)
-  STATE_MAP_ENTRY(&OperationEnabled)
-  STATE_MAP_ENTRY(&QuickStopActive)
-  STATE_MAP_ENTRY(&FaultReactionActive)
-  STATE_MAP_ENTRY(&Fault)
+    STATE_MAP_ENTRY({&Start})
+    STATE_MAP_ENTRY({&NotReadyToSwitchOn})
+    STATE_MAP_ENTRY({&SwitchOnDisabled})
+    STATE_MAP_ENTRY({&ReadyToSwitchOn})
+    STATE_MAP_ENTRY({&SwitchedOn})
+    STATE_MAP_ENTRY({&OperationEnabled})
+    STATE_MAP_ENTRY({&QuickStopActive})
+    STATE_MAP_ENTRY({&FaultReactionActive})
+    STATE_MAP_ENTRY({&Fault})
   END_STATE_MAP
 
-  typedef void (
-    GoldSoloWhistleDrive::*StateFunction)(); // Easyway to implement state machine
-
-  // State machine function array
-  StateFunction state_machine_[ST_MAX_STATE] = {
-    &GoldSoloWhistleDrive::SwitchOnDisabledFun, &GoldSoloWhistleDrive::ReadyToSwitchOnFun,
-    &GoldSoloWhistleDrive::SwitchOnFun, &GoldSoloWhistleDrive::OperationEnabledFun,
-    &GoldSoloWhistleDrive::QuickStopActiveFun,
-    &GoldSoloWhistleDrive::FaultReactionActiveFun, &GoldSoloWhistleDrive::FaultFun};
-  // State machine transition function array
-  StateFunction state_manager_[ST_MAX_STATE] = {
-    &GoldSoloWhistleDrive::SwitchOnDisabledTransitions,
-    &GoldSoloWhistleDrive::ReadyToSwitchOnTransitions,
-    &GoldSoloWhistleDrive::SwitchOnTransitions,
-    &GoldSoloWhistleDrive::OperationEnabledTransitions,
-    &GoldSoloWhistleDrive::QuickStopActiveTransitions,
-    &GoldSoloWhistleDrive::FaultReactionActiveTransitions,
-    &GoldSoloWhistleDrive::FaultTransitions};
-
-  StateFunction operation_state_machine_[kNumSupportedOperations] = {
-    &GoldSoloWhistleDrive::CyclicPositionFun, &GoldSoloWhistleDrive::CyclicVelocityFun,
-    &GoldSoloWhistleDrive::CyclicTorqueFun};
-  // State machine transition function array
-  StateFunction operation_state_manager_[kNumSupportedOperations] = {
-    &GoldSoloWhistleDrive::CyclicPositionTransition,
-    &GoldSoloWhistleDrive::CyclicVelocityTransition,
-    &GoldSoloWhistleDrive::CyclicTorqueTransition};
+  inline void PrintCommand(const char* cmd) const;
+  void PrintStateTransition(const GoldSoloWhistleDriveStates current_state,
+                            const GoldSoloWhistleDriveStates new_state) const;
 };
 
 } // end namespace grabec

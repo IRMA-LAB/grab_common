@@ -3,7 +3,22 @@
 namespace grabec
 {
 
-GoldSoloWhistleDrive::GoldSoloWhistleDrive(uint8_t slave_position): StateMachine(ST_MAX_STATE)
+////////////////////////////////////////////////////////////////////////////
+//// GoldSoloWhistleDriveData
+////////////////////////////////////////////////////////////////////////////
+
+GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
+                                                   const int32_t _value /*= 0*/)
+  : op_mode(_op_mode), value(_value)
+{
+}
+
+////////////////////////////////////////////////////////////////////////////
+//// GoldSoloWhistleDrive
+////////////////////////////////////////////////////////////////////////////
+
+GoldSoloWhistleDrive::GoldSoloWhistleDrive(const uint8_t slave_position)
+  : StateMachine(ST_MAX_STATES)
 {
   alias_ = kAlias;
   position_ = slave_position;
@@ -45,35 +60,46 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(uint8_t slave_position): StateMachine
   slave_pdos_ptr_ = const_cast<ec_pdo_info_t*>(kPDOs);
   slave_sync_ptr_ = const_cast<ec_sync_info_t*>(kSyncs);
 
-  requested_state_ = ST_MAX_STATE;
-  drive_state_ = ST_IDLE;
-  requeste_operation_state_ = NULL_OPERATION;
-  operation_state_ = CYCLIC_POSITION;
+  drive_state_ = ST_START;
+  prev_state_ = static_cast<GoldSoloWhistleDriveStates>(GetCurrentState());
+
+  InternalEvent(drive_state_);
 }
 
-void GoldSoloWhistleDrive::SetTargetDefaults()
+GoldSoloWhistleDriveStates GoldSoloWhistleDrive::GetDriveState() const
 {
-  switch (input_pdos_.display_op_mode)
-  {
-  case CYCLIC_POSITION:
-  {
-    output_pdos_.target_position = input_pdos_.pos_actual_value;
-    break;
+  if (input_pdos_.status_word[StatusBit::SWITCH_ON_DISABLED] == SET)
+  { // drive idle: OFF=true
+    return ST_NOT_READY_TO_SWITCH_ON;
   }
-  case CYCLIC_VELOCITY:
+  if (input_pdos_.status_word[StatusBit::QUICK_STOP] == SET)
   {
-    output_pdos_.target_velocity = input_pdos_.vel_actual_value;
-    break;
+    if (input_pdos_.status_word[StatusBit::SWITCHED_ON] == UNSET)
+    { // drive in operational progress: OFF=false, ON=true, SWITCH_ON=false
+      return ST_READY_TO_SWITCH_ON;
+    }
+    if (input_pdos_.status_word[StatusBit::OPERATION_ENABLED] == UNSET)
+    { // drive in operational progress: OFF=false, ON=true, SWITCH_ON=true, ENABLED=false
+      return ST_SWITCHED_ON;
+    }
+    // drive operational: OFF=false, ON=true, SWITCH_ON=true, ENABLED=true
+    return ST_OPERATION_ENABLED;
   }
-  case CYCLIC_TORQUE:
-  {
-    output_pdos_.target_torque = input_pdos_.torque_actual_value;
-    break;
+  if (input_pdos_.status_word[StatusBit::FAULT] == UNSET)
+  { // drive in quick stop: OFF=false, ON=false, FAULT=false
+    return ST_QUICK_STOP_ACTIVE;
   }
-  default:
-    break;
+  if (input_pdos_.status_word[StatusBit::OPERATION_ENABLED] == SET)
+  { // drive in fault reaction: OFF=false, ON=false, FAULT=true, ENABLED=true
+    return ST_FAULT_REACTION_ACTIVE;
   }
+  // drive in fault: OFF=false, ON=false, FAULT=true, ENABLED=false
+  return ST_FAULT;
 }
+
+////////////////////////////////////////////////////////////////////////////
+//// Overwritten virtual functions from base class
+////////////////////////////////////////////////////////////////////////////
 
 RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
 {
@@ -99,11 +125,10 @@ RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
   return OK;
 }
 
-void GoldSoloWhistleDrive::DoWork() { (this->*state_machine_[drive_state_])(); }
-
 void GoldSoloWhistleDrive::ReadInputs()
 {
-  input_pdos_.status_word = EC_READ_U16(domain_data_ptr_ + offset_in_.status_word);
+  input_pdos_.status_word.SetBitset(
+    EC_READ_U16(domain_data_ptr_ + offset_in_.status_word));
   input_pdos_.display_op_mode = EC_READ_S8(domain_data_ptr_ + offset_in_.display_op_mode);
   input_pdos_.pos_actual_value =
     EC_READ_S32(domain_data_ptr_ + offset_in_.position_actual_value);
@@ -114,17 +139,23 @@ void GoldSoloWhistleDrive::ReadInputs()
   input_pdos_.digital_inputs = EC_READ_U32(domain_data_ptr_ + offset_in_.digital_inputs);
   input_pdos_.aux_pos_actual_value =
     EC_READ_S32(domain_data_ptr_ + offset_in_.aux_pos_actual_value);
+
   drive_state_ = GetDriveState();
   if (drive_state_ != GetCurrentState())
-    InternalEvent(drive_state_);
+  {
+    if (drive_state_ == ST_OPERATION_ENABLED)
+      ChangeOpMode(input_pdos_.display_op_mode);
+    else
+      InternalEvent(drive_state_);
+  }
 }
 
 void GoldSoloWhistleDrive::WriteOutputs()
 {
   EC_WRITE_U16(domain_data_ptr_ + offset_out_.control_word,
-               static_cast<unsigned short>(output_pdos_.control_word.to_ulong()));
+               output_pdos_.control_word.GetBitset().to_ulong());
   EC_WRITE_S8(domain_data_ptr_ + offset_out_.op_mode, output_pdos_.op_mode);
-  if (drive_state_ == ST_OPERATION_ENABLED || drive_state_ == ST_SWITCH_ON)
+  if (drive_state_ == ST_OPERATION_ENABLED || drive_state_ == ST_SWITCHED_ON)
   {
     EC_WRITE_S32(domain_data_ptr_ + offset_out_.target_position,
                  output_pdos_.target_position);
@@ -135,296 +166,312 @@ void GoldSoloWhistleDrive::WriteOutputs()
   }
 }
 
-GoldSoloWhistleDrive::States GoldSoloWhistleDrive::GetDriveState()
+////////////////////////////////////////////////////////////////////////////
+//// External events taken by this state machine
+////////////////////////////////////////////////////////////////////////////
+
+void GoldSoloWhistleDrive::Shutdown()
 {
-  if (input_pdos_.status_word[StatusBit::OFF] == SET)
-  { // drive idle: OFF=true
-    return ST_IDLE;
-  }
-  if (input_pdos_.status_word[StatusBit::ON] == SET)
-  {
-    if (input_pdos_.status_word[StatusBit::SWITCH_ON] == UNSET)
-    { // drive in operational progress: OFF=false, ON=true, SWITCH_ON=false
-      return ST_READY2SWITCH_ON;
-    }
-    if (input_pdos_.status_word[StatusBit::ENABLED] == UNSET)
-    { // drive in operational progress: OFF=false, ON=true, SWITCH_ON=true, ENABLED=false
-      return ST_SWITCH_ON;
-    }
-    // drive operational: OFF=false, ON=true, SWITCH_ON=true, ENABLED=true
-    DetermineOperationState();
-    return ST_OPERATION_ENABLED;
-  }
-  if (input_pdos_.status_word[StatusBit::FAULT] == UNSET)
-  { // drive in quick stop: OFF=false, ON=false, FAULT=false
-    return ST_QUICK_STOP_ACTIVE;
-  }
-  if (input_pdos_.status_word[StatusBit::ENABLED] == SET)
-  { // drive in fault reaction: OFF=false, ON=false, FAULT=true, ENABLED=true
-    return ST_FAULT_REACTION_ACTIVE;
-  }
-  // drive in fault: OFF=false, ON=false, FAULT=true, ENABLED=false
-  return ST_FAULT;
+  PrintCommand("Shutdown");
+  output_pdos_.control_word.Clear(ControlBit::SWITCH_ON);
+  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.Set(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.Clear(ControlBit::FAULT);
 }
 
-void GoldSoloWhistleDrive::DetermineOperationState()
+void GoldSoloWhistleDrive::SwitchOn()
 {
-  switch (input_pdos_.display_op_mode)
+  PrintCommand("SwitchOn");
+  // Trigger device control command
+  output_pdos_.control_word.Set(ControlBit::SWITCH_ON);
+  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.Set(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.Clear(ControlBit::ENABLE_OPERATION);
+  output_pdos_.control_word.Clear(ControlBit::FAULT);
+  // Setup default operational mode before enabling the drive
+  output_pdos_.op_mode = CYCLIC_POSITION;
+  output_pdos_.target_position = input_pdos_.pos_actual_value;
+}
+
+void GoldSoloWhistleDrive::EnableOperation()
+{
+  PrintCommand("EnableOperation");
+  // Trigger device control command
+  output_pdos_.control_word.Set(ControlBit::SWITCH_ON);
+  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.Set(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.Set(ControlBit::ENABLE_OPERATION);
+  output_pdos_.control_word.Clear(ControlBit::FAULT);
+}
+
+void GoldSoloWhistleDrive::DisableOperation()
+{
+  PrintCommand("DisableOperation");
+  // Trigger device control command
+  output_pdos_.control_word.Set(ControlBit::SWITCH_ON);
+  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.Set(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.Clear(ControlBit::ENABLE_OPERATION);
+  output_pdos_.control_word.Clear(ControlBit::FAULT);
+}
+
+void GoldSoloWhistleDrive::DisableVoltage()
+{
+  PrintCommand("DisableVoltage");
+  // Trigger device control command
+  output_pdos_.control_word.Clear(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.Clear(ControlBit::FAULT);
+}
+
+void GoldSoloWhistleDrive::QuickStop()
+{
+  PrintCommand("QuickStop");
+  // Trigger device control command
+  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.Clear(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.Clear(ControlBit::FAULT);
+}
+
+void GoldSoloWhistleDrive::FaultReset()
+{
+  PrintCommand("FaultReset");
+  // Trigger device control command
+  output_pdos_.control_word.Set(ControlBit::FAULT);
+}
+
+void GoldSoloWhistleDrive::ChangePosition(const int32_t target_position)
+{
+  PrintCommand("ChangePosition");
+  printf("\tTarget position: %d\n", target_position);
+
+  GoldSoloWhistleDriveData data(CYCLIC_POSITION, target_position);
+
+  BEGIN_TRANSITION_MAP                         // - Current State -
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
+    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
+    END_TRANSITION_MAP(&data)
+}
+
+void GoldSoloWhistleDrive::ChangeVelocity(const int32_t target_velocity)
+{
+  PrintCommand("ChangeVelocity");
+  printf("\tTarget velocity: %d\n", target_velocity);
+
+  GoldSoloWhistleDriveData data(CYCLIC_VELOCITY, target_velocity);
+
+  BEGIN_TRANSITION_MAP                         // - Current State -
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
+    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
+    END_TRANSITION_MAP(&data)
+}
+
+void GoldSoloWhistleDrive::ChangeTorque(const int16_t target_torque)
+{
+  PrintCommand("ChangeTorque");
+  printf("\tTarget torque: %d\n", target_torque);
+
+  GoldSoloWhistleDriveData data(CYCLIC_TORQUE, target_torque);
+
+  BEGIN_TRANSITION_MAP                         // - Current State -target_torque
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
+    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
+    END_TRANSITION_MAP(&data)
+}
+
+void GoldSoloWhistleDrive::ChangeOpMode(const int8_t target_op_mode)
+{
+  PrintCommand("ChangeOpMode");
+
+  GoldSoloWhistleDriveData data(target_op_mode);
+  // Set target value to current one
+  switch (target_op_mode)
   {
   case CYCLIC_POSITION:
-  {
-    operation_state_ = CYCLIC_POSITION;
+    data.value = input_pdos_.pos_actual_value;
+    printf("\tTarget operational mode: CYCLIC_POSITION\n");
     break;
-  }
   case CYCLIC_VELOCITY:
-  {
-    operation_state_ = CYCLIC_VELOCITY;
+    data.value = input_pdos_.vel_actual_value;
+    printf("\tTarget operational mode: CYCLIC_VELOCITY\n");
     break;
-  }
   case CYCLIC_TORQUE:
-  {
-    operation_state_ = CYCLIC_TORQUE;
-    break;
-  }
-  default:
-    break;
-  }
-}
-
-void GoldSoloWhistleDrive::SwitchOnDisabledFun() {}
-
-void GoldSoloWhistleDrive::ReadyToSwitchOnFun() {}
-
-void GoldSoloWhistleDrive::SwitchOnFun() {}
-
-void GoldSoloWhistleDrive::OperationEnabledFun() {}
-
-void GoldSoloWhistleDrive::QuickStopActiveFun() {}
-
-void GoldSoloWhistleDrive::FaultReactionActiveFun() {}
-
-void GoldSoloWhistleDrive::FaultFun() {}
-
-void GoldSoloWhistleDrive::SwitchOnDisabledTransitions()
-{
-  switch (requested_state_)
-  {
-  case ST_IDLE:
-  { // We previously asked for a state change: it occurred
-    std::cout << "Drive " << position_ << " Status Word: " << input_pdos_.status_word
-              << std::endl;
-    std::cout << "Drive " << position_ << " Idle." << std::endl;
-    requested_state_ = ST_MAX_STATE;
-    break;
-  }
-  case ST_READY2SWITCH_ON:
-  { // We are starting the enabling sequence, transition 2
-    std::cout << "Drive " << position_ << " Status Word: " << input_pdos_.status_word
-              << std::endl;
-    std::cout << "Drive " << position_ << " requesting Ready To Switch On." << std::endl;
-    output_pdos_.control_word[ControlBit::SWITCH_ON] = UNSET;
-    output_pdos_.control_word[ControlBit::ENABLE_VOLTAGE] = SET;
-    output_pdos_.control_word[ControlBit::QUICK_STOP] = SET;
-    output_pdos_.control_word[ControlBit::ENABLE] = UNSET;
-    output_pdos_.control_word[ControlBit::FAULT] = UNSET;
-    break;
-  }
-  default:
-    break;
-  }
-}
-
-void GoldSoloWhistleDrive::ReadyToSwitchOnTransitions()
-{
-  switch (requested_state_)
-  {
-  case ST_READY2SWITCH_ON:
-  { // We previously asked for a feasible state change, now we ask for another
-    std::cout << "Drive " << position_ << " Status Word: " << input_pdos_.status_word
-              << std::endl;
-    std::cout << "Drive " << position_ << " Ready To Switch On." << std::endl;
-    output_pdos_.control_word[ControlBit::SWITCH_ON] = SET;
-    requested_state_ = ST_SWITCH_ON;
-    output_pdos_.op_mode = CYCLIC_POSITION;
-    output_pdos_.target_position = input_pdos_.pos_actual_value;
-    break;
-  }
-  default:
-    break;
-  }
-}
-
-void GoldSoloWhistleDrive::SwitchOnTransitions()
-{
-  switch (requested_state_)
-  {
-  case ST_SWITCH_ON:
-  { // We previously asked for a feasible state change, now we ask for another
-    std::cout << "Drive " << position_ << " Status Word: " << input_pdos_.status_word
-              << std::endl;
-    std::cout << "Drive " << position_ << " Switch On." << std::endl;
-    // outputPdos.TargetPosition = inputPdos.positionActualValue;
-    // outputPdos.TargetTorque = inputPdos.torqueActualValue;
-    // outputPdos.TargetVelocity = inputPdos.velocityActualValue;
-    output_pdos_.control_word[ControlBit::ENABLE] = SET;
-    requested_state_ = ST_OPERATION_ENABLED;
-    break;
-  }
-  default:
-    break;
-  }
-}
-
-void GoldSoloWhistleDrive::OperationEnabledTransitions()
-{
-  switch (requested_state_)
-  {
-  case ST_OPERATION_ENABLED:
-  { // We previously asked for a state change: it occurred
-    std::cout << "Drive " << position_ << " Status Word: " << input_pdos_.status_word
-              << std::endl;
-    std::cout << "Drive " << position_ << "  Enabled." << std::endl;
-    requested_state_ = ST_MAX_STATE;
-    (this->*operation_state_manager_[operation_state_ - kOperationOffset])();
-    break;
-  }
-  case ST_IDLE:
-  { // We want to disable the drive
-    std::cout << "Drive " << position_ << " Status Word: " << input_pdos_.status_word
-              << std::endl;
-    std::cout << "Drive " << position_ << " going Idle" << std::endl;
-    output_pdos_.control_word.reset();
-    break;
-  }
-  default:
-  {
-    (this->*operation_state_manager_[operation_state_ - kOperationOffset])();
-    break;
-  }
-  }
-}
-
-void GoldSoloWhistleDrive::QuickStopActiveTransitions()
-{
-  requested_state_ = ST_MAX_STATE; // We shouldn't be here..
-}
-
-void GoldSoloWhistleDrive::FaultReactionActiveTransitions()
-{
-  requested_state_ = ST_MAX_STATE; // We shouldn't be here..
-}
-
-void GoldSoloWhistleDrive::FaultTransitions()
-{
-  switch (requested_state_)
-  {
-  case ST_IDLE:
-  { // we are requesting a fault reset
-    std::cout << "Drive " << position_ << " Status Word: " << input_pdos_.status_word
-              << std::endl;
-    std::cout << "Drive " << position_ << " requesting Fault Reset: going Idle"
-              << std::endl;
-    output_pdos_.control_word.reset();
-    output_pdos_.control_word[ControlBit::FAULT] = SET;
-    break;
-  }
-  case ST_MAX_STATE:
+    data.value = input_pdos_.torque_actual_value;
+    printf("\tTarget operational mode: CYCLIC_TORQUE\n");
     break;
   default:
-  {
-    std::cout << "Drive " << position_ << " Status Word: " << input_pdos_.status_word
-              << std::endl;
-    std::cout << "Drive " << position_
-              << " encountered an error asking for state change code: "
-              << requested_state_ << std::endl;
-    requested_state_ = ST_MAX_STATE;
+    printf("\tTarget operational mode: NO_MODE\n");
     break;
   }
-  }
+
+  BEGIN_TRANSITION_MAP                         // - Current State -
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
+    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
+    END_TRANSITION_MAP(&data)
 }
 
-void GoldSoloWhistleDrive::CyclicPositionFun() {}
-
-void GoldSoloWhistleDrive::CyclicVelocityFun() {}
-
-void GoldSoloWhistleDrive::CyclicTorqueFun() {}
-
-void GoldSoloWhistleDrive::CyclicPositionTransition()
+void GoldSoloWhistleDrive::SetTargetDefaults()
 {
-  switch (requeste_operation_state_)
+  PrintCommand("SetTargetDefaults");
+
+  // Set target operational mode and value to current ones
+  GoldSoloWhistleDriveData data(input_pdos_.display_op_mode);
+  switch (data.op_mode)
   {
   case CYCLIC_POSITION:
-  {
-    requeste_operation_state_ = NULL_OPERATION;
+    data.value = input_pdos_.pos_actual_value;
+    printf("\tDefault operational mode: CYCLIC_POSITION @ %d\n", data.value);
     break;
-  }
   case CYCLIC_VELOCITY:
-  {
-    output_pdos_.op_mode = CYCLIC_VELOCITY;
-    output_pdos_.target_velocity = input_pdos_.vel_actual_value;
+    data.value = input_pdos_.vel_actual_value;
+    printf("\tDefault operational mode: CYCLIC_VELOCITY @ %d\n", data.value);
     break;
-  }
   case CYCLIC_TORQUE:
-  {
-    output_pdos_.op_mode = CYCLIC_TORQUE;
-    output_pdos_.target_torque = input_pdos_.torque_actual_value;
+    data.value = input_pdos_.torque_actual_value;
+    printf("\tDefault operational mode: CYCLIC_TORQUE @ %d\n", data.value);
     break;
-  }
   default:
+    printf("\tDefault operational mode: NO_MODE\n");
     break;
   }
+
+  BEGIN_TRANSITION_MAP                         // - Current State -
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
+    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
+    END_TRANSITION_MAP(&data)
 }
 
-void GoldSoloWhistleDrive::CyclicVelocityTransition()
+////////////////////////////////////////////////////////////////////////////
+//// States actions
+////////////////////////////////////////////////////////////////////////////
+
+STATE_DEFINE(GoldSoloWhistleDrive, Start, NoEventData)
 {
-  switch (requeste_operation_state_)
-  {
-  case CYCLIC_POSITION:
-  {
-    output_pdos_.op_mode = CYCLIC_POSITION;
-    output_pdos_.target_position = input_pdos_.pos_actual_value;
-    break;
-  }
-  case CYCLIC_VELOCITY:
-  {
-    requeste_operation_state_ = NULL_OPERATION;
-    break;
-  }
-  case CYCLIC_TORQUE:
-  {
-    output_pdos_.op_mode = CYCLIC_TORQUE;
-    output_pdos_.target_torque = input_pdos_.torque_actual_value;
-    break;
-  }
-  default:
-    break;
-  }
+  prev_state_ = ST_START;
+  printf("GoldSoloWhistleDrive %u inItial state: %s\n", position_, kStatesStr[ST_START]);
+  // This happens automatically on drive's start up. We simply imitate the behavior here.
+  InternalEvent(ST_NOT_READY_TO_SWITCH_ON);
 }
 
-void GoldSoloWhistleDrive::CyclicTorqueTransition()
+STATE_DEFINE(GoldSoloWhistleDrive, NotReadyToSwitchOn, NoEventData)
 {
-  switch (requeste_operation_state_)
+  PrintStateTransition(prev_state_, ST_NOT_READY_TO_SWITCH_ON);
+  prev_state_ = ST_NOT_READY_TO_SWITCH_ON;
+  // This happens automatically on drive's start up. We simply imitate the behavior here.
+  InternalEvent(ST_SWITCH_ON_DISABLED);
+}
+
+STATE_DEFINE(GoldSoloWhistleDrive, SwitchOnDisabled, NoEventData)
+{
+  PrintStateTransition(prev_state_, ST_SWITCH_ON_DISABLED);
+  prev_state_ = ST_SWITCH_ON_DISABLED;
+}
+
+STATE_DEFINE(GoldSoloWhistleDrive, ReadyToSwitchOn, NoEventData)
+{
+  PrintStateTransition(prev_state_, ST_READY_TO_SWITCH_ON);
+  prev_state_ = ST_READY_TO_SWITCH_ON;
+}
+
+STATE_DEFINE(GoldSoloWhistleDrive, SwitchedOn, NoEventData)
+{
+  PrintStateTransition(prev_state_, ST_SWITCHED_ON);
+  prev_state_ = ST_SWITCHED_ON;
+}
+
+STATE_DEFINE(GoldSoloWhistleDrive, OperationEnabled, GoldSoloWhistleDriveData)
+{
+  PrintStateTransition(prev_state_, ST_OPERATION_ENABLED);
+
+  // Setup operational mode and target value
+  output_pdos_.op_mode = data->op_mode;
+  switch (data->op_mode)
   {
   case CYCLIC_POSITION:
-  {
-    output_pdos_.op_mode = CYCLIC_POSITION;
-    output_pdos_.target_position = input_pdos_.pos_actual_value;
+    output_pdos_.target_position = data->value;
     break;
-  }
   case CYCLIC_VELOCITY:
-  {
-    output_pdos_.op_mode = CYCLIC_VELOCITY;
-    output_pdos_.target_velocity = input_pdos_.vel_actual_value;
+    output_pdos_.target_velocity = data->value;
     break;
-  }
   case CYCLIC_TORQUE:
-  {
-    requeste_operation_state_ = NULL_OPERATION;
+    output_pdos_.target_torque = static_cast<int16_t>(data->value);
     break;
-  }
   default:
     break;
   }
+
+  prev_state_ = ST_OPERATION_ENABLED;
+}
+
+STATE_DEFINE(GoldSoloWhistleDrive, QuickStopActive, NoEventData)
+{
+  PrintStateTransition(prev_state_, ST_QUICK_STOP_ACTIVE);
+  prev_state_ = ST_QUICK_STOP_ACTIVE;
+}
+
+STATE_DEFINE(GoldSoloWhistleDrive, FaultReactionActive, NoEventData)
+{
+  PrintStateTransition(prev_state_, ST_FAULT_REACTION_ACTIVE);
+  prev_state_ = ST_FAULT_REACTION_ACTIVE;
+}
+
+STATE_DEFINE(GoldSoloWhistleDrive, Fault, NoEventData)
+{
+  PrintStateTransition(prev_state_, ST_FAULT);
+  prev_state_ = ST_FAULT;
+}
+
+////////////////////////////////////////////////////////////////////////////
+//// Miscellaneous
+////////////////////////////////////////////////////////////////////////////
+
+inline void GoldSoloWhistleDrive::PrintCommand(const char* cmd) const
+{
+  printf("GoldSoloWhistleDrive %u received command: %s\n", position_, cmd);
+}
+
+void GoldSoloWhistleDrive::PrintStateTransition(
+  const GoldSoloWhistleDriveStates current_state,
+  const GoldSoloWhistleDriveStates new_state) const
+{
+  if (current_state == new_state)
+    return;
+  printf("GoldSoloWhistleDrive %u state transition: %s --> %s\n", position_,
+         kStatesStr[current_state], kStatesStr[new_state]);
 }
 
 } // end namespace grabec
