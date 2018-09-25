@@ -1,3 +1,10 @@
+/**
+ * @file goldsolowhistledrive.cpp
+ * @author Edoardo Idà, Simone Comari
+ * @date 25 Sep 2018
+ * @brief File containing class implementation declared in goldsolowhistledrive.h.
+ */
+
 #include "slaves/goldsolowhistledrive.h"
 
 namespace grabec
