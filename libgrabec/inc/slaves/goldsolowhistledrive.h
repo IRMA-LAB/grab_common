@@ -2,7 +2,8 @@
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
  * @date 25 Sep 2018
- * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the GRAB
+ * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
+ * GRAB
  * ethercat library.
  */
 
@@ -52,6 +53,12 @@ enum GoldSoloWhistleOperationModes : int8_t
   CYCLIC_TORQUE = 10,
 };
 
+enum Commands : uint8_t
+{
+  UNSET,
+  SET
+};
+
 /**
  * @brief The GoldSoloWhistleDriveData class.
  *
@@ -99,7 +106,7 @@ public:
  * - fast stop during operation
  * - reaction to a specific fault
  */
-class GoldSoloWhistleDrive : public EthercatSlave, public StateMachine
+class GoldSoloWhistleDrive : public StateMachine, virtual public EthercatSlave
 {
 public:
   /**
@@ -190,6 +197,11 @@ public:
    */
   void ChangePosition(const int32_t target_position);
   /**
+   * @brief ChangeDeltaPosition
+   * @param delta_position
+   */
+  void ChangeDeltaPosition(const int32_t delta_position);
+  /**
    * @brief Change Velocity external event.
    *
    * If drive is in in OPERATION ENABLED state, it changes _operation mode_ to
@@ -198,6 +210,11 @@ public:
    */
   void ChangeVelocity(const int32_t target_velocity);
   /**
+   * @brief ChangeDeltaVelocity
+   * @param delta_velocity
+   */
+  void ChangeDeltaVelocity(const int32_t delta_velocity);
+  /**
    * @brief Change Torque external event.
    *
    * If drive is in in OPERATION ENABLED state, it changes _operation mode_ to
@@ -205,6 +222,11 @@ public:
    * @param[in] target_torque New torque setpoint in user-defined units.
    */
   void ChangeTorque(const int16_t target_torque);
+  /**
+   * @brief ChangeDeltaTorque
+   * @param delta_torque
+   */
+  void ChangeDeltaTorque(const int16_t delta_torque);
   /**
    * @brief Change Operation Mode external event.
    *
@@ -227,10 +249,53 @@ public:
    * @return Latest known physical drive state.
    */
   GoldSoloWhistleDriveStates GetDriveState() const;
+  /**
+   * @brief Get actual drive position (aka counts).
+   * @return Actual drive position (aka counts).
+   */
+  int32_t GetPosition() const { return  input_pdos_.pos_actual_value; }
+  /**
+   * @brief Get actual drive auxiliary position (aka counts).
+   *
+   * This field can be used by external sensors connected to the drive, for instance an
+   * additional encoder.
+   * @return Actual drive auxiliary position (aka counts).
+   */
+  int GetAuxPosition() const { return  input_pdos_.aux_pos_actual_value; }
 
-  virtual RetVal SdoRequests(ec_slave_config_t* config_ptr) final;
-  virtual void ReadInputs() final;
-  virtual void WriteOutputs() final;
+  /**
+   * @brief ReadInputs
+   */
+  void ReadInputs() override final;
+  /**
+   * @brief WriteOutputs
+   */
+  void WriteOutputs() override final;
+
+protected:
+  // A simple way to store the pdos input values
+  struct InputPdos
+  {
+    Bitfield16 status_word;
+    int8_t display_op_mode;
+    int32_t pos_actual_value;
+    int32_t vel_actual_value;
+    int16_t torque_actual_value;
+    uint digital_inputs;
+    int aux_pos_actual_value;
+  } input_pdos_;
+
+  // A simple way to store the pdos output values
+  struct OutputPdos
+  {
+    Bitfield16 control_word;
+    int8_t op_mode;
+    int16_t target_torque;
+    int32_t target_position;
+    int32_t target_velocity;
+  } output_pdos_;
+
+  GoldSoloWhistleDriveStates drive_state_;
 
 private:
   static constexpr uint8_t kDomainInputs = 7;
@@ -304,28 +369,6 @@ private:
     const_cast<char*>("QUICK_STOP_ACTIVE"), const_cast<char*>("FAULT_REACTION_ACTIVE"),
     const_cast<char*>("FAULT"), const_cast<char*>("MAX_STATE")};
 
-  // A simple way to store the pdos input values
-  struct InputPdos
-  {
-    Bitfield16 status_word;
-    int8_t display_op_mode;
-    int32_t pos_actual_value;
-    int32_t vel_actual_value;
-    int16_t torque_actual_value;
-    uint digital_inputs;
-    int aux_pos_actual_value;
-  } input_pdos_;
-
-  // A simple way to store the pdos output values
-  struct OutputPdos
-  {
-    Bitfield16 control_word;
-    int8_t op_mode;
-    int16_t target_torque;
-    int32_t target_position;
-    int32_t target_velocity;
-  } output_pdos_;
-
   // Useful ethercat struct
   struct OffsetOut
   {
@@ -365,13 +408,7 @@ private:
              FAULT = 7)
   // clang-format on
 
-  enum Commands : uint8_t
-  {
-    UNSET,
-    SET
-  };
-
-  GoldSoloWhistleDriveStates drive_state_, prev_state_;
+  GoldSoloWhistleDriveStates prev_state_;
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries]; // ethercat utilities
 
   // Define the state machine state functions with event data type
@@ -399,6 +436,12 @@ private:
     STATE_MAP_ENTRY({&Fault})
   // clang-format on
   END_STATE_MAP
+
+  void SetChange(const GoldSoloWhistleDriveData& data);
+
+  RetVal SdoRequests(ec_slave_config_t* config_ptr) override final;
+  void DoWork() override {}
+  void InitFun() override {}
 
   inline void PrintCommand(const char* cmd) const;
   void PrintStateTransition(const GoldSoloWhistleDriveStates current_state,

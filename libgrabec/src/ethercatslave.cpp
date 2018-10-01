@@ -13,7 +13,7 @@ namespace grabec
 /// Public methods
 /////////////////////////////////////////////////
 
-EthercatSlave::~EthercatSlave() {}  // necessary for pure abstract class
+EthercatSlave::~EthercatSlave() {}  // necessary for pure abstract destructor
 
 void EthercatSlave::Init(uint8_t* _domain_data_ptr)
 {
@@ -49,19 +49,10 @@ ec_pdo_entry_reg_t EthercatSlave::GetDomainRegister(uint8_t index) const
 }
 
 /////////////////////////////////////////////////
-/// Private methods
-/////////////////////////////////////////////////
-
-void EthercatSlave::SetDomainDataPtr(uint8_t* _domain_data_ptr)
-{
-  domain_data_ptr_ = _domain_data_ptr;
-}
-
-/////////////////////////////////////////////////
 /// Protected methods
 /////////////////////////////////////////////////
 
-RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)
+RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)  // virtual
 {
   static ec_sdo_request_t* sdo_ptr = NULL;
 
@@ -70,6 +61,15 @@ RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)
   if (config_ptr == NULL)
     return ECONFIG;
   return OK;
+}
+
+/////////////////////////////////////////////////
+/// Private methods
+/////////////////////////////////////////////////
+
+void EthercatSlave::SetDomainDataPtr(uint8_t* _domain_data_ptr)
+{
+  domain_data_ptr_ = _domain_data_ptr;
 }
 
 } // end namespace grabec

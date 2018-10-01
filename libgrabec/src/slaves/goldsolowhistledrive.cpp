@@ -252,18 +252,12 @@ void GoldSoloWhistleDrive::ChangePosition(const int32_t target_position)
   printf("\tTarget position: %d\n", target_position);
 
   GoldSoloWhistleDriveData data(CYCLIC_POSITION, target_position);
+  SetChange(data);
+}
 
-  BEGIN_TRANSITION_MAP                         // - Current State -
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
-    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
-    END_TRANSITION_MAP(&data)
+void GoldSoloWhistleDrive::ChangeDeltaPosition(const int32_t delta_position)
+{
+  ChangePosition(input_pdos_.pos_actual_value + delta_position);
 }
 
 void GoldSoloWhistleDrive::ChangeVelocity(const int32_t target_velocity)
@@ -272,18 +266,12 @@ void GoldSoloWhistleDrive::ChangeVelocity(const int32_t target_velocity)
   printf("\tTarget velocity: %d\n", target_velocity);
 
   GoldSoloWhistleDriveData data(CYCLIC_VELOCITY, target_velocity);
+  SetChange(data);
+}
 
-  BEGIN_TRANSITION_MAP                         // - Current State -
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
-    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
-    END_TRANSITION_MAP(&data)
+void GoldSoloWhistleDrive::ChangeDeltaVelocity(const int32_t delta_velocity)
+{
+  ChangeVelocity(input_pdos_.vel_actual_value + delta_velocity);
 }
 
 void GoldSoloWhistleDrive::ChangeTorque(const int16_t target_torque)
@@ -292,18 +280,12 @@ void GoldSoloWhistleDrive::ChangeTorque(const int16_t target_torque)
   printf("\tTarget torque: %d\n", target_torque);
 
   GoldSoloWhistleDriveData data(CYCLIC_TORQUE, target_torque);
+  SetChange(data);
+}
 
-  BEGIN_TRANSITION_MAP                         // - Current State -target_torque
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
-    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
-    END_TRANSITION_MAP(&data)
+void GoldSoloWhistleDrive::ChangeDeltaTorque(const int16_t delta_torque)
+{
+  ChangeTorque(input_pdos_.torque_actual_value + delta_torque);
 }
 
 void GoldSoloWhistleDrive::ChangeOpMode(const int8_t target_op_mode)
@@ -330,18 +312,7 @@ void GoldSoloWhistleDrive::ChangeOpMode(const int8_t target_op_mode)
     printf("\tTarget operational mode: NO_MODE\n");
     break;
   }
-
-  BEGIN_TRANSITION_MAP                         // - Current State -
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
-    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
-    END_TRANSITION_MAP(&data)
+  SetChange(data);
 }
 
 void GoldSoloWhistleDrive::SetTargetDefaults()
@@ -368,18 +339,24 @@ void GoldSoloWhistleDrive::SetTargetDefaults()
     printf("\tDefault operational mode: NO_MODE\n");
     break;
   }
+  SetChange(data);
+}
 
-  BEGIN_TRANSITION_MAP                         // - Current State -
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_START
-    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)        // ST_NOT_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCH_ON_DISABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_SWITCHED_ON
+void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData& data)
+{
+  // clang-format off
+  BEGIN_TRANSITION_MAP                                               // - Current State -
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)              // ST_START
+    TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)              // ST_NOT_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)               // ST_SWITCH_ON_DISABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)               // ST_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)               // ST_SWITCHED_ON
     TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_QUICK_STOP_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT_REACTION_ACTIVE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)        // ST_FAULT
-    END_TRANSITION_MAP(&data)
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_QUICK_STOP_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_FAULT_REACTION_ACTIVE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_FAULT
+  END_TRANSITION_MAP(&data)
+  // clang-format on
 }
 
 ////////////////////////////////////////////////////////////////////////////

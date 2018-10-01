@@ -28,7 +28,7 @@ public:
    * @brief EthercatSlave
    */
   EthercatSlave() {}
-  virtual ~EthercatSlave() = 0;
+  virtual ~EthercatSlave() = 0;   // pure virtual
 
   /**
    * @brief Initial function called before the cyclical task begins.
@@ -44,21 +44,6 @@ public:
   RetVal Configure(ec_master_t* master_ptr, ec_slave_config_t* config_ptr);
 
   /**
-   * @brief Slave's main function to be cycled.
-   */
-  virtual void DoWork() = 0;
-
-  /**
-   * @brief Function to specify what to read.
-   */
-  virtual void ReadInputs() = 0;
-
-  /**
-   * @brief Function to specify what to write.
-   */
-  virtual void WriteOutputs() = 0;
-
-  /**
    * @brief GetDomainRegister
    * @param index
    * @return
@@ -72,18 +57,6 @@ public:
   uint8_t GetDomainEntriesNum() const { return num_domain_entries_; }
 
 protected:
-  /**
-   * @brief InitFun
-   */
-  virtual void InitFun() = 0;
-
-  /**
-   * @brief SdoRequests
-   * @param config_ptr
-   * @return
-   */
-  virtual RetVal SdoRequests(ec_slave_config_t* config_ptr);
-
   /**
    * @addtogroup EthercatUtilities
    * @{
@@ -102,7 +75,21 @@ protected:
   ec_sync_info_t* slave_sync_ptr_;  /**< Pointer to ethercat sunc(?) */
   /** @} */ // end of EthercatUtilities group
 
+  /**
+   * @brief SdoRequests
+   * @param config_ptr
+   * @return
+   * @note This is protected despite being virtual because we may want to use base
+   * definition in derived class.
+   */
+  virtual RetVal SdoRequests(ec_slave_config_t* config_ptr);
+
 private:
+  virtual void DoWork() = 0;   // pure virtual
+  virtual void ReadInputs() = 0;   // pure virtual
+  virtual void WriteOutputs() = 0;   // pure virtual
+  virtual void InitFun() = 0;   // pure virtual
+
   void SetDomainDataPtr(uint8_t* _domain_data_ptr);
 };
 
