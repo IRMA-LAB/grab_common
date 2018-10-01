@@ -295,8 +295,8 @@ private:
 	
 #define BEGIN_STATE_MAP \
 	private:\
-	virtual const StateMapRowEx* GetStateMapEx() { return NULL; }\
-	virtual const StateMapRow* GetStateMap() {\
+	virtual const StateMapRowEx* GetStateMapEx() override { return NULL; }\
+	virtual const StateMapRow* GetStateMap() override {\
 		static const StateMapRow STATE_MAP[] = { 
 
 #define STATE_MAP_ENTRY(stateName)\

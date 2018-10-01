@@ -3,6 +3,7 @@
 #include "Motor.h"
 #include "Player.h"
 #include "CentrifugeTest.h"
+#include "myderivedclass.h"
 
 using namespace std;
 
@@ -82,6 +83,13 @@ int main(void)
 	test.Start();
 	while (test.IsPollActive())
 		test.Poll();
+
+	// Create MyDerivedClass and start test
+	MyDerivedClass derived(1);
+	derived.MyExtEvent();
+	derived.GetState();
+	derived.MyExtEvent();
+	derived.GetState();
 
 	return 0;
 }

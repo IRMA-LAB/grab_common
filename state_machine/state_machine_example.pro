@@ -15,7 +15,9 @@ HEADERS = \
    $$PWD/inc/StateMachine.h \
    $$PWD/inc/stdafx.h \
    $$PWD/inc/targetver.h \
-   $$PWD/inc/xallocator.h
+   $$PWD/inc/xallocator.h \
+    examples/mybaseclass.h \
+    examples/myderivedclass.h
 
 SOURCES = \
    $$PWD/examples/CentrifugeTest.cpp \
@@ -28,7 +30,9 @@ SOURCES = \
    $$PWD/src/Fault.cpp \
    $$PWD/src/StateMachine.cpp \
    $$PWD/src/stdafx.cpp \
-   $$PWD/src/xallocator.cpp
+   $$PWD/src/xallocator.cpp \
+    examples/mybaseclass.cpp \
+    examples/myderivedclass.cpp
 
 INCLUDEPATH = \
     $$PWD/examples \
@@ -41,3 +45,6 @@ INCLUDEPATH = \
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+
+CONFIG += c++11 console
+CONFIG -= app_bundle
