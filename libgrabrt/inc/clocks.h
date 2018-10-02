@@ -58,6 +58,11 @@ public:
    */
   void Reset();
   /**
+   * @brief Return elapsed time since latest Reset().
+   * @return Elapsed time since latest Reset() in seconds.
+   */
+  double Elapsed() const;
+  /**
    * @brief Sets internal time to current value + _cycle period_.
    * @see WaitUntilNext() GetNextTime()
    */

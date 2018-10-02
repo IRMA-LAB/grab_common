@@ -30,6 +30,14 @@ void ThreadClock::Reset()
   clock_gettime(CLOCK_MONOTONIC, &time_);
 }
 
+double ThreadClock::Elapsed() const
+{
+  static struct timespec end;
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  return end.tv_sec - time_.tv_sec +
+         (end.tv_nsec - time_.tv_nsec) / static_cast<double>(kNanoSec2Sec);
+}
+
 void ThreadClock::Next()
 {
   time_.tv_sec += (static_cast<uint64_t>(time_.tv_nsec) + period_nsec_) / kNanoSec2Sec;
