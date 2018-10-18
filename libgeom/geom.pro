@@ -1,13 +1,13 @@
 
-HEADERS += inc/rotations.h \
-    inc/quaternions.h
+HEADERS += \
+    $$PWD/inc/rotations.h \
+    $$PWD/inc/quaternions.h
 
-SOURCES += src/rotations.cpp \
-    src/quaternions.cpp
+SOURCES += \
+    $$PWD/src/rotations.cpp \
+    $$PWD/src/quaternions.cpp
 
-INCLUDEPATH += inc ../libnumeric/inc ../libnumeric/src
-
-LIBS += ../libnumeric/build/libnumeric.a
+INCLUDEPATH += inc
 
 QT       -= gui
 
@@ -21,3 +21,11 @@ TEMPLATE = lib
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+
+# Lib numeric
+unix:!macx: LIBS += -L$$PWD/../libnumeric/build/ -lnumeric
+
+INCLUDEPATH += $$PWD/../libnumeric/build $$PWD/../libnumeric/inc
+DEPENDPATH += $$PWD/../libnumeric/build
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/build/libnumeric.a
