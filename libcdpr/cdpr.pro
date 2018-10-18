@@ -1,15 +1,15 @@
 
-HEADERS += inc/kinematics.h \
-    inc/diffkinematics.h \
-    inc/types.h
+HEADERS += \
+    $$PWD/inc/kinematics.h \
+    $$PWD/inc/diffkinematics.h \
+    $$PWD/inc/types.h \
+    $$PWD/inc/json.hpp
 
-SOURCES += src/kinematics.cpp \
-    src/diffkinematics.cpp
+SOURCES += \
+    $$PWD/src/kinematics.cpp \
+    $$PWD/src/diffkinematics.cpp
 
-INCLUDEPATH += inc \
-        ../libgeom/inc \
-        ../libnumeric/inc \
-        ../libnumeric/src
+INCLUDEPATH += inc
 
 LIBS += ../libgeom/build/libgeom.a ../libnumeric/build/libnumeric.a
 
@@ -25,3 +25,19 @@ TEMPLATE = lib
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+
+# Lib numeric
+unix:!macx: LIBS += -L$$PWD/../libnumeric/build/ -lnumeric
+
+INCLUDEPATH += $$PWD/../libnumeric/build $$PWD/../libnumeric/inc
+DEPENDPATH += $$PWD/../libnumeric/build
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/build/libnumeric.a
+
+# Lib geometric
+unix:!macx: LIBS += -L$$PWD/../libgeom/build/ -lgeom
+
+INCLUDEPATH += $$PWD/../libgeom/build $$PWD/../libgeom/inc
+DEPENDPATH += $$PWD/../libgeom/build
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libgeom/build/libgeom.a

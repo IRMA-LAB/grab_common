@@ -1,6 +1,17 @@
 #include <QString>
 #include <QtTest>
 
+#include <fstream>
+#include <iostream>
+#include <string>
+
+#include "kinematics.h"
+#include "diffkinematics.h"
+#include "json.hpp"
+
+// Aliases ---------------------------------------------------------------------
+using json = nlohmann::json; // JSON library support
+
 /**
  * @brief The LibcdprTest class
  */
@@ -12,12 +23,19 @@ private Q_SLOTS:
   /**
    * @brief testCase1
    */
-  void testCase1();
+  void testJsonParser();
 };
 
-void LibcdprTest::testCase1()
+void LibcdprTest::testJsonParser()
 {
-  QVERIFY2(true, "Failure");
+  std::ifstream ifile("test.json");
+
+  QVERIFY2(ifile.is_open(), "Could not open input file");
+
+  json robot_config;
+  ifile >> robot_config;
+
+  ifile.close();
 }
 
 QTEST_APPLESS_MAIN(LibcdprTest)
