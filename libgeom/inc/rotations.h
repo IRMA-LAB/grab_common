@@ -171,7 +171,7 @@ grabnum::Matrix3d EulerXYZ2Rot(const double alpha, const double beta, const doub
  * @param[in] angles [rad] _Tait-Bryan_ angles @f$(\alpha,\beta,\gamma)@f$ vector.
  * @return A 3x3 orthogonal matrix (double).
  */
-grabnum::Matrix3d EulerXYZ2Rot(const grabnum::Vector3d& angles)
+inline grabnum::Matrix3d EulerXYZ2Rot(const grabnum::Vector3d& angles)
 {
   return EulerXYZ2Rot(angles(1), angles(2), angles(3));
 }
@@ -219,7 +219,7 @@ grabnum::Matrix3d RPY2Rot(const double roll, const double pitch, const double ya
  * @param[in] rpy [rad]  _Roll, pitch, yaw_ angles @f$(\phi,\theta,\psi)@f$ vector.
  * @return A 3x3 orthogonal matrix (double).
  */
-grabnum::Matrix3d RPY2Rot(const grabnum::Vector3d& rpy)
+inline grabnum::Matrix3d RPY2Rot(const grabnum::Vector3d& rpy)
 {
   return RPY2Rot(rpy(1), rpy(2), rpy(3));
 }
@@ -277,7 +277,7 @@ grabnum::Matrix3d EulerZYZ2Rot(const double alpha, const double beta, const doub
  * @param[in] angles [rad] _Euler_ angles @f$(\alpha,\beta,\gamma)@f$ vector.
  * @return A 3x3 orthogonal matrix (double).
  */
-grabnum::Matrix3d EulerZYZ2Rot(const grabnum::Vector3d& angles)
+inline grabnum::Matrix3d EulerZYZ2Rot(const grabnum::Vector3d& angles)
 {
   return EulerZYZ2Rot(angles(1), angles(2), angles(3));
 }
@@ -324,7 +324,7 @@ grabnum::Matrix3d TiltTorsion2Rot(const double tilt_azimuth, const double tilt,
  * @return A 3x3 orthogonal matrix (double).
  * @see RotZYZ()
  */
-grabnum::Matrix3d TiltTorsion2Rot(const grabnum::Vector3d& angles)
+inline grabnum::Matrix3d TiltTorsion2Rot(const grabnum::Vector3d& angles)
 {
   return TiltTorsion2Rot(angles(1), angles(2), angles(3));
 }
@@ -382,7 +382,7 @@ grabnum::Matrix3d HtfXYZ(const double alpha, const double beta);
  * @param[in] angles [rad] _Tait-Bryan_ angles @f$(\alpha,\beta,\gamma)@f$ vector.
  * @return A 3x3 matrix (double).
  */
-grabnum::Matrix3d HtfXYZ(const grabnum::Vector3d& angles)
+inline grabnum::Matrix3d HtfXYZ(const grabnum::Vector3d& angles)
 {
   return HtfXYZ(angles(1), angles(2));
 }
@@ -405,7 +405,7 @@ grabnum::Matrix3d HtfRPY(const double roll, const double pitch);
  * @return A 3x3 matrix (double).
  * @see HtfRPY()
  */
-grabnum::Matrix3d HtfRPY(const grabnum::Vector3d& rpy)
+inline grabnum::Matrix3d HtfRPY(const grabnum::Vector3d& rpy)
 {
   return HtfRPY(rpy(1), rpy(2));
 }
@@ -426,7 +426,7 @@ grabnum::Matrix3d HtfTiltTorsion(const double tilt_azimuth, const double tilt);
  * @param[in] angles [rad] _Tilt-and-torsion_ angles @f$(\phi,\theta,\tau)@f$ vector.
  * @return A 3x3 matrix (double).
  */
-grabnum::Matrix3d HtfTiltTorsion(const grabnum::Vector3d& angles)
+inline grabnum::Matrix3d HtfTiltTorsion(const grabnum::Vector3d& angles)
 {
   return HtfTiltTorsion(angles(1), angles(2));
 }
@@ -447,7 +447,7 @@ grabnum::Matrix3d HtfZYZ(const double alpha, const double beta);
  * @param[in] angles [rad] _Euler_ angles @f$(\alpha,\beta,\gamma)@f$ vector.
  * @return A 3x3 matrix (double).
  */
-grabnum::Matrix3d HtfZYZ(const grabnum::Vector3d& angles)
+inline grabnum::Matrix3d HtfZYZ(const grabnum::Vector3d& angles)
 {
   return HtfZYZ(angles(1), angles(2));
 }
@@ -486,7 +486,7 @@ grabnum::Matrix3d DHtfXYZ(const double alpha, const double beta, const double al
  * @return A 3x3 matrix (double).
  * @see HtfXYZ()
  */
-grabnum::Matrix3d DHtfXYZ(const grabnum::Vector3d& angles,
+inline grabnum::Matrix3d DHtfXYZ(const grabnum::Vector3d& angles,
                           const grabnum::Vector3d& angles_dot)
 {
   return DHtfXYZ(angles(1), angles(2), angles_dot(1), angles_dot(2));
@@ -525,7 +525,7 @@ grabnum::Matrix3d DHtfRPY(const double roll, const double pitch, const double ro
  * @return A 3x3 matrix (double).
  * @see HtfRPY()
  */
-grabnum::Matrix3d DHtfRPY(const grabnum::Vector3d& rpy,
+inline grabnum::Matrix3d DHtfRPY(const grabnum::Vector3d& rpy,
                           const grabnum::Vector3d& rpy_dot)
 {
   return DHtfRPY(rpy(1), rpy(2), rpy_dot(1), rpy_dot(2));
@@ -565,7 +565,7 @@ grabnum::Matrix3d DHtfZYZ(const double alpha, const double beta, const double al
  * @return A 3x3 matrix (double).
  * @see HtfXYZ()
  */
-grabnum::Matrix3d DHtfZYZ(const grabnum::Vector3d& angles,
+inline grabnum::Matrix3d DHtfZYZ(const grabnum::Vector3d& angles,
                           const grabnum::Vector3d& angles_dot)
 {
   return DHtfZYZ(angles(1), angles(2), angles_dot(1), angles_dot(2));
@@ -607,7 +607,7 @@ grabnum::Matrix3d DHtfTiltTorsion(const double tilt_azimuth, const double tilt,
  * @return A 3x3 matrix (double).
  * @see HtfTiltTorsion()
  */
-grabnum::Matrix3d DHtfTiltTorsion(const grabnum::Vector3d& angles,
+inline grabnum::Matrix3d DHtfTiltTorsion(const grabnum::Vector3d& angles,
                                   const grabnum::Vector3d& angles_dot)
 {
   return DHtfTiltTorsion(angles(1), angles(2), angles_dot(1), angles_dot(2));

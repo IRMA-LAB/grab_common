@@ -358,7 +358,7 @@ struct Quaternion
  * @param[in] rhs A quaternion.
  * @return A quaternion, result of the addition.
  */
-Quaternion operator+(Quaternion lhs, const Quaternion& rhs) { return lhs += rhs; }
+inline Quaternion operator+(Quaternion lhs, const Quaternion& rhs) { return lhs += rhs; }
 
 /**
  * @brief Addition between a quaternion and a scalar.
@@ -366,7 +366,7 @@ Quaternion operator+(Quaternion lhs, const Quaternion& rhs) { return lhs += rhs;
  * @param[in] rhs A scalar value.
  * @return A quaternion, result of the addition.
  */
-Quaternion operator+(Quaternion lhs, const double rhs) { return lhs += rhs; }
+inline Quaternion operator+(Quaternion lhs, const double rhs) { return lhs += rhs; }
 
 /**
  * @brief Addition between a scalar and a quaternion.
@@ -374,14 +374,14 @@ Quaternion operator+(Quaternion lhs, const double rhs) { return lhs += rhs; }
  * @param[in] rhs A quaternion.
  * @return A quaternion, result of the addition.
  */
-Quaternion operator+(const double lhs, Quaternion rhs) { return rhs += lhs; }
+inline Quaternion operator+(const double lhs, Quaternion rhs) { return rhs += lhs; }
 
 /**
  * @brief Returns the opposite of a quaternion @f$-\mathbf{q}@f$.
  * @param[in] quat A quaternion
  * @return A quaternion, opposite of @c quat.
  */
-Quaternion operator-(Quaternion quat) { return quat *= -1.; }
+inline Quaternion operator-(Quaternion quat) { return quat *= -1.; }
 
 /**
  * @brief Subtraction between two quaternions.
@@ -389,7 +389,7 @@ Quaternion operator-(Quaternion quat) { return quat *= -1.; }
  * @param[in] rhs A quaternion.
  * @return A quaternion, result of the subtraction.
  */
-Quaternion operator-(Quaternion lhs, const Quaternion& rhs) { return lhs -= rhs; }
+inline Quaternion operator-(Quaternion lhs, const Quaternion& rhs) { return lhs -= rhs; }
 
 /**
  * @brief Subtraction between a quaternion and a scalar.
@@ -397,7 +397,7 @@ Quaternion operator-(Quaternion lhs, const Quaternion& rhs) { return lhs -= rhs;
  * @param[in] rhs A scalar value.
  * @return A quaternion, result of the subtraction.
  */
-Quaternion operator-(Quaternion lhs, const double rhs) { return lhs -= rhs; }
+inline Quaternion operator-(Quaternion lhs, const double rhs) { return lhs -= rhs; }
 
 /**
  * @brief Subtraction between a scalar and a quaternion.
@@ -405,7 +405,7 @@ Quaternion operator-(Quaternion lhs, const double rhs) { return lhs -= rhs; }
  * @param[in] lhs A quaternion.
  * @return A quaternion, result of the subtraction.
  */
-Quaternion operator-(const double lhs, Quaternion rhs) { return -rhs + lhs; }
+inline Quaternion operator-(const double lhs, Quaternion rhs) { return -rhs + lhs; }
 
 /**
  * @brief Quaternions product @f$\otimes@f$.
@@ -413,7 +413,7 @@ Quaternion operator-(const double lhs, Quaternion rhs) { return -rhs + lhs; }
  * @param[in] rhs A quaternion.
  * @return A quaternion, result of the product @f$\mathbf{q} \otimes \mathbf{p}@f$.
  */
-Quaternion operator*(Quaternion lhs, const Quaternion& rhs) { return lhs *= rhs; }
+inline Quaternion operator*(Quaternion lhs, const Quaternion& rhs) { return lhs *= rhs; }
 
 /**
  * @brief Multiplication between a quaternion and a scalar.
@@ -421,7 +421,7 @@ Quaternion operator*(Quaternion lhs, const Quaternion& rhs) { return lhs *= rhs;
  * @param[in] rhs A scalar value.
  * @return A quaternion, result of the multiplication.
  */
-Quaternion operator*(Quaternion lhs, const double rhs) { return lhs *= rhs; }
+inline Quaternion operator*(Quaternion lhs, const double rhs) { return lhs *= rhs; }
 
 /**
  * @brief Multiplication between a scalar and a quaternion.
@@ -429,7 +429,7 @@ Quaternion operator*(Quaternion lhs, const double rhs) { return lhs *= rhs; }
  * @param[in] lhs A quaternion.
  * @return A quaternion, result of the multiplication.
  */
-Quaternion operator*(const double lhs, Quaternion rhs) { return rhs *= lhs; }
+inline Quaternion operator*(const double lhs, Quaternion rhs) { return rhs *= lhs; }
 
 /**
  * @brief Returns the _conjugate_ of a quaternion.
@@ -441,7 +441,7 @@ Quaternion operator*(const double lhs, Quaternion rhs) { return rhs *= lhs; }
  * @param[in] quat The original quaternion.
  * @return The conjugate quaternion @f$\mathbf{q}^*@f$.
  */
-Quaternion QuatConjugate(const Quaternion& quat) { return quat.Conj(); }
+inline Quaternion QuatConjugate(const Quaternion& quat) { return quat.Conj(); }
 
 /**
  * @brief Returns the _inverse_ of a quaternion.
@@ -460,7 +460,7 @@ Quaternion QuatConjugate(const Quaternion& quat) { return quat.Conj(); }
  * @param[in] quat The original quaternion.
  * @return The inverse quaternion @f$\mathbf{q}^{-1}@f$.
  */
-Quaternion QuatInverse(const Quaternion& quat) { return quat.Inv(); }
+inline Quaternion QuatInverse(const Quaternion& quat) { return quat.Inv(); }
 
 /**
  * @brief Calculate the norm of a quaternion.
@@ -470,7 +470,7 @@ Quaternion QuatInverse(const Quaternion& quat) { return quat.Inv(); }
  * @return The norm of @c quat.
  * @see QuatNormalized()
  */
-double QuatNorm(const Quaternion& quat) { return quat.Norm(); }
+inline double QuatNorm(const Quaternion& quat) { return quat.Norm(); }
 
 /**
  * @brief Returns the normalized version of a quaternion.
@@ -481,7 +481,7 @@ double QuatNorm(const Quaternion& quat) { return quat.Norm(); }
  * @return The normalized quaternion.
  * @see QuatNorm()
  */
-Quaternion QuatNormalized(const Quaternion& quat) { return quat.Normalized(); }
+inline Quaternion QuatNormalized(const Quaternion& quat) { return quat.Normalized(); }
 
 /**
  * @brief Determines the rotation matrix corresponding to a given unit quaternion.
@@ -502,7 +502,7 @@ grabnum::Matrix3d Quat2Rot(const Quaternion& quaternion);
  * @see EulerXYZ2Quat()
  * @todo Do this conversion in a smarter way.
  */
-grabnum::Vector3d Quat2EulerXYZ(const Quaternion& quaternion)
+inline grabnum::Vector3d Quat2EulerXYZ(const Quaternion& quaternion)
 { return Rot2EulerXYZ(Quat2Rot(quaternion)); }
 
 /**
@@ -513,7 +513,7 @@ grabnum::Vector3d Quat2EulerXYZ(const Quaternion& quaternion)
  * @see RPY2Quat()
  * @todo Do this conversion in a smarter way.
  */
-grabnum::Vector3d Quat2RPY(const Quaternion& quaternion)
+inline grabnum::Vector3d Quat2RPY(const Quaternion& quaternion)
 { return Rot2RPY(Quat2Rot(quaternion)); }
 
 /**
@@ -525,7 +525,7 @@ grabnum::Vector3d Quat2RPY(const Quaternion& quaternion)
  * @see EulerZYZ2Quat()
  * @todo Do this conversion in a smarter way.
  */
-grabnum::Vector3d Quat2EulerZYZ(const Quaternion& quaternion)
+inline grabnum::Vector3d Quat2EulerZYZ(const Quaternion& quaternion)
 { return Rot2EulerZYZ(Quat2Rot(quaternion)); }
 
 /**
@@ -537,7 +537,7 @@ grabnum::Vector3d Quat2EulerZYZ(const Quaternion& quaternion)
  * @see TiltTorsion2Quat()
  * @todo Do this conversion in a smarter way.
  */
-grabnum::Vector3d Quat2TiltTorsion(const Quaternion& quaternion)
+inline grabnum::Vector3d Quat2TiltTorsion(const Quaternion& quaternion)
 { return Rot2TiltTorsion(Quat2Rot(quaternion)); }
 
 /**
@@ -557,7 +557,7 @@ Quaternion Rot2Quat(const grabnum::Matrix3d& rot_mat);
  * @return A unit quaternion.
  * @see EulerXYZ2Rot() Quat2EulerXYZ()
  */
-Quaternion EulerXYZ2Quat(const double alpha, const double beta, const double gamma)
+inline Quaternion EulerXYZ2Quat(const double alpha, const double beta, const double gamma)
 { return Rot2Quat(EulerXYZ2Rot(alpha, beta, gamma)); }
 /**
  * @brief Determines the unit quaternion corresponding to a given rotation based on
@@ -567,7 +567,7 @@ Quaternion EulerXYZ2Quat(const double alpha, const double beta, const double gam
  * @return A unit quaternion.
  * @see EulerXYZ2Quat()
  */
-Quaternion EulerXYZ2Quat(const grabnum::Vector3d& angles)
+inline Quaternion EulerXYZ2Quat(const grabnum::Vector3d& angles)
 {
   return EulerXYZ2Quat(angles(1), angles(2), angles(3));
 }
@@ -582,7 +582,7 @@ Quaternion EulerXYZ2Quat(const grabnum::Vector3d& angles)
  * @return A unit quaternion.
  * @see RPY2Rot() Quat2RPY()
  */
-Quaternion RPY2Quat(const double roll, const double pitch, const double yaw)
+inline Quaternion RPY2Quat(const double roll, const double pitch, const double yaw)
 { return Rot2Quat(RPY2Rot(roll, pitch, yaw)); }
 /**
  * @brief Determines the unit quaternion corresponding to a given rotation based on
@@ -592,7 +592,7 @@ Quaternion RPY2Quat(const double roll, const double pitch, const double yaw)
  * @return A unit quaternion.
  * @see RPY2Quat()
  */
-Quaternion RPY2Quat(const grabnum::Vector3d& rpy)
+inline Quaternion RPY2Quat(const grabnum::Vector3d& rpy)
 {
   return RPY2Quat(rpy(1), rpy(2), rpy(3));
 }
@@ -607,7 +607,7 @@ Quaternion RPY2Quat(const grabnum::Vector3d& rpy)
  * @return A unit quaternion.
  * @see EulerZYZ2Rot() Quat2EulerZYZ()
  */
-Quaternion EulerZYZ2Quat(const double alpha, const double beta, const double gamma)
+inline Quaternion EulerZYZ2Quat(const double alpha, const double beta, const double gamma)
 { return Rot2Quat(EulerZYZ2Rot(alpha, beta, gamma)); }
 /**
  * @brief Determines the unit quaternion corresponding to a given rotation based on _Euler_
@@ -617,7 +617,7 @@ Quaternion EulerZYZ2Quat(const double alpha, const double beta, const double gam
  * @return A unit quaternion.
  * @see EulerZYZ2Quat()
  */
-Quaternion EulerZYZ2Quat(const grabnum::Vector3d& angles)
+inline Quaternion EulerZYZ2Quat(const grabnum::Vector3d& angles)
 {
   return EulerZYZ2Quat(angles(1), angles(2), angles(3));
 }
@@ -632,7 +632,7 @@ Quaternion EulerZYZ2Quat(const grabnum::Vector3d& angles)
  * @return A unit quaternion.
  * @see TiltTorsion2Rot() Quat2TiltTorsion()
  */
-Quaternion TiltTorsion2Quat(const double tilt_azimuth, const double tilt,
+inline Quaternion TiltTorsion2Quat(const double tilt_azimuth, const double tilt,
                                  const double torsion)
 { return Rot2Quat(TiltTorsion2Rot(tilt_azimuth, tilt, torsion)); }
 /**
@@ -643,7 +643,7 @@ Quaternion TiltTorsion2Quat(const double tilt_azimuth, const double tilt,
  * @return A unit quaternion.
  * @see TiltTorsion2Quat()
  */
-Quaternion TiltTorsion2Quat(const grabnum::Vector3d& angles)
+inline Quaternion TiltTorsion2Quat(const grabnum::Vector3d& angles)
 {
   return TiltTorsion2Quat(angles(1), angles(2), angles(3));
 }
@@ -697,7 +697,7 @@ grabnum::MatrixXd<3, 4> HtfQuat(const Quaternion& quaternion);
  * @f$\dot{\boldsymbol{\epsilon}}_q@f$.
  * @return A 3x3 matrix (double).
  */
-grabnum::MatrixXd<3, 4> DHtfQuat(const Quaternion& quaternion_dot)
+inline grabnum::MatrixXd<3, 4> DHtfQuat(const Quaternion& quaternion_dot)
 {
   return HtfQuat(quaternion_dot);
 }

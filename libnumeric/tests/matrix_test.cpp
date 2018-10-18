@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "matrix.h"
+#include "common.h"
 
 /**
  * @brief The TestMatrix class
@@ -156,8 +157,7 @@ void TestMatrix::ClassOperators()
     if (!res)
       break;
     for (uint8_t j = 0; j < kDim2_; ++j)
-      if (std::abs(DValues_[i * kDim2_ + j] - mat23d_copy(i + 1, j + 1)) >
-          grabnum::EPSILON)
+      if (!grabnum::IsClose(DValues_[i * kDim2_ + j], mat23d_copy(i + 1, j + 1)))
       {
         res = false;
         break;

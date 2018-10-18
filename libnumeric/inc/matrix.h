@@ -776,6 +776,6 @@ template <typename T> Matrix3<T> Skew(const Vector3<T>& vvect3d);
 } //  end namespace grabnum
 
 // This is a trick to define templated functions in a source file.
-#include "matrix.cpp"
+#include "../src/matrix.cpp"
 
 #endif /* GRABCOMMON_LIBNUMERIC_MATRIX_H_ */

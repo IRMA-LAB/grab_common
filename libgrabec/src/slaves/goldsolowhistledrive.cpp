@@ -24,6 +24,12 @@ GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
 //// GoldSoloWhistleDrive
 ////////////////////////////////////////////////////////////////////////////
 
+// Must provide redundant definition of the static member as well as the declaration.
+constexpr ec_pdo_entry_info_t GoldSoloWhistleDrive::kPdoEntries[];
+constexpr ec_pdo_info_t GoldSoloWhistleDrive::kPDOs[];
+constexpr ec_sync_info_t GoldSoloWhistleDrive::kSyncs[];
+constexpr char* GoldSoloWhistleDrive::kStatesStr[];
+
 GoldSoloWhistleDrive::GoldSoloWhistleDrive(const uint8_t slave_position)
   : StateMachine(ST_MAX_STATES)
 {
@@ -366,7 +372,7 @@ void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData& data)
 STATE_DEFINE(GoldSoloWhistleDrive, Start, NoEventData)
 {
   prev_state_ = ST_START;
-  printf("GoldSoloWhistleDrive %u inItial state: %s\n", position_, kStatesStr[ST_START]);
+  printf("GoldSoloWhistleDrive %u initial state: %s\n", position_, kStatesStr[ST_START]);
   // This happens automatically on drive's start up. We simply imitate the behavior here.
   InternalEvent(ST_NOT_READY_TO_SWITCH_ON);
 }
