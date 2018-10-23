@@ -107,7 +107,7 @@ public:
    */
   uint8_t Cols() const { return cols; }
   /**
-   * Returns the matrix size, i.e. @a m x @a n.
+   * Returns the matrix size, i.e. @f$m\times n@f$.
    *
    * @return A size.
    */
@@ -142,7 +142,9 @@ public:
    * @return The linear index corresponding to a standard double index.
    */
   inline uint16_t LinIdx(const uint8_t row, const uint8_t col) const
-  { return (row - 1) * cols + col; }
+  {
+    return (row - 1) * cols + col;
+  }
   /**
    * Returns the matrix type.
    *
@@ -207,7 +209,7 @@ public:
    * param[in] lin_index The linear index of the desired entry.
    * @return The i-th entry of the matrix.
    * @note Matrix indexing starts from 1 like in Matlab and read row-by-row,
-   *top-to-bottom.
+   * top-to-bottom.
    */
   inline const T& operator()(const uint8_t lin_index) const
   {
@@ -222,7 +224,7 @@ public:
    * param[in] lin_index The linear index of the desired entry.
    * @return The i-th entry of the matrix.
    * @note Matrix indexing starts from 1 like in Matlab and read row-by-row,
-   *top-to-bottom.
+   * top-to-bottom.
    */
   inline T& operator()(const uint8_t lin_index)
   {
@@ -234,11 +236,10 @@ public:
   /**
    * Operator for element-wise comparison (equal).
    *
-   * @param other The matrix to be compared against.
+   * @param[in] other The matrix to be compared against.
    * @return true if each element of @c *this and @a other are all exactly equal.
    * @warning When using floating point scalar values you probably should rather use a
-   *fuzzy
-   * comparison such as IsApprox()
+   * fuzzy comparison such as IsApprox().
    * @see operator!=
    * @see IsApprox()
    */
@@ -249,8 +250,7 @@ public:
    * @param[in] other The matrix to be compared against.
    * @return true if at least one element of @c *this and @a other are not exactly equal.
    * @warning When using floating point scalar values you probably should rather use a
-   *fuzzy
-   * comparison such as IsApprox()
+   * fuzzy comparison such as IsApprox().
    * @see operator==
    * @see IsApprox()
    */
@@ -306,7 +306,7 @@ public:
    * @param[in] other The submatrix to be used to replace the block of  @c *this.
    * @return A reference to @c *this.
    * @note @a block_rows must be <= m - @a start_row, likewise @a block_cols <= n -
-   * @a start_col, where @a m x @a n are the dimensions of @c *this. In other words,
+   * @a start_col, where @f$m\times n@f$ are the dimensions of @c *this. In other words,
    * @a other becomes a submatrix of @c *this.
    * @see SetFromBlock()
    * @todo example
@@ -349,7 +349,7 @@ public:
    * @param[in] other The matrix whose block is used to replace @c *this.
    * @return A reference to @c *this.
    * @note @a m must be <= @a _rows - @a start_row, likewise @a n <= @a _rows -
-   * @a start_col, where @a m x @a n are the dimensions of @c *this. In other words,
+   * @a start_col, where @f$m\times n@f$ are the dimensions of @c *this. In other words,
    * @c *this becomes a submatrix of @a other.
    * @see SetBlock()
    * @todo example
@@ -457,8 +457,9 @@ public:
    * @param[in] start_col The starting column of the block.
    * @return A block of the original matrix.
    */
-  template<uint8_t blk_rows, uint8_t blk_cols>
-  Matrix<T, blk_rows, blk_cols> GetBlock(const uint8_t start_row, const uint8_t start_col) const;
+  template <uint8_t blk_rows, uint8_t blk_cols>
+  Matrix<T, blk_rows, blk_cols> GetBlock(const uint8_t start_row,
+                                         const uint8_t start_col) const;
 
   /**
    * Check if the matrix is square, i.e. @a m = @a n.
@@ -467,19 +468,34 @@ public:
    */
   bool IsSquare() const;
   /**
-   * Check if the matrix is symmetric, i.e. @a A = @a A^T.
+   * Check if the matrix is symmetric, i.e. @f$\mathbf{A} = \mathbf{A}^T@f$.
    *
    * @return true if matrix is symmetric.
    */
   bool IsSymmetric() const;
   /**
+   * Check if the matrix is positive-definite using _Cholesky decomposition_.
+   *
+   * A generic symmetric matrix @f$\mathbf{A}@f$ is positive-definite matrix if and only
+   * if it can be decomposed into a product of a unique lower triangular matrix
+   * @f$\mathbf{L}@f$ and its transpose:
+   * @f[
+   * \mathbf{A} = \mathbf{L}\mathbf{L}^T
+   * @f]
+   * where @f$\mathbf{L}@f$ is called the _Cholesky factor_ of @f$\mathbf{A}@f$, and can
+   * be interpreted as a generalized square root of @f$\mathbf{A}@f$.
+   * @return true if matrix is positive-definite.
+   * @see Cholesky()
+   */
+  bool IsPositiveDefinite() const;
+  /**
    * Operator for fuzzy element-wise comparison (equal).
    *
    * @param[in] other The matrix to be compared against.
    * @param[in] tol (optional) The difference below which two single entries are
-   *considered equal.
+   * considered equal.
    * @return true if each element of @c *this and @a other are all equal up to a certain
-   *tolerance.
+   * tolerance.
    * @see operator!=
    */
   bool IsApprox(const Matrix<T, rows, cols>& other, const double tol = EPSILON) const;
@@ -544,7 +560,7 @@ using VectorXd = Matrix<double, dim, 1>; /**< generic vector of double */
  * Print function for matrix.
  *
  * @param[in] stream A std output stream.
- * @param[in] matrix A @a m x @a n matrix.
+ * @param[in] matrix A @f$m\times n@f$ matrix.
  * @return A reference to the input stream.
  */
 template <typename T, uint8_t rows, uint8_t cols>
@@ -555,8 +571,8 @@ std::ostream& operator<<(std::ostream& stream, const Matrix<T, rows, cols>& matr
  * Addition between a scalar and a matrix.
  *
  * @param[in] scalar A scalar value.
- * @param[in] matrix A @a m x @a n matrix.
- * @return A @a m x @a n matrix, result of the addition.
+ * @param[in] matrix A @f$m\times n@f$ matrix.
+ * @return A @f$m\times n@f$ matrix, result of the addition.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator+(const T& scalar, const Matrix<T, rows, cols>& matrix);
@@ -564,9 +580,9 @@ Matrix<T, rows, cols> operator+(const T& scalar, const Matrix<T, rows, cols>& ma
 /**
  * Addition between a matrix and a scalar.
  *
- * @param[in] matrix A @a m x @a n matrix.
+ * @param[in] matrix A @f$m\times n@f$ matrix.
  * @param[in] scalar A scalar value.
- * @return A @a m x @a n matrix.
+ * @return A @f$m\times n@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix, const T& scalar);
@@ -574,9 +590,9 @@ Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix, const T& sc
 /**
  * Addition between two matrices.
  *
- * @param[in] matrix1 A @a m x @a n matrix.
- * @param[in] matrix2 A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
+ * @param[in] matrix1 A @f$m\times n@f$ matrix.
+ * @param[in] matrix2 A @f$m\times n@f$ matrix.
+ * @return A @f$m\times n@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix1,
@@ -586,8 +602,8 @@ Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix1,
  * Subtraction between a scalar and a matrix.
  *
  * @param[in] scalar A scalar value.
- * @param[in] matrix A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
+ * @param[in] matrix A @f$m\times n@f$ matrix.
+ * @return A @f$m\times n@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator-(const T& scalar, const Matrix<T, rows, cols>& matrix);
@@ -595,9 +611,9 @@ Matrix<T, rows, cols> operator-(const T& scalar, const Matrix<T, rows, cols>& ma
 /**
  * Subtraction between a matrix and a scalar.
  *
- * @param[in] matrix A @a m x @a n matrix.
+ * @param[in] matrix A @f$m\times n@f$ matrix.
  * @param[in] scalar A scalar value.
- * @return A @a m x @a n matrix, result of the subtraction.
+ * @return A @f$m\times n@f$ matrix, result of the subtraction.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix, const T& scalar);
@@ -605,9 +621,9 @@ Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix, const T& sc
 /**
  * Subtraction between two matrices.
  *
- * @param[in] matrix1 A @a m x @a n matrix.
- * @param[in] matrix2 A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
+ * @param[in] matrix1 A @f$m\times n@f$ matrix.
+ * @param[in] matrix2 A @f$m\times n@f$ matrix.
+ * @return A @f$m\times n@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix1,
@@ -617,8 +633,8 @@ Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix1,
  * Returns the opposite of a matrix.
  * This is equivalent to multiplication by -1.
  *
- * @param[in] matrix A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
+ * @param[in] matrix A @f$m\times n@f$ matrix.
+ * @return A @f$m\times n@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix);
@@ -626,9 +642,9 @@ Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix);
 /**
  * Row-column matrix multiplication.
  *
- * @param[in] matrix1 A @a m x @a n matrix.
- * @param[in] matrix2 A @a n x @a p matrix.
- * @return A @a m x @a p matrix.
+ * @param[in] matrix1 A @f$m\times n@f$ matrix.
+ * @param[in] matrix2 A @f$n\times p@f$ matrix.
+ * @return A @f$m\times p@f$ matrix.
  */
 template <typename T, uint8_t rows1, uint8_t dim_common, uint8_t cols2>
 Matrix<T, rows1, cols2> operator*(const Matrix<T, rows1, dim_common>& matrix1,
@@ -639,7 +655,7 @@ Matrix<T, rows1, cols2> operator*(const Matrix<T, rows1, dim_common>& matrix1,
  *
  * @param[in] vvect A m-dimensional vertical vector.
  * @param[in] hvect A n-dimensional horizontal vector.
- * @return A @a m x @a n matrix.
+ * @return A @f$m\times n@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator*(const VectorX<T, rows>& vvect,
@@ -649,8 +665,8 @@ Matrix<T, rows, cols> operator*(const VectorX<T, rows>& vvect,
  * Scalar product operation.
  *
  * @param[in] scalar A scalar value.
- * @param[in] matrix A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
+ * @param[in] matrix A @f$m\times n@f$ matrix.
+ * @return A @f$m\times n@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator*(const T& scalar, const Matrix<T, rows, cols>& matrix);
@@ -658,9 +674,9 @@ Matrix<T, rows, cols> operator*(const T& scalar, const Matrix<T, rows, cols>& ma
 /**
  * Scalar product operation.
  *
- * @param[in] matrix A @a m x @a n matrix.
+ * @param[in] matrix A @f$m\times n@f$ matrix.
  * @param[in] scalar A scalar value.
- * @return A @a m x @a n matrix.
+ * @return A @f$m\times n@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator*(const Matrix<T, rows, cols>& matrix, const T& scalar);
@@ -690,9 +706,9 @@ Matrix<T, 1, cols> operator*(const Matrix<T, 1, cols>& hvect1,
 /**
  * Matrix division by scalar operation.
  *
- * @param[in] matrix A @a m x @a n matrix.
+ * @param[in] matrix A @f$m\times n@f$ matrix.
  * @param[in] scalar A scalar value.
- * @return A @a m x @a n matrix.
+ * @return A @f$m\times n@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, rows, cols> operator/(const Matrix<T, rows, cols>& matrix, const T& scalar);
@@ -700,9 +716,9 @@ Matrix<T, rows, cols> operator/(const Matrix<T, rows, cols>& matrix, const T& sc
 /**
  * Matrix horizontal concatenation.
  *
- * @param[in] matrix_lx A @a m x @a n matrix.
- * @param[in] matrix_rx A @a m x @a p matrix.
- * @return A @a m x @a (n+p) matrix.
+ * @param[in] matrix_lx A @f$m\times n@f$ matrix.
+ * @param[in] matrix_rx A @f$m\times p@f$ matrix.
+ * @return A @f$m\times (n+p)@f$ matrix.
  */
 template <typename T, uint8_t rows, uint8_t cols1, uint8_t cols2>
 Matrix<T, rows, cols1 + cols2> HorzCat(const Matrix<T, rows, cols1>& matrix_lx,
@@ -711,9 +727,9 @@ Matrix<T, rows, cols1 + cols2> HorzCat(const Matrix<T, rows, cols1>& matrix_lx,
 /**
  * Matrix vertical concatenation.
  *
- * @param[in] matrix_up A @a m x @a n matrix.
- * @param[in] matrix_down A @a p x @a n matrix.
- * @return A @a (m+p) x @a n matrix.
+ * @param[in] matrix_up A @f$m\times n@f$ matrix.
+ * @param[in] matrix_down A @f$p\times n@f$ matrix.
+ * @return A @f$(m+p)\times n@f$ matrix.
  */
 template <typename T, uint8_t rows1, uint8_t rows2, uint8_t cols>
 Matrix<T, rows1 + rows2, cols> VertCat(const Matrix<T, rows1, cols>& matrix_up,
@@ -772,6 +788,49 @@ Vector3<T> Cross(const Vector3<T>& vvect3d1, const Vector3<T>& vvect3d2);
  * @return A 3x3 matrix.
  */
 template <typename T> Matrix3<T> Skew(const Vector3<T>& vvect3d);
+
+/**
+ * Function to get cofactor of a matrix given entry position.
+ *
+ * Given a generic @f$n\times m@f$ matrix @f$\mathbf{A}@f$ and an entry position (_p_,_q_)
+ * , it is defined _co-factor_ a @f$(n-1)\times (m-1)@f$ matrix @f$\mathbf{C}@f$ obtained
+ * by removing _p_-th row and _q_-th column from @f$\mathbf{A}@f$.
+ *
+ * @param[in] matrix The matrix from where to extract the cofactor.
+ * @param[in] p The row number of the entry value.
+ * @param[in] q The column number of the entry value.
+ * @return The cofactor of given matrix and entry position.
+ * @note This function is used to compute the determinant in Matrix::Det().
+ */
+template <typename T, uint8_t rows, uint8_t cols>
+Matrix<T, rows - 1, cols - 1> GetCofactor(const Matrix<T, rows, cols>& matrix,
+                                          const uint8_t p, const uint8_t q);
+
+/**
+ * Recursive function for finding determinant of matrix using cofactors approach.
+ *
+ * @param[in] matrix The matrix whose determinant is to be found.
+ * @return The determinant of the matrix.
+ */
+template <typename T, uint8_t dim> T Det(const Matrix<T, dim, dim>& matrix);
+
+/**
+ * Returns _Cholesky factor_ of given symmetric, positive-definite matrix.
+ *
+ * Every symmetric, positive-definite matrix @f$\mathbf{A}@f$ can be decomposed into a
+ * product of a unique lower triangular matrix @f$\mathbf{L}@f$ and its transpose:
+ * @f[
+ * \mathbf{A} = \mathbf{L}\mathbf{L}^T
+ * @f]
+ * where @f$\mathbf{L}@f$ is called the _Cholesky factor_ of @f$\mathbf{A}@f$, and can be
+ * interpreted as a generalized square root of @f$\mathbf{A}@f$.
+ * @param[in] matrix The matrix @f$\mathbf{A}@f$ whose Cholesky factor is to be found.
+ * @return The Cholesky factor @f$\mathbf{L}@f$ of @f$\mathbf{A}@f$.
+ * @note This function is used to check whether a matrix is positive-definite by
+ * Matrix::IsPositiveDefinite().
+ */
+template <typename T, uint8_t dim>
+MatrixXd<dim, dim> Cholesky(const Matrix<T, dim, dim>& matrix);
 
 } //  end namespace grabnum
 

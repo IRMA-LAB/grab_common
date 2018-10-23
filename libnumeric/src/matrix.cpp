@@ -10,14 +10,15 @@
 #include "matrix.h"
 
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x) (sizeof((x)) / sizeof((x)[0]))  /**< returns the size of a standard array*/
+#define ARRAY_SIZE(x)                                                                    \
+  (sizeof((x)) / sizeof((x)[0])) /**< returns the size of a standard array*/
 #endif
 
 namespace grabnum
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Constructors
+//// Constructors
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, uint8_t rows, uint8_t cols> Matrix<T, rows, cols>::Matrix()
@@ -55,7 +56,7 @@ Matrix<T, rows, cols>::Matrix(const Matrix<T2, rows, cols>& other)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Operator Overloadings
+//// Operator Overloadings
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, uint8_t rows, uint8_t cols>
@@ -156,7 +157,7 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::operator/=(const T& scalar)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Setters
+//// Setters
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, uint8_t rows, uint8_t cols>
@@ -315,7 +316,7 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::Fill(const std::vector<T>& values)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Matrix manipulation
+//// Matrix manipulation
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, uint8_t rows, uint8_t cols>
@@ -357,7 +358,7 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::SwapCol(const uint8_t col1,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Getters
+//// Getters
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, uint8_t rows, uint8_t cols>
@@ -379,8 +380,9 @@ VectorX<T, rows> Matrix<T, rows, cols>::GetCol(const uint8_t col) const
 }
 
 template <typename T, uint8_t rows, uint8_t cols>
-template<uint8_t blk_rows, uint8_t blk_cols>
-Matrix<T, blk_rows, blk_cols> Matrix<T, rows, cols>::GetBlock(const uint8_t start_row, const uint8_t start_col) const
+template <uint8_t blk_rows, uint8_t blk_cols>
+Matrix<T, blk_rows, blk_cols>
+Matrix<T, rows, cols>::GetBlock(const uint8_t start_row, const uint8_t start_col) const
 {
   Matrix<T, blk_rows, blk_cols> block;
   block.SetFromBlock(start_row, start_col, *this);
@@ -388,7 +390,7 @@ Matrix<T, blk_rows, blk_cols> Matrix<T, rows, cols>::GetBlock(const uint8_t star
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Check functions
+//// Check functions
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, uint8_t rows, uint8_t cols>
@@ -406,6 +408,22 @@ bool Matrix<T, rows, cols>::IsSymmetric() const
 }
 
 template <typename T, uint8_t rows, uint8_t cols>
+bool Matrix<T, rows, cols>::IsPositiveDefinite() const
+{
+  if (!IsSymmetric())
+    return false;
+  try
+  {
+    Cholesky(*this);
+    return true;
+  }
+  catch (std::invalid_argument)
+  {
+    return false;
+  }
+}
+
+template <typename T, uint8_t rows, uint8_t cols>
 bool Matrix<T, rows, cols>::IsApprox(const Matrix<T, rows, cols>& other,
                                      const double tol /* = epsilon*/) const
 {
@@ -419,7 +437,7 @@ bool Matrix<T, rows, cols>::IsApprox(const Matrix<T, rows, cols>& other,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Matrix internal utilities
+//// Matrix internal utilities
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, uint8_t rows, uint8_t cols>
@@ -433,11 +451,11 @@ uint16_t Matrix<T, rows, cols>::MaxIdx() const
     for (uint8_t col = 0; col < cols; ++col)
     {
       if (elements_[row][col] > max)
-        {
-          max = elements_[row][col];
-          i_max = row;
-          j_max = col;
-        }
+      {
+        max = elements_[row][col];
+        i_max = row;
+        j_max = col;
+      }
     }
   index = i_max * cols + j_max + 1;
   return index;
@@ -454,18 +472,18 @@ uint16_t Matrix<T, rows, cols>::MinIdx() const
     for (uint8_t col = 0; col < cols; ++col)
     {
       if (elements_[row][col] < min)
-        {
-          min = elements_[row][col];
-          i_min = row;
-          j_min = col;
-        }
+      {
+        min = elements_[row][col];
+        i_min = row;
+        j_min = col;
+      }
     }
   index = i_min * cols + j_min + 1;
   return index;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Matrix external utilities
+//// Matrix external utilities
 ///////////////////////////////////////////////////////////////////////////////
 
 #if (MCU_TARGET == 0)
@@ -483,11 +501,10 @@ std::ostream& operator<<(std::ostream& stream, const Matrix<T, rows, cols>& matr
     {
       stream << std::setw(15) << std::setprecision(7) << matrix(row, col);
       if (row == rows && col == cols)
-        stream << "         ]\n";
+        stream << "          ]";
     }
     stream << "\n";
   }
-  stream << "\n";
   return stream;
 }
 #endif
@@ -736,6 +753,76 @@ template <typename T> Matrix3<T> Skew(const Vector3<T>& vvect3d)
   result(2, 3) = -vvect3d(1);
   result(3, 2) = vvect3d(1);
   return result;
+}
+
+template <typename T, uint8_t rows, uint8_t cols>
+Matrix<T, rows - 1, cols - 1> GetCofactor(const Matrix<T, rows, cols>& matrix,
+                                        const uint8_t p, const uint8_t q)
+{
+  uint8_t i = 1, j = 1;
+  Matrix<T, rows - 1, cols - 1> cofactor;
+
+  // Looping for each element of the matrix
+  for (uint8_t row = 1; row <= rows; ++row)
+  {
+    for (uint8_t col = 1; col <= cols; ++col)
+    {
+      // Copying into temporary matrix only those element which are not in given row and
+      // column
+      if (row == p || col == q)
+        continue;
+      cofactor(i, j++) = matrix(row, col);
+      // Row is filled, so increase row index and reset col index
+      if (j != cols)
+        continue;
+      j = 1;
+      i++;
+    }
+  }
+  return cofactor;
+}
+
+template <typename T, uint8_t dim> T Det(const Matrix<T, dim, dim>& matrix)
+{
+  //  Base case : if matrix contains single element
+  if (dim == 1)
+    return matrix(1, 1);
+
+  int8_t sign = 1; // to store sign multiplier
+  T det = 0;       // initialize result
+  // Iterate for each element of first row
+  for (uint8_t col = 1; col <= dim; ++col)
+  {
+    // Getting Cofactor of mat[0][f]
+    Matrix<T, dim - 1, dim - 1> temp = GetCofactor(matrix, 1, col);
+    det += sign * matrix(1, col) * Det(temp);
+    // Terms are to be added with alternate sign
+    sign = -sign;
+  }
+  return det;
+}
+
+template <typename T, uint8_t dim>
+MatrixXd<dim, dim> Cholesky(const Matrix<T, dim, dim>& A)
+{
+  MatrixXd<dim, dim> L;
+  // Build lower triangular matrix
+  for (uint8_t i = 1; i <= dim; ++i)
+    for (uint8_t j = 1; j <= i; ++j)
+    {
+      double s = 0.0;
+      for (uint8_t k = 1; k < j; ++k)
+        s += L(i, k) * L(j, k);
+      if (i == j)
+      {
+        if (A(i, i) - s <= 0)
+          throw std::invalid_argument("Matrix must be positive-definite!");
+        L(i, j) = sqrt(A(i, i) - s);
+      }
+      else
+        L(i, j) = 1.0 / L(j, j) * (A(i, j) - s);
+    }
+  return L;
 }
 
 } //  end namespace grabnum
