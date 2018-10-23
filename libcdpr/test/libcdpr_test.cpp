@@ -7,7 +7,8 @@
 
 #include "kinematics.h"
 #include "diffkinematics.h"
-#include "json.hpp"
+#include "types.h"
+#include "robotconfigjsonparser.h"
 
 // Aliases ---------------------------------------------------------------------
 using json = nlohmann::json; // JSON library support
@@ -28,14 +29,18 @@ private Q_SLOTS:
 
 void LibcdprTest::testJsonParser()
 {
-  std::ifstream ifile("test.json");
+  // test parsing with different inputs
+  RobotConfigJsonParser parser;
+  parser.ParseFile("../test/fail1.json");
+  parser.ParseFile(QString("../test/fail2.json"));
+  parser.ParseFile(std::string("../test/pass.json"));
 
-  QVERIFY2(ifile.is_open(), "Could not open input file");
+  // test getters
+  grabcdpr::Params params = parser.GetConfigStruct();
+  parser.GetConfigStruct(&params);
 
-  json robot_config;
-  ifile >> robot_config;
-
-  ifile.close();
+  // test display
+  parser.PrintConfig();
 }
 
 QTEST_APPLESS_MAIN(LibcdprTest)

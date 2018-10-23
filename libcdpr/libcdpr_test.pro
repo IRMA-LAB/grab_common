@@ -18,14 +18,20 @@ HEADERS += \
     $$PWD/inc/kinematics.h \
     $$PWD/inc/diffkinematics.h \
     $$PWD/inc/types.h \
-    $$PWD/inc/json.hpp
+    $$PWD/tools/json.hpp \
+    $$PWD/tools/robotconfigjsonparser.h \
+    $$PWD/../grabcommon.h
 
 SOURCES += \
     $$PWD/src/kinematics.cpp \
     $$PWD/src/diffkinematics.cpp \
-    $$PWD/test/libcdpr_test.cpp
+    $$PWD/test/libcdpr_test.cpp \
+    $$PWD/tools/robotconfigjsonparser.cpp
 
-INCLUDEPATH += inc
+INCLUDEPATH += \
+    $$PWD/inc \
+    $$PWD/tools \
+    $$PWD/..
 
 # Lib numeric
 unix:!macx: LIBS += -L$$PWD/../libnumeric/build/ -lnumeric
