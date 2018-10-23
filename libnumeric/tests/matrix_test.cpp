@@ -1,12 +1,11 @@
 #include <QtTest/QtTest>
+
 #include <cmath>
 
 #include "matrix.h"
+#include "matrix_utilities.h"
 #include "common.h"
 
-/**
- * @brief The TestMatrix class
- */
 class TestMatrix : public QObject
 {
   Q_OBJECT
@@ -27,37 +26,20 @@ private:
   grabnum::Matrix2i zeros22i_;
 
 private slots:
-  /**
-   * Called before each test function is executed (overloaded).
-   */
   void init();
-  /**
-   * Test @a Matrix constructors.
-   */
+
   void Constructors();
-  /**
-   * Test @a Matrix operators overloadings.
-   */
+
   void ClassOperators();
-  /**
-   * Test @a Matrix setters.
-   */
+
   void Setters();
-  /**
-   * Test @a Matrix getters.
-   */
+
   void Getters();
-  /**
-   * Test @a Matrix manipulating functions.
-   */
+
   void Manipulations();
-  /**
-   * Test external operations on matrices.
-   */
+
   void Operations();
-  /**
-   * Test external utilities on matrices.
-   */
+
   void Utilities();
 };
 

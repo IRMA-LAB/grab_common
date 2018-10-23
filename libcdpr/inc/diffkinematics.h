@@ -1,7 +1,7 @@
 /**
  * @file diffkinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 05 Sep 2018
+ * @date 23 Oct 2018
  * @brief File containing differential kinematics-related functions to be included in the
  * GRAB CDPR library.
  */
@@ -12,7 +12,7 @@
 #include "types.h"
 #include "kinematics.h"
 #include "rotations.h"
-#include "matrix.h"
+#include "matrix_utilities.h"
 
 /**
  * @brief namespace for CDPR-related utilities, such as kinematics and dynamics.

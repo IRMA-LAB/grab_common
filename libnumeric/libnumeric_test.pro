@@ -1,13 +1,15 @@
 
 HEADERS = \
     $$PWD/inc/matrix.h \
+    $$PWD/inc/matrix_utilities.h \
     $$PWD/inc/solvers.h \
-    $$PWD/inc/common.h \
+    $$PWD/inc/common.h
 
 SOURCES = \
     $$PWD/src/matrix.cpp \
+    $$PWD/src/matrix_utilities.tcc \
     $$PWD/src/solvers.cpp \
-    $$PWD/tests/matrix_test.cpp
+    $$PWD/tests/matrix_test.cpp \
 
 INCLUDEPATH += inc
 

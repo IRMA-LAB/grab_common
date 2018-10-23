@@ -1,7 +1,7 @@
 /**
  * @file quaternions.h
  * @author Edoardo Idà, Simone Comari
- * @date 07 Sep 2018
+ * @date 23 Oct 2018
  * @brief File containing quaternions utilities to be included in the GRAB geometric
  * library.
  * @todo documentation of external operators.
@@ -10,7 +10,7 @@
 #ifndef GRABCOMMON_LIBGEOM_QUATERNIONS_H
 #define GRABCOMMON_LIBGEOM_QUATERNIONS_H
 
-#include "matrix.h"
+#include "matrix_utilities.h"
 #include "rotations.h"
 
 namespace grabgeom

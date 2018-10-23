@@ -1,7 +1,7 @@
 /**
  * @file rotations.h
  * @author Edoardo Idà, Simone Comari
- * @date 07 Sep 2018
+ * @date 23 Oct 2018
  * @brief File containing rotation parametrizations to be included in the GRAB geometric
  * library.
  *
@@ -54,7 +54,7 @@
 #ifndef GRABCOMMON_LIBGEOM_ROTATIONS_H
 #define GRABCOMMON_LIBGEOM_ROTATIONS_H
 
-#include "matrix.h"
+#include "matrix_utilities.h"
 
 namespace grabgeom
 {
