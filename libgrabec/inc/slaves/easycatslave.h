@@ -3,7 +3,7 @@
 
 #include "ethercatslave.h"
 #include "types.h"
-#include "state_machine/inc/StateMachine.h"
+#include "StateMachine.h"
 
 #define METHOD 0
 

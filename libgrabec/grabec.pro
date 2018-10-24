@@ -13,25 +13,41 @@ TEMPLATE = lib
 DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
-    ../grabcommon.h \
-    inc/ethercatmaster.h \
-    inc/ethercatslave.h \
-    inc/types.h \
-    inc/slaves/easycatslave.h \
-    inc/slaves/goldsolowhistledrive.h
+    $$PWD/../grabcommon.h \
+    $$PWD/inc/ethercatmaster.h \
+    $$PWD/inc/ethercatslave.h \
+    $$PWD/inc/types.h \
+    $$PWD/inc/slaves/easycatslave.h \
+    $$PWD/inc/slaves/goldsolowhistledrive.h
 
 SOURCES += \
-    src/ethercatmaster.cpp \
-    src/ethercatslave.cpp \
-    src/types.cpp \
-    src/slaves/easycatslave.cpp \
-    src/slaves/goldsolowhistledrive.cpp
+    $$PWD/src/ethercatmaster.cpp \
+    $$PWD/src/ethercatslave.cpp \
+    $$PWD/src/types.cpp \
+    $$PWD/src/slaves/easycatslave.cpp \
+    $$PWD/src/slaves/goldsolowhistledrive.cpp
 
-INCLUDEPATH += inc \
-      ../libgrabrt/inc \
-      ../ \
-      /opt/etherlab/include/
+INCLUDEPATH += \
+      $$PWD/inc \
+      ../
 
-DEPENDPATH  += /opt/etherlab/lib/ ../libgrabrt/build/
+# Ethercat lib
+LIBS        += /opt/etherlab/lib/libethercat.a
+INCLUDEPATH += /opt/etherlab/include/
+DEPENDPATH  += /opt/etherlab/lib/
 
-LIBS        += /opt/etherlab/lib/libethercat.a ../libgrabrt/build/libgrabrt.a
+# Lib real-time
+unix:!macx: LIBS += -L$$PWD/../libgrabrt/lib/ -lgrabrt
+
+INCLUDEPATH += $$PWD/../libgrabrt $$PWD/../libgrabrt/inc
+DEPENDPATH += $$PWD/../libgrabrt
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libgrabrt/lib/libgrabrt.a
+
+# Lib state-machine
+unix:!macx: LIBS += -L$$PWD/../../state_machine/lib/ -lstate_machine
+
+INCLUDEPATH += $$PWD/../../state_machine $$PWD/../../state_machine/inc
+DEPENDPATH += $$PWD/../../state_machine
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../../state_machine/lib/libstate_machine.a

@@ -2,6 +2,10 @@
 
 namespace grabec
 {
+// Must provide redundant definition of the static member as well as the declaration.
+constexpr ec_pdo_entry_info_t EasyCatSlave::kPdoEntries[];
+constexpr ec_pdo_info_t EasyCatSlave::kPDOs[];
+constexpr ec_sync_info_t EasyCatSlave::kSyncs[];
 
 EasyCatSlave::EasyCatSlave(const uint8_t slave_position) : StateMachine(ST_MAX_STATES)
 {
@@ -47,24 +51,28 @@ EasyCatSlave::~EasyCatSlave()
 #if !METHOD
 void EasyCatSlave::Start()
 {
-  BEGIN_TRANSITION_MAP                  // - Current State -
-    TRANSITION_MAP_ENTRY(ST_UPDATE)     // ST_IDLE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // ST_UPDATE
-    END_TRANSITION_MAP(NULL)
+  // clang-format off
+  BEGIN_TRANSITION_MAP                                   // - Current State -
+    TRANSITION_MAP_ENTRY(ST_UPDATE)            // ST_IDLE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)   // ST_UPDATE
+  END_TRANSITION_MAP(NULL)
+  // clang-format on
 }
 #endif
 
 void EasyCatSlave::DoWork()
 {
-BEGIN_TRANSITION_MAP                                        // - Current State -
+  // clang-format off
+  BEGIN_TRANSITION_MAP                                  // - Current State -
 #if METHOD
-      TRANSITION_MAP_ENTRY(ST_UPDATE)             // ST_IDLE
-      TRANSITION_MAP_ENTRY(ST_IDLE)                   // ST_UPDATE
+    TRANSITION_MAP_ENTRY(ST_UPDATE)          // ST_IDLE
+    TRANSITION_MAP_ENTRY(ST_IDLE)                // ST_UPDATE
 #else
-      TRANSITION_MAP_ENTRY(EVENT_IGNORED)     // ST_IDLE
-      TRANSITION_MAP_ENTRY(EVENT_IGNORED)     // ST_UPDATE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)  // ST_IDLE
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)  // ST_UPDATE
 #endif
   END_TRANSITION_MAP(NULL)
+  // clang-format on
 }
 
 void EasyCatSlave::ReadInputs()
@@ -84,10 +92,7 @@ void EasyCatSlave::WriteOutputs()
 }
 
 // State machine sits here when slave is not running
-STATE_DEFINE(EasyCatSlave, Idle, NoEventData)
-{
-  output_pdos_.control_word = ST_IDLE;
-}
+STATE_DEFINE(EasyCatSlave, Idle, NoEventData) { output_pdos_.control_word = ST_IDLE; }
 
 #if METHOD
 // Guard condition to detemine whether Idle state is executed.
@@ -106,7 +111,7 @@ STATE_DEFINE(EasyCatSlave, Update, NoEventData)
 #if !METHOD
   if (input_pdos_.num_calls > temp_)
     InternalEvent(ST_IDLE);
- #endif
+#endif
   output_pdos_.control_word = ST_UPDATE;
   temp_ = input_pdos_.num_calls;
 }

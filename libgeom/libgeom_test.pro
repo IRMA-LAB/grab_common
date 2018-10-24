@@ -24,12 +24,12 @@ SOURCES += \
     $$PWD/src/quaternions.cpp \
     $$PWD/test/libgeom_test.cpp
 
-INCLUDEPATH += inc
+INCLUDEPATH += $$PWD/inc
 
 # Lib numeric
-unix:!macx: LIBS += -L$$PWD/../libnumeric/build/ -lnumeric
+unix:!macx: LIBS += -L$$PWD/../libnumeric/lib/ -lnumeric
 
-INCLUDEPATH += $$PWD/../libnumeric/build $$PWD/../libnumeric/inc
-DEPENDPATH += $$PWD/../libnumeric/build
+INCLUDEPATH += $$PWD/../libnumeric $$PWD/../libnumeric/inc
+DEPENDPATH += $$PWD/../libnumeric
 
-unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/build/libnumeric.a
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/lib/libnumeric.a

@@ -25,8 +25,8 @@ HEADERS += \
 SOURCES += \
     $$PWD/src/kinematics.cpp \
     $$PWD/src/diffkinematics.cpp \
-    $$PWD/test/libcdpr_test.cpp \
-    $$PWD/tools/robotconfigjsonparser.cpp
+    $$PWD/tools/robotconfigjsonparser.cpp \
+    $$PWD/test/libcdpr_test.cpp
 
 INCLUDEPATH += \
     $$PWD/inc \
@@ -34,17 +34,17 @@ INCLUDEPATH += \
     $$PWD/..
 
 # Lib numeric
-unix:!macx: LIBS += -L$$PWD/../libnumeric/build/ -lnumeric
+unix:!macx: LIBS += -L$$PWD/../libnumeric/lib/ -lnumeric
 
-INCLUDEPATH += $$PWD/../libnumeric/build $$PWD/../libnumeric/inc
-DEPENDPATH += $$PWD/../libnumeric/build
+INCLUDEPATH += $$PWD/../libnumeric $$PWD/../libnumeric/inc
+DEPENDPATH += $$PWD/../libnumeric
 
-unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/build/libnumeric.a
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/lib/libnumeric.a
 
 # Lib geometric
-unix:!macx: LIBS += -L$$PWD/../libgeom/build/ -lgeom
+unix:!macx: LIBS += -L$$PWD/../libgeom/lib/ -lgeom
 
-INCLUDEPATH += $$PWD/../libgeom/build $$PWD/../libgeom/inc
-DEPENDPATH += $$PWD/../libgeom/build
+INCLUDEPATH += $$PWD/../libgeom $$PWD/../libgeom/inc
+DEPENDPATH += $$PWD/../libgeom
 
-unix:!macx: PRE_TARGETDEPS += $$PWD/../libgeom/build/libgeom.a
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libgeom/lib/libgeom.a

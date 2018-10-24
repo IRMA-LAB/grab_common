@@ -15,7 +15,7 @@
 #include "ethercatslave.h"
 #include "types.h"
 #include "grabcommon.h"
-#include "state_machine/inc/StateMachine.h"
+#include "StateMachine.h"
 
 namespace grabec
 {
@@ -53,6 +53,9 @@ enum GoldSoloWhistleOperationModes : int8_t
   CYCLIC_TORQUE = 10,
 };
 
+/**
+ * @brief The Commands enum
+ */
 enum Commands : uint8_t
 {
   UNSET,

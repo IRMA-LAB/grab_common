@@ -3,15 +3,19 @@ HEADERS += \
     $$PWD/inc/kinematics.h \
     $$PWD/inc/diffkinematics.h \
     $$PWD/inc/types.h \
-    $$PWD/inc/json.hpp
+    $$PWD/tools/json.hpp \
+    $$PWD/tools/robotconfigjsonparser.h \
+    $$PWD/../grabcommon.h
 
 SOURCES += \
     $$PWD/src/kinematics.cpp \
-    $$PWD/src/diffkinematics.cpp
+    $$PWD/src/diffkinematics.cpp \
+    $$PWD/tools/robotconfigjsonparser.cpp \
 
-INCLUDEPATH += inc
-
-LIBS += ../libgeom/build/libgeom.a ../libnumeric/build/libnumeric.a
+INCLUDEPATH += \
+    $$PWD/inc \
+    $$PWD/tools \
+    $$PWD/..
 
 QT       -= gui
 
@@ -27,17 +31,17 @@ TEMPLATE = lib
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # Lib numeric
-unix:!macx: LIBS += -L$$PWD/../libnumeric/build/ -lnumeric
+unix:!macx: LIBS += -L$$PWD/../libnumeric/lib/ -lnumeric
 
-INCLUDEPATH += $$PWD/../libnumeric/build $$PWD/../libnumeric/inc
-DEPENDPATH += $$PWD/../libnumeric/build
+INCLUDEPATH += $$PWD/../libnumeric $$PWD/../libnumeric/inc
+DEPENDPATH += $$PWD/../libnumeric
 
-unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/build/libnumeric.a
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/lib/libnumeric.a
 
 # Lib geometric
-unix:!macx: LIBS += -L$$PWD/../libgeom/build/ -lgeom
+unix:!macx: LIBS += -L$$PWD/../libgeom/lib/ -lgeom
 
-INCLUDEPATH += $$PWD/../libgeom/build $$PWD/../libgeom/inc
-DEPENDPATH += $$PWD/../libgeom/build
+INCLUDEPATH += $$PWD/../libgeom $$PWD/../libgeom/inc
+DEPENDPATH += $$PWD/../libgeom
 
-unix:!macx: PRE_TARGETDEPS += $$PWD/../libgeom/build/libgeom.a
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libgeom/lib/libgeom.a

@@ -33,6 +33,7 @@
 
 # Build folders
 build*
+lib
 
 # Custom settings
 /.cproject

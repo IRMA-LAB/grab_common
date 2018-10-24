@@ -11,7 +11,7 @@ SOURCES = \
     $$PWD/src/solvers.cpp \
     $$PWD/tests/matrix_test.cpp \
 
-INCLUDEPATH += inc
+INCLUDEPATH += $$PWD/inc
 
 QT       += testlib
 QT       -= gui

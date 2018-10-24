@@ -1,15 +1,17 @@
 
-HEADERS += inc/threads.h \
-    inc/clocks.h \
-    ../grabcommon.h
+HEADERS += \
+    $$PWD/inc/threads.h \
+    $$PWD/inc/clocks.h \
+    $$PWD/../grabcommon.h
 
-SOURCES += test/libgrabrt_test.cpp \
-      src/threads.cpp \
-    src/clocks.cpp
+SOURCES += \
+    $$PWD/src/threads.cpp \
+    $$PWD/src/clocks.cpp \
+    $$PWD/test/libgrabrt_test.cpp
 
-INCLUDEPATH += inc \
-      ../libnumeric/inc\
-      ../
+INCLUDEPATH += \
+    $$PWD/inc \
+    $$PWD/..
 
 QT       += testlib
 QT       -= gui
@@ -26,3 +28,11 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+
+# Lib numeric
+unix:!macx: LIBS += -L$$PWD/../libnumeric/lib/ -lnumeric
+
+INCLUDEPATH += $$PWD/../libnumeric $$PWD/../libnumeric/inc/
+DEPENDPATH += $$PWD/../libnumeric
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/lib/libnumeric.a

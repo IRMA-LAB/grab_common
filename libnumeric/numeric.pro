@@ -8,7 +8,7 @@ SOURCES += \
     $$PWD/src/matrix.cpp \
     $$PWD/src/solvers.cpp
 
-INCLUDEPATH += inc
+INCLUDEPATH += $$PWD/inc
 
 QT           -= gui
 
