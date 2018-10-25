@@ -11,6 +11,8 @@ RobotConfigJsonParser::RobotConfigJsonParser()
 bool RobotConfigJsonParser::ParseFile(const std::string& filename,
                                       const bool verbose /* = false*/)
 {
+  std::cout << "Parsing file '" << filename << "'...\n";
+
   // Check file extension
   size_t found = filename.rfind(std::string(".json"));
   if (found == std::string::npos || found != filename.length() - 5)
@@ -131,23 +133,28 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
     return false;
   }
   json platform = raw_data["platform"];
+  std::string field;
   try
   {
-    config_params_.platform->mass = platform["mass"];
+    field = "mass";
+    config_params_.platform->mass = platform[field];
     for (uint8_t i = 0; i < 3; i++)
     {
-      config_params_.platform->ext_force_loc(i + 1) =
-        platform["ext_force_loc"].at(i).at(0);
-      config_params_.platform->ext_torque_loc(i + 1) =
-        platform["ext_torque_loc"].at(i).at(0);
-      config_params_.platform->pos_PG_loc(i + 1) = platform["pos_PG_loc"].at(i).at(0);
+      field = "ext_force_loc";
+      config_params_.platform->ext_force_loc(i + 1) = platform[field].at(i).at(0);
+      field = "ext_torque_loc";
+      config_params_.platform->ext_torque_loc(i + 1) = platform[field].at(i).at(0);
+      field = "pos_PG_loc";
+      config_params_.platform->pos_PG_loc(i + 1) = platform[field].at(i).at(0);
+      field = "inertia_mat_G_loc";
       config_params_.platform->inertia_mat_G_loc.SetRow(
-        i + 1, platform["inertia_mat_G_loc"].at(i).get<std::vector<double>>());
+        i + 1, platform[field].at(i).get<std::vector<double>>());
     }
   }
   catch (json::type_error)
   {
-    std::cerr << "[ERROR] Missing or invalid platform parameter field!" << std::endl;
+    std::cerr << "[ERROR] Missing or invalid platform parameter field: " << field
+              << std::endl;
     return false;
   }
   return ArePlatformParamsValid();
@@ -161,31 +168,45 @@ bool RobotConfigJsonParser::ExtractCables(const json& raw_data)
     return false;
   }
   json cables = raw_data["cable"];
+  std::string field;
   for (auto& cable : cables)
   {
     grabcdpr::CableParams temp;
     try
     {
-      temp.l0 = cable["l0"];
-      temp.motor_cable_tau = cable["motor_cable_tau"];
-      temp.motor_encoder_res = cable["motor_encoder_res"];
-      temp.swivel_pulley_encoder_res = cable["swivel_pulley_encoder_res"];
-      temp.swivel_pulley_r = cable["swivel_pulley_r"];
+      field = "l0";
+      temp.l0 = cable[field];
+      field = "motor_cable_tau";
+      temp.motor_cable_tau = cable[field];
+      field = "motor_encoder_res";
+      temp.motor_encoder_res = cable[field];
+      field = "swivel_pulley_encoder_res";
+      temp.swivel_pulley_encoder_res = cable[field];
+      field = "swivel_pulley_r";
+      temp.swivel_pulley_r = cable[field];
       for (uint8_t i = 0; i < 3; i++)
       {
-        temp.pos_OD_glob(i + 1) = cable["pos_OD_glob"].at(i).at(0);
-        temp.pos_PA_loc(i + 1) = cable["pos_PA_loc"].at(i).at(0);
-        temp.vers_i(i + 1) = cable["vers_i"].at(i).at(0);
-        temp.vers_j(i + 1) = cable["vers_j"].at(i).at(0);
-        temp.vers_k(i + 1) = cable["vers_k"].at(i).at(0);
+        field = "pos_OD_glob";
+        temp.pos_OD_glob(i + 1) = cable[field].at(i).at(0);
+        field = "pos_PA_loc";
+        temp.pos_PA_loc(i + 1) = cable[field].at(i).at(0);
+        field = "vers_i";
+        temp.vers_i(i + 1) = cable[field].at(i).at(0);
+        field = "vers_j";
+        temp.vers_j(i + 1) = cable[field].at(i).at(0);
+        field = "vers_k";
+        temp.vers_k(i + 1) = cable[field].at(i).at(0);
       }
     }
     catch (json::type_error)
     {
-      std::cerr << "[ERROR] Missing or invalid cable parameter field!" << std::endl;
+      std::cerr << "[ERROR] Missing or invalid cable parameter field: " << field
+                << std::endl;
       return false;
     }
 
+    if (!AreCableParamsValid(temp))
+      return false;
     config_params_.cables.push_back(temp);
   }
   return true;
@@ -194,11 +215,60 @@ bool RobotConfigJsonParser::ExtractCables(const json& raw_data)
 bool RobotConfigJsonParser::ArePlatformParamsValid() const
 {
   bool ret = true;
+
   if (config_params_.platform->mass <= 0.0)
-    {
-      std::cerr << "[ERROR] platform mass must be strictly positive!" << std::endl;
-      ret = false;
-    }
+  {
+    std::cerr << "[ERROR] platform mass must be strictly positive!" << std::endl;
+    ret = false;
+  }
+
+  if (!config_params_.platform->inertia_mat_G_loc.IsPositiveDefinite())
+  {
+    std::cerr << "[ERROR] platform inertia matrix must be positive definite!"
+              << std::endl;
+    ret = false;
+  }
+
+  return ret;
+}
+
+bool RobotConfigJsonParser::AreCableParamsValid(const grabcdpr::CableParams& params) const
+{
+  bool ret = true;
+
+  if (params.l0 < 0.0)
+  {
+    std::cerr << "[ERROR] cable length must be non negative!" << std::endl;
+    ret = false;
+  }
+
+  if (params.motor_cable_tau <= 0.0)
+  {
+    std::cerr
+      << "[ERROR] cable length-to-motor revolution ratio must be strictly positive!"
+      << std::endl;
+    ret = false;
+  }
+
+  if (params.motor_encoder_res <= 0.0)
+  {
+    std::cerr << "[ERROR] motor encoder resolution must be strictly positive!"
+              << std::endl;
+    ret = false;
+  }
+
+  if (params.swivel_pulley_encoder_res <= 0.0)
+  {
+    std::cerr << "[ERROR] swivel pulley encoder resolution must be strictly positive!"
+              << std::endl;
+    ret = false;
+  }
+
+  if (params.swivel_pulley_r < 0.0)
+  {
+    std::cerr << "[ERROR] swivel pulley radius must be non negative!" << std::endl;
+    ret = false;
+  }
 
   return ret;
 }

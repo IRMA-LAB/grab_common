@@ -5,7 +5,7 @@
 
 #include <QString>
 
-#include "types.h"
+#include "libcdpr/inc/types.h"
 #include "json.hpp"
 #include "grabcommon.h"
 
@@ -41,7 +41,7 @@ private:
   bool ExtractCables(const json& raw_data);
 
   bool ArePlatformParamsValid() const;
-  bool AreCablesParamsValid() const;
+  bool AreCableParamsValid(const grabcdpr::CableParams& params) const;
 };
 
 #endif // GRABCOMMON_LIBCDPR_ROBOTCONFIGJSONPARSER_H
