@@ -14,6 +14,8 @@ namespace grabec
 /// Public methods
 /////////////////////////////////////////////////
 
+EthercatMaster::~EthercatMaster() {}  // necessary for pure abstract destructor
+
 EthercatMaster::EthercatMaster() { check_state_flags_.ClearAll(); }
 
 void EthercatMaster::SetThreadsParams(const RtThreadsParams& params)
@@ -86,7 +88,7 @@ void EthercatMaster::CheckDomainState()
   if (domain_state_local.wc_state != domain_state_.wc_state)
   {
     std::cout << "Domain: State " << domain_state_local.wc_state << std::endl;
-    check_state_flags_.Set(DOMAIN,
+    check_state_flags_.Set(EC_DOMAIN,
                            domain_state_local.wc_state == EC_WC_COMPLETE); // operational?
   }
   domain_state_ = domain_state_local;

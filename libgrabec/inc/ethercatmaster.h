@@ -82,9 +82,9 @@ protected:
    * @endcode
    * @todo understand why this can't go in types.h
    */
-  enum EthercatStateFlagsBit
+  enum EthercatStateFlagsBit : uint8_t
   {
-    DOMAIN,
+    EC_DOMAIN,
     MASTER,
     CONFIG
   };

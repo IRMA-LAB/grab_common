@@ -109,7 +109,7 @@ public:
  * - fast stop during operation
  * - reaction to a specific fault
  */
-class GoldSoloWhistleDrive : public StateMachine, virtual public EthercatSlave
+class GoldSoloWhistleDrive : public virtual EthercatSlave, public StateMachine
 {
 public:
   /**

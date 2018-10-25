@@ -14,7 +14,7 @@ namespace grabec
  * @brief The EasyCatSlave class
  * @todo understand transition condition UPDATE --> IDLE
  */
-class EasyCatSlave : public EthercatSlave, public StateMachine
+class EasyCatSlave : public virtual EthercatSlave, public StateMachine
 {
 public:
   /**
@@ -40,17 +40,17 @@ public:
   /**
    * @brief Slave's main function to be cycled.
    */
-  virtual void DoWork() final;
+  void DoWork() override final;
 
   /**
    * @brief Function to specify what to read.
    */
-  virtual void ReadInputs() final;
+  void ReadInputs() override final;
 
   /**
    * @brief Function to specify what to write.
    */
-  virtual void WriteOutputs() final;
+  void WriteOutputs() override final;
 
 private:
   // Easycat Slave specific info
@@ -116,6 +116,8 @@ private:
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries]; // ethercat utility
   uint8_t temp_;
   bool can_update_ = false;
+
+  void InitFun() override final {}  // need to override it even if not used
 
   // State enumeration order must match the order of state method entries in the state map
   enum States : uint8_t
