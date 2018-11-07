@@ -5,7 +5,7 @@
 #include "types.h"
 #include "StateMachine.h"
 
-#define METHOD 0
+#define EC_METHOD 0
 
 namespace grabec
 {
@@ -24,7 +24,7 @@ public:
   EasyCatSlave(const uint8_t slave_position);
   ~EasyCatSlave();
 
-#if METHOD
+#if EC_METHOD
   /**
    * @brief SetUpdateFlag
    * @param value
@@ -129,7 +129,7 @@ private:
 
   // Define the state machine state functions with event data type
   STATE_DECLARE(EasyCatSlave, Idle, NoEventData)
-#if METHOD
+#if EC_METHOD
   GUARD_DECLARE(EasyCatSlave, GuardIdle, NoEventData)
 #endif
   STATE_DECLARE(EasyCatSlave, Update, NoEventData)
@@ -137,7 +137,7 @@ private:
 
   // State map to define state object order. Each state map entry defines a state object.
   BEGIN_STATE_MAP_EX
-#if METHOD
+#if EC_METHOD
   STATE_MAP_ENTRY_ALL_EX(&Idle, &GuardIdle, 0, 0)
 #else
   STATE_MAP_ENTRY_EX(&Idle)

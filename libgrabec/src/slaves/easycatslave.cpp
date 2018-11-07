@@ -48,7 +48,7 @@ EasyCatSlave::~EasyCatSlave()
   EC_WRITE_U8(domain_data_ptr_ + offset_out_.slave_status, output_pdos_.slave_status);
 }
 
-#if !METHOD
+#if !EC_METHOD
 void EasyCatSlave::Start()
 {
   // clang-format off
@@ -64,7 +64,7 @@ void EasyCatSlave::DoWork()
 {
   // clang-format off
   BEGIN_TRANSITION_MAP                                  // - Current State -
-#if METHOD
+#if EC_METHOD
     TRANSITION_MAP_ENTRY(ST_UPDATE)          // ST_IDLE
     TRANSITION_MAP_ENTRY(ST_IDLE)                // ST_UPDATE
 #else
@@ -94,7 +94,7 @@ void EasyCatSlave::WriteOutputs()
 // State machine sits here when slave is not running
 STATE_DEFINE(EasyCatSlave, Idle, NoEventData) { output_pdos_.control_word = ST_IDLE; }
 
-#if METHOD
+#if EC_METHOD
 // Guard condition to detemine whether Idle state is executed.
 GUARD_DEFINE(EasyCatSlave, GuardIdle, NoEventData)
 {
@@ -108,7 +108,7 @@ GUARD_DEFINE(EasyCatSlave, GuardIdle, NoEventData)
 // Update slave
 STATE_DEFINE(EasyCatSlave, Update, NoEventData)
 {
-#if !METHOD
+#if !EC_METHOD
   if (input_pdos_.num_calls > temp_)
     InternalEvent(ST_IDLE);
 #endif
