@@ -44,6 +44,19 @@ public:
   RetVal Configure(ec_master_t* master_ptr, ec_slave_config_t* config_ptr);
 
   /**
+   * @brief DoWork
+   */
+  virtual void DoWork() = 0;   // pure virtual
+  /**
+   * @brief ReadInputs
+   */
+  virtual void ReadInputs() = 0;   // pure virtual
+  /**
+   * @brief WriteOutputs
+   */
+  virtual void WriteOutputs() = 0;   // pure virtual
+
+  /**
    * @brief GetDomainRegister
    * @param index
    * @return
@@ -85,9 +98,6 @@ protected:
   virtual RetVal SdoRequests(ec_slave_config_t* config_ptr);
 
 private:
-  virtual void DoWork() = 0;   // pure virtual
-  virtual void ReadInputs() = 0;   // pure virtual
-  virtual void WriteOutputs() = 0;   // pure virtual
   virtual void InitFun() = 0;   // pure virtual
 
   void SetDomainDataPtr(uint8_t* _domain_data_ptr);
