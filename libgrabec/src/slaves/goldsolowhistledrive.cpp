@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 25 Sep 2018
+ * @date 08 Nov 2018
  * @brief File containing class implementation declared in goldsolowhistledrive.h.
  */
 
@@ -79,30 +79,31 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const uint8_t slave_position)
   InternalEvent(drive_state_);
 }
 
-GoldSoloWhistleDriveStates GoldSoloWhistleDrive::GetDriveState() const
+GoldSoloWhistleDriveStates
+GoldSoloWhistleDrive::GetDriveState(const Bitfield16& status_word)
 {
-  if (input_pdos_.status_word[StatusBit::SWITCH_ON_DISABLED] == SET)
+  if (status_word[StatusBit::SWITCH_ON_DISABLED] == SET)
   { // drive idle: OFF=true
     return ST_NOT_READY_TO_SWITCH_ON;
   }
-  if (input_pdos_.status_word[StatusBit::QUICK_STOP] == SET)
+  if (status_word[StatusBit::QUICK_STOP] == SET)
   {
-    if (input_pdos_.status_word[StatusBit::SWITCHED_ON] == UNSET)
+    if (status_word[StatusBit::SWITCHED_ON] == UNSET)
     { // drive in operational progress: OFF=false, ON=true, SWITCH_ON=false
       return ST_READY_TO_SWITCH_ON;
     }
-    if (input_pdos_.status_word[StatusBit::OPERATION_ENABLED] == UNSET)
+    if (status_word[StatusBit::OPERATION_ENABLED] == UNSET)
     { // drive in operational progress: OFF=false, ON=true, SWITCH_ON=true, ENABLED=false
       return ST_SWITCHED_ON;
     }
     // drive operational: OFF=false, ON=true, SWITCH_ON=true, ENABLED=true
     return ST_OPERATION_ENABLED;
   }
-  if (input_pdos_.status_word[StatusBit::FAULT] == UNSET)
+  if (status_word[StatusBit::FAULT] == UNSET)
   { // drive in quick stop: OFF=false, ON=false, FAULT=false
     return ST_QUICK_STOP_ACTIVE;
   }
-  if (input_pdos_.status_word[StatusBit::OPERATION_ENABLED] == SET)
+  if (status_word[StatusBit::OPERATION_ENABLED] == SET)
   { // drive in fault reaction: OFF=false, ON=false, FAULT=true, ENABLED=true
     return ST_FAULT_REACTION_ACTIVE;
   }
@@ -110,6 +111,10 @@ GoldSoloWhistleDriveStates GoldSoloWhistleDrive::GetDriveState() const
   return ST_FAULT;
 }
 
+std::string GoldSoloWhistleDrive::GetDriveStateStr(const Bitfield16& status_word)
+{
+  return kStatesStr[GetDriveState(status_word)];
+}
 ////////////////////////////////////////////////////////////////////////////
 //// Overwritten virtual functions from base class
 ////////////////////////////////////////////////////////////////////////////
@@ -153,7 +158,7 @@ void GoldSoloWhistleDrive::ReadInputs()
   input_pdos_.aux_pos_actual_value =
     EC_READ_S32(domain_data_ptr_ + offset_in_.aux_pos_actual_value);
 
-  drive_state_ = GetDriveState();
+  drive_state_ = GetDriveState(input_pdos_.status_word);
   if (drive_state_ != GetCurrentState())
   {
     if (drive_state_ == ST_OPERATION_ENABLED)

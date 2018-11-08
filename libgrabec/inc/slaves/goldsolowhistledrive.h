@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 07 Nov 2018
+ * @date 08 Nov 2018
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB
  * ethercat library.
@@ -47,7 +47,13 @@ enum GoldSoloWhistleDriveStates : BYTE
  */
 enum GoldSoloWhistleOperationModes : int8_t
 {
-  NULL_OPERATION = -1,
+  NONE = -1,
+  PROFILE_POSITION = 1,
+  VELOCITY_MODE = 2,
+  PROFILE_VELOCITY = 3,
+  TORQUE_PROFILE = 4,
+  HOMING = 6,
+  INTERPOLATED_POSITION = 7,
   CYCLIC_POSITION = 8,
   CYCLIC_VELOCITY = 9,
   CYCLIC_TORQUE = 10,
@@ -60,6 +66,20 @@ enum Commands : uint8_t
 {
   UNSET,
   SET
+};
+
+/**
+ * A simple way to store the pdos input values
+ */
+struct GSWDriveInPdos
+{
+  Bitfield16 status_word;      /**< status_word */
+  int8_t display_op_mode;      /**< display_op_mode */
+  int32_t pos_actual_value;    /**< pos_actual_value */
+  int32_t vel_actual_value;    /**< vel_actual_value */
+  int16_t torque_actual_value; /**< torque_actual_value */
+  uint digital_inputs;         /**< digital_inputs */
+  int aux_pos_actual_value;    /**< aux_pos_actual_value */
 };
 
 /**
@@ -85,7 +105,7 @@ public:
    */
   GoldSoloWhistleDriveData(const int8_t _op_mode, const int32_t _value = 0);
 
-  int8_t op_mode = NULL_OPERATION; /**< The desired operation mode of the drive. */
+  int8_t op_mode = NONE; /**< The desired operation mode of the drive. */
   int32_t value = 0; /**< The target set point for the desired operation mode. */
 };
 
@@ -118,6 +138,51 @@ public:
    */
   GoldSoloWhistleDrive(const uint8_t slave_position);
   ~GoldSoloWhistleDrive() {}
+
+  /**
+   * @brief Get latest known physical drive state.
+   * @return Latest known physical drive state.
+   */
+  static GoldSoloWhistleDriveStates GetDriveState(const Bitfield16& status_word);
+  /**
+   * @brief Get latest known physical drive state.
+   * @return Latest known physical drive state.
+   */
+  static std::string GetDriveStateStr(const Bitfield16& status_word);
+  /**
+   * @brief Get actual drive position (aka counts).
+   * @return Actual drive position (aka counts).
+   */
+  int32_t GetPosition() const { return input_pdos_.pos_actual_value; }
+  /**
+   * @brief Get actual drive velocity.
+   * @return Actual drive velocity in user-defined units.
+   */
+  int32_t GetVelocity() const { return input_pdos_.vel_actual_value; }
+  /**
+   * @brief Get actual drive torque.
+   * @return Actual drive torque in user-defined units.
+   */
+  int16_t GetTorque() const { return input_pdos_.torque_actual_value; }
+  /**
+   * @brief Get actual drive auxiliary position (aka counts).
+   *
+   * This field can be used by external sensors connected to the drive, for instance an
+   * additional encoder.
+   * @return Actual drive auxiliary position (aka counts).
+   */
+  int GetAuxPosition() const { return input_pdos_.aux_pos_actual_value; }
+  /**
+   * @brief Get actual drive operational mode {_position, velocity, torque, none_}.
+   * @return Actual drive operational mode.
+   * @see GoldSoloWhistleOperationModes
+   */
+  int8_t GetOpMode() const { return input_pdos_.display_op_mode; }
+  /**
+   * @brief Get actual drive status, i.e. the latest values of its input PDOs.
+   * @return Actual drive status, i.e. the latest values of its input PDOs.
+   */
+  GSWDriveInPdos GetDriveStatus() const { return input_pdos_; }
 
   /**
    * @defgroup ExternalEvents GoldSoloWhistle Drive External Events
@@ -248,41 +313,6 @@ public:
   /** @} */
 
   /**
-   * @brief Get latest known physical drive state.
-   * @return Latest known physical drive state.
-   */
-  GoldSoloWhistleDriveStates GetDriveState() const;
-  /**
-   * @brief Get actual drive position (aka counts).
-   * @return Actual drive position (aka counts).
-   */
-  int32_t GetPosition() const { return input_pdos_.pos_actual_value; }
-  /**
-   * @brief Get actual drive velocity.
-   * @return Actual drive velocity in user-defined units.
-   */
-  int32_t GetVelocity() const { return input_pdos_.vel_actual_value; }
-  /**
-   * @brief Get actual drive torque.
-   * @return Actual drive torque in user-defined units.
-   */
-  int16_t GetTorque() const { return input_pdos_.torque_actual_value; }
-  /**
-   * @brief Get actual drive auxiliary position (aka counts).
-   *
-   * This field can be used by external sensors connected to the drive, for instance an
-   * additional encoder.
-   * @return Actual drive auxiliary position (aka counts).
-   */
-  int GetAuxPosition() const { return input_pdos_.aux_pos_actual_value; }
-  /**
-   * @brief Get actual drive operational mode {_position, velocity, torque, none_}.
-   * @return Actual drive operational mode.
-   * @see GoldSoloWhistleOperationModes
-   */
-  int8_t GetOpMode() const { return output_pdos_.op_mode; }
-
-  /**
    * @brief ReadInputs
    */
   void ReadInputs() override final;
@@ -292,19 +322,7 @@ public:
   void WriteOutputs() override final;
 
 protected:
-  /**
-   * A simple way to store the pdos input values
-   */
-  struct InputPdos
-  {
-    Bitfield16 status_word;      /**< status_word */
-    int8_t display_op_mode;      /**< display_op_mode */
-    int32_t pos_actual_value;    /**< pos_actual_value */
-    int32_t vel_actual_value;    /**< vel_actual_value */
-    int16_t torque_actual_value; /**< torque_actual_value */
-    uint digital_inputs;         /**< digital_inputs */
-    int aux_pos_actual_value;    /**< aux_pos_actual_value */
-  } input_pdos_;                 /**< input_pdos_ */
+  GSWDriveInPdos input_pdos_; /**< input_pdos_ */
 
   /**
    * A simple way to store the pdos output values
@@ -385,12 +403,19 @@ private:
     {3, EC_DIR_INPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs) + 1, EC_WD_DISABLE},
     {0xff, EC_DIR_INVALID, 0, 0x00, EC_WD_DEFAULT}};
 
+  // clang-format off
   static constexpr char* kStatesStr[] = {
-    const_cast<char*>("START"), const_cast<char*>("NOT_READY_TO_SWITCH_ON"),
-    const_cast<char*>("NOT_SWITCH_ON_DISABLED"), const_cast<char*>("READY_TO_SWITCH_ON"),
-    const_cast<char*>("SWITCHED_ON"), const_cast<char*>("OPERATION_ENABLED"),
-    const_cast<char*>("QUICK_STOP_ACTIVE"), const_cast<char*>("FAULT_REACTION_ACTIVE"),
-    const_cast<char*>("FAULT"), const_cast<char*>("MAX_STATE")};
+    const_cast<char*>("START"),
+    const_cast<char*>("NOT_READY_TO_SWITCH_ON"),
+    const_cast<char*>("NOT_SWITCH_ON_DISABLED"),
+    const_cast<char*>("READY_TO_SWITCH_ON"),
+    const_cast<char*>("SWITCHED_ON"),
+    const_cast<char*>("OPERATION_ENABLED"),
+    const_cast<char*>("QUICK_STOP_ACTIVE"),
+    const_cast<char*>("FAULT_REACTION_ACTIVE"),
+    const_cast<char*>("FAULT"),
+    const_cast<char*>("MAX_STATE")};
+  // clang-format on
 
   // Useful ethercat struct
   struct OffsetOut
