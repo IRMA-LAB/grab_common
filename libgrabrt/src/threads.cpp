@@ -352,7 +352,7 @@ int Thread::GetPolicy() const
   return policy;
 }
 
-int Thread::GetReady(const uint64_t cycle_time_nsec /*= 1000LL*/)
+int Thread::GetReady(const uint64_t cycle_time_nsec /*= 1000000LL*/)
 {
   if (loop_fun_ptr_ == NULL)
     return EFAULT;

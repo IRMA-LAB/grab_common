@@ -434,7 +434,7 @@ public:
    * @note For further details about error number convention, click
    * <a href="http://man7.org/linux/man-pages/man3/errno.3.html">here</a>.
    */
-  int GetReady(const uint64_t cycle_time_nsec = 1000LL);
+  int GetReady(const uint64_t cycle_time_nsec = 1000000LL);
   /**
    * @brief Pauses a running thread. This stops the loop until thread is unpaused (or
    * closed).

@@ -40,10 +40,11 @@ public:
    * @param[in] cycle_time_nsec (Optional) Cycle period in nanoseconds.
    * @param[in] clk_name (Optional) Instance name.
    */
-  ThreadClock(const uint64_t cycle_time_nsec = 1000LL,
+  ThreadClock(const uint64_t cycle_time_nsec = 1000000LL,
               const std::string& clk_name = "ThreadClock")
     : name_(clk_name), period_nsec_(cycle_time_nsec)
   {
+    Reset();
   }
 
   /**
