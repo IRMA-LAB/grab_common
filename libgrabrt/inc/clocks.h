@@ -59,7 +59,7 @@ public:
    */
   void Reset();
   /**
-   * @brief Return elapsed time since latest Reset().
+   * @brief Return elapsed time since latest Reset() or object instantiation.
    * @return Elapsed time since latest Reset() in seconds.
    */
   double Elapsed() const;
@@ -75,7 +75,7 @@ public:
    * @note For further details, click
    * <a href="http://man7.org/linux/man-pages/man2/clock_nanosleep.2.html">here</a>.
    */
-  void WaitUntilNext();
+  bool WaitUntilNext();
 
   /**
    * @brief Gets instance name.

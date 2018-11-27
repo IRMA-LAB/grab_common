@@ -44,12 +44,15 @@ void ThreadClock::Next()
   time_.tv_nsec = (static_cast<uint64_t>(time_.tv_nsec) + period_nsec_) % kNanoSec2Sec;
 }
 
-void ThreadClock::WaitUntilNext()
+bool ThreadClock::WaitUntilNext()
 {
   Next();
+  if (Elapsed() > 0)
+    return false;
   int ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &time_, NULL);
   if (ret != 0)
     HandleErrorEnWrapper(ret, "clock_nanosleep ");
+  return true;
 }
 
 struct timespec ThreadClock::GetNextTime()

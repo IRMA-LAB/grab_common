@@ -466,27 +466,33 @@ void Thread::TargetFun()
   SetThreadCPUs(cpu_set_);
   pthread_mutex_unlock(&mutex_);
   ThreadClock clock(cycle_time_nsec_);
-  clock.Reset();
+  bool ignore_deadline = GetPolicy() == SCHED_OTHER;
+  bool time_expired = false;
 
   if (init_fun_ptr_ != NULL)
   {
+    clock.Reset();
     pthread_mutex_lock(&mutex_);
     init_fun_ptr_(init_fun_args_ptr_);
     pthread_mutex_unlock(&mutex_);
+    time_expired = !(clock.WaitUntilNext() | ignore_deadline);
   }
 
-  while (active_)
+  while (active_ & !time_expired)
   {
-    while (run_)
+    clock.Reset();
+    while (run_ & !time_expired)
     {
-      clock.WaitUntilNext();
-
       pthread_mutex_lock(&mutex_);
       loop_fun_ptr_(loop_fun_args_ptr_);
       pthread_mutex_unlock(&mutex_);
+      time_expired = !(clock.WaitUntilNext() | ignore_deadline);
     }
-    clock.Reset();
   }
+
+  if (time_expired)
+    std::cerr << "[" << name_ << "] RT deadline missed. Thread will close automatically."
+              << std::endl;
 
   if (end_fun_ptr_ != NULL)
   {
