@@ -24,77 +24,76 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
 
 template <class OrientationType, class PlatformVarsType>
 void UpdatePlatformPose(const grabnum::Vector3d& position,
-                        const OrientationType& orientation,
-                        const PlatformParams* params, PlatformVarsType* platform)
+                        const OrientationType& orientation, const PlatformParams* params,
+                        PlatformVarsType* platform)
 {
   UpdatePlatformPose(position, orientation, params->pos_PG_loc, platform);
 }
 
 template <class PlatformVarsType>
-void UpdatePosA(const CableParams* params, const PlatformVarsType* platform,
+void UpdatePosA(const ActuatorParams* params, const PlatformVarsType* platform,
                 CableVars* cable)
 {
-  cable->pos_PA_glob = platform->rot_mat * params->pos_PA_loc;
+  cable->pos_PA_glob = platform->rot_mat * params->winch.pos_PA_loc;
   cable->pos_OA_glob = platform->position + cable->pos_PA_glob;
-  cable->pos_DA_glob = cable->pos_OA_glob - params->pos_OD_glob;
+  cable->pos_DA_glob = cable->pos_OA_glob - params->pulley.pos_OD_glob;
 }
 
-void CalcPulleyVersors(const CableParams* params, const double swivel_ang,
+void CalcPulleyVersors(const PulleyParams& params, const double swivel_ang,
                        CableVars* cable)
 {
   double cos_sigma = cos(swivel_ang);
   double sin_sigma = sin(swivel_ang);
-  cable->vers_u = params->vers_i * cos_sigma + params->vers_j * sin_sigma;
-  cable->vers_w = -params->vers_i * sin_sigma + params->vers_j * cos_sigma;
+  cable->vers_u = params.vers_i * cos_sigma + params.vers_j * sin_sigma;
+  cable->vers_w = -params.vers_i * sin_sigma + params.vers_j * cos_sigma;
 }
 
-void CalcPulleyVersors(const CableParams* params, CableVars* cable)
+void CalcPulleyVersors(const PulleyParams& params, CableVars* cable)
 {
   CalcPulleyVersors(params, cable->swivel_ang, cable);
 }
 
-double CalcSwivelAngle(const CableParams* params, const grabnum::Vector3d& pos_DA_glob)
+double CalcSwivelAngle(const PulleyParams& params, const grabnum::Vector3d& pos_DA_glob)
 {
-  return atan2(grabnum::Dot(params->vers_j, pos_DA_glob),
-               grabnum::Dot(params->vers_i, pos_DA_glob));
+  return atan2(grabnum::Dot(params.vers_j, pos_DA_glob),
+               grabnum::Dot(params.vers_i, pos_DA_glob));
 }
 
-double CalcSwivelAngle(const CableParams* params, const CableVars* cable)
+double CalcSwivelAngle(const PulleyParams& params, const CableVars* cable)
 {
   return CalcSwivelAngle(params, cable->pos_DA_glob);
 }
 
-double CalcTangentAngle(const CableParams* params, const grabnum::Vector3d& vers_u,
+double CalcTangentAngle(const PulleyParams& params, const grabnum::Vector3d& vers_u,
                         const grabnum::Vector3d& pos_DA_glob)
 {
   double app_var =
-    grabnum::Dot(params->vers_k, pos_DA_glob) / grabnum::Dot(vers_u, pos_DA_glob);
+    grabnum::Dot(params.vers_k, pos_DA_glob) / grabnum::Dot(vers_u, pos_DA_glob);
   double psi =
-    2. * atan(app_var +
-              sqrt(1. - 2. * params->swivel_pulley_r / grabnum::Dot(vers_u, pos_DA_glob) +
-                   SQUARE(app_var)));
+    2. * atan(app_var + sqrt(1. - 2. * params.radius / grabnum::Dot(vers_u, pos_DA_glob) +
+                             SQUARE(app_var)));
   return psi;
 }
 
-double CalcTangentAngle(const CableParams* params, const CableVars* cable)
+double CalcTangentAngle(const PulleyParams& params, const CableVars* cable)
 {
   return CalcTangentAngle(params, cable->vers_u, cable->pos_DA_glob);
 }
 
-void CalcCableVectors(const CableParams* params, const grabnum::Vector3d& vers_u,
+void CalcCableVectors(const PulleyParams& params, const grabnum::Vector3d& vers_u,
                       const grabnum::Vector3d& pos_DA_glob, const double tan_ang,
                       CableVars* cable)
 {
   // Versors describing cable exit direction from swivel pulley.
   double cos_psi = cos(tan_ang);
   double sin_psi = sin(tan_ang);
-  cable->vers_n = vers_u * cos_psi + params->vers_k * sin_psi;
-  cable->vers_rho = vers_u * sin_psi - params->vers_k * cos_psi;
+  cable->vers_n = vers_u * cos_psi + params.vers_k * sin_psi;
+  cable->vers_rho = vers_u * sin_psi - params.vers_k * cos_psi;
   // Vector from swivel pulley exit point to platform attaching point.
-  cable->pos_BA_glob = pos_DA_glob - params->swivel_pulley_r * (vers_u + cable->vers_n);
+  cable->pos_BA_glob = pos_DA_glob - params.radius * (vers_u + cable->vers_n);
 }
 
-void CalcCableVectors(const CableParams* params, CableVars* cable)
+void CalcCableVectors(const PulleyParams& params, CableVars* cable)
 {
   CalcCableVectors(params, cable->vers_u, cable->pos_DA_glob, cable->tan_ang, cable);
 }
@@ -105,21 +104,23 @@ double CalcCableLen(const grabnum::Vector3d& pos_BA_glob, const double pulley_ra
   return pulley_radius * (M_PI - tan_ang) + grabnum::Norm(pos_BA_glob);
 }
 
-double CalcCableLen(const CableParams* params, const CableVars* cable)
+double CalcCableLen(const PulleyParams& params, const CableVars* cable)
 {
-  return CalcCableLen(cable->pos_BA_glob, params->swivel_pulley_r, cable->tan_ang);
+  return CalcCableLen(cable->pos_BA_glob, params.radius, cable->tan_ang);
 }
 
 template <class PlatformVarsType>
-void UpdateCableZeroOrd(const CableParams* params, const PlatformVarsType* platform,
+void UpdateCableZeroOrd(const ActuatorParams* params, const PlatformVarsType* platform,
                         CableVars* cable)
 {
   UpdatePosA(params, platform, cable); // update segments ending with point A_i.
-  cable->swivel_ang = CalcSwivelAngle(params, cable); // from 1st kinematic constraint.
-  CalcPulleyVersors(params, cable);
-  cable->tan_ang = CalcTangentAngle(params, cable); // from 2nd kinematic constraint.
-  CalcCableVectors(params, cable);                  // from 1st kinematic constraint.
-  cable->length = CalcCableLen(params, cable);      // from 3rd kinematic constraint.
+  cable->swivel_ang =
+    CalcSwivelAngle(params->pulley, cable); // from 1st kinematic constraint.
+  CalcPulleyVersors(params->pulley, cable);
+  cable->tan_ang =
+    CalcTangentAngle(params->pulley, cable);           // from 2nd kinematic constraint.
+  CalcCableVectors(params->pulley, cable);             // from 1st kinematic constraint.
+  cable->length = CalcCableLen(params->pulley, cable); // from 3rd kinematic constraint.
 }
 
 template <class OrientationType, class VarsType>
@@ -128,7 +129,7 @@ void UpdateIK0(const grabnum::Vector3d& position, const OrientationType& orienta
 {
   UpdatePlatformPose(position, orientation, params->platform, vars->platform);
   for (uint8_t i = 0; i < vars->cables.size(); ++i)
-    UpdateCableZeroOrd(&(params->cables[i]), vars->platform, &(vars->cables[i]));
+    UpdateCableZeroOrd(&(params->actuators[i]), vars->platform, &(vars->cables[i]));
 }
 
 } // end namespace grabcdpr

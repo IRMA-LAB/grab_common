@@ -90,25 +90,30 @@ void RobotConfigJsonParser::PrintConfig() const
   }
 
   std::cout << "PLATFORM PARAMETERS\n============================="
-            << "\n mass\t\t\t" << config_params_.platform->mass << "\n ext_force_loc\n"
+            << "\n mass\t\t" << config_params_.platform->mass << "\n ext_force_loc\n"
             << config_params_.platform->ext_force_loc << " ext_torque_loc\n"
             << config_params_.platform->ext_torque_loc << " pos_PG_loc\n"
             << config_params_.platform->pos_PG_loc << " inertia_mat_G_loc\n"
             << config_params_.platform->inertia_mat_G_loc << std::endl;
-  for (size_t i = 0; i < config_params_.cables.size(); i++)
+  for (size_t i = 0; i < config_params_.actuators.size(); i++)
   {
-    std::cout << "CABLE PARAMETERS #" << i << "\n============================="
-              << "\n l0\t\t\t" << config_params_.cables[i].l0 << "\n motor_cable_tau\t\t"
-              << config_params_.cables[i].motor_cable_tau << "\n motor_encoder_res\t\t"
-              << config_params_.cables[i].motor_encoder_res
-              << "\n swivel_pulley_encoder_res\t"
-              << config_params_.cables[i].swivel_pulley_encoder_res
-              << "\n swivel_pulley_r\t\t" << config_params_.cables[i].swivel_pulley_r
-              << "\n pos_OD_glob\n" << config_params_.cables[i].pos_OD_glob
-              << " pos_PA_loc\n" << config_params_.cables[i].pos_PA_loc << " vers_i\n"
-              << config_params_.cables[i].vers_i << " vers_j\n"
-              << config_params_.cables[i].vers_j << " vers_k\n"
-              << config_params_.cables[i].vers_k << std::endl;
+    std::cout << "ACTUATOR PARAMETERS #" << i << "\n============================="
+              << "\n Winch:\n-----------"
+              << "\n   l0\t\t" << config_params_.actuators[i].winch.l0
+              << "\n   drum_pitch\t" << config_params_.actuators[i].winch.drum_pitch
+              << "\n   drum_diameter\t"
+              << config_params_.actuators[i].winch.drum_diameter << "\n   gear_ratio\t\t"
+              << config_params_.actuators[i].winch.gear_ratio
+              << "\n   motor_encoder_res\t"
+              << config_params_.actuators[i].winch.motor_encoder_res
+              << "\n   pos_PA_loc\n" << config_params_.actuators[i].winch.pos_PA_loc
+              << "\n Swivel Pulley:\n--------------------"
+              << "\n   encoder_res\t" << config_params_.actuators[i].pulley.encoder_res
+              << "\n   radius\t\t" << config_params_.actuators[i].pulley.radius
+              << "\n   pos_OD_glob\n" << config_params_.actuators[i].pulley.pos_OD_glob
+              << "   vers_i\n" << config_params_.actuators[i].pulley.vers_i
+              << "   vers_j\n" << config_params_.actuators[i].pulley.vers_j
+              << "   vers_k\n" << config_params_.actuators[i].pulley.vers_k << std::endl;
   }
 }
 
@@ -121,8 +126,8 @@ bool RobotConfigJsonParser::ExtractConfig(const json& raw_data)
   if (!ExtractPlatform(raw_data))
     return false;
 
-  config_params_.cables.clear();
-  return ExtractCables(raw_data);
+  config_params_.actuators.clear();
+  return ExtractActuators(raw_data);
 }
 
 bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
@@ -160,54 +165,64 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
   return ArePlatformParamsValid();
 }
 
-bool RobotConfigJsonParser::ExtractCables(const json& raw_data)
+bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
 {
-  if (raw_data.count("cable") != 1)
+  if (raw_data.count("actuator") != 1)
   {
-    std::cerr << "[ERROR] Missing or invalid cable structure!" << std::endl;
+    std::cerr << "[ERROR] Missing or invalid actuator structure!" << std::endl;
     return false;
   }
-  json cables = raw_data["cable"];
-  std::string field;
-  for (auto& cable : cables)
+  json actuators = raw_data["actuator"];
+  std::string field, subfield;
+  for (auto& actuator : actuators)
   {
-    grabcdpr::CableParams temp;
+    grabcdpr::ActuatorParams temp;
     try
     {
-      field = "l0";
-      temp.l0 = cable[field];
-      field = "motor_cable_tau";
-      temp.motor_cable_tau = cable[field];
-      field = "motor_encoder_res";
-      temp.motor_encoder_res = cable[field];
-      field = "swivel_pulley_encoder_res";
-      temp.swivel_pulley_encoder_res = cable[field];
-      field = "swivel_pulley_r";
-      temp.swivel_pulley_r = cable[field];
+      field = "winch";
+      subfield = "drum_pitch";
+      temp.winch.drum_pitch = actuator[field][subfield];
+      subfield = "drum_diameter";
+      temp.winch.drum_diameter = actuator[field][subfield];
+      subfield = "gear_ratio";
+      temp.winch.gear_ratio = actuator[field][subfield];
+      subfield = "l0";
+      temp.winch.l0 = actuator[field][subfield];
+      subfield = "motor_encoder_res";
+      temp.winch.motor_encoder_res = actuator[field][subfield];
+
       for (uint8_t i = 0; i < 3; i++)
       {
-        field = "pos_OD_glob";
-        temp.pos_OD_glob(i + 1) = cable[field].at(i).at(0);
-        field = "pos_PA_loc";
-        temp.pos_PA_loc(i + 1) = cable[field].at(i).at(0);
-        field = "vers_i";
-        temp.vers_i(i + 1) = cable[field].at(i).at(0);
-        field = "vers_j";
-        temp.vers_j(i + 1) = cable[field].at(i).at(0);
-        field = "vers_k";
-        temp.vers_k(i + 1) = cable[field].at(i).at(0);
+        field = "winch";
+        subfield = "pos_PA_loc";
+        temp.winch.pos_PA_loc(i + 1) = actuator[field][subfield].at(i).at(0);
+
+        field = "pulley";
+        subfield = "pos_OD_glob";
+        temp.pulley.pos_OD_glob(i + 1) = actuator[field][subfield].at(i).at(0);
+        subfield = "vers_i";
+        temp.pulley.vers_i(i + 1) = actuator[field][subfield].at(i).at(0);
+        subfield = "vers_j";
+        temp.pulley.vers_j(i + 1) = actuator[field][subfield].at(i).at(0);
+        subfield = "vers_k";
+        temp.pulley.vers_k(i + 1) = actuator[field][subfield].at(i).at(0);
       }
+
+      subfield = "encoder_res";
+      temp.pulley.encoder_res = actuator[field][subfield];
+      subfield = "radius";
+      temp.pulley.radius = actuator[field][subfield];
     }
     catch (json::type_error)
     {
-      std::cerr << "[ERROR] Missing or invalid cable parameter field: " << field
-                << std::endl;
+      std::cerr << "[ERROR] Missing or invalid actuator parameter: " << field << "-"
+                << subfield << std::endl;
       return false;
     }
 
     if (!AreCableParamsValid(temp))
       return false;
-    config_params_.cables.push_back(temp);
+    config_params_.actuators.push_back(temp);
   }
   return true;
 }
@@ -232,39 +247,50 @@ bool RobotConfigJsonParser::ArePlatformParamsValid() const
   return ret;
 }
 
-bool RobotConfigJsonParser::AreCableParamsValid(const grabcdpr::CableParams& params) const
+bool RobotConfigJsonParser::AreCableParamsValid(
+  const grabcdpr::ActuatorParams& params) const
 {
   bool ret = true;
 
-  if (params.l0 < 0.0)
+  if (params.winch.l0 < 0.0)
   {
     std::cerr << "[ERROR] cable length must be non negative!" << std::endl;
     ret = false;
   }
 
-  if (params.motor_cable_tau <= 0.0)
+  if (params.winch.drum_diameter <= 0.0)
   {
-    std::cerr
-      << "[ERROR] cable length-to-motor revolution ratio must be strictly positive!"
-      << std::endl;
+    std::cerr << "[ERROR] motor drum diameter must be strictly positive!" << std::endl;
     ret = false;
   }
 
-  if (params.motor_encoder_res <= 0.0)
+  if (params.winch.drum_pitch <= 0.0)
+  {
+    std::cerr << "[ERROR] motor drum pitch must be strictly positive!" << std::endl;
+    ret = false;
+  }
+
+  if (params.winch.gear_ratio <= 0.0)
+  {
+    std::cerr << "[ERROR] motor gear ration must be strictly positive!" << std::endl;
+    ret = false;
+  }
+
+  if (params.winch.motor_encoder_res <= 0.0)
   {
     std::cerr << "[ERROR] motor encoder resolution must be strictly positive!"
               << std::endl;
     ret = false;
   }
 
-  if (params.swivel_pulley_encoder_res <= 0.0)
+  if (params.pulley.encoder_res <= 0.0)
   {
     std::cerr << "[ERROR] swivel pulley encoder resolution must be strictly positive!"
               << std::endl;
     ret = false;
   }
 
-  if (params.swivel_pulley_r < 0.0)
+  if (params.pulley.radius < 0.0)
   {
     std::cerr << "[ERROR] swivel pulley radius must be non negative!" << std::endl;
     ret = false;

@@ -61,8 +61,8 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
  */
 template <class OrientationType, class PlatformVarsType>
 void UpdatePlatformPose(const grabnum::Vector3d& position,
-                        const OrientationType& orientation,
-                        const PlatformParams* params, PlatformVarsType* platform);
+                        const OrientationType& orientation, const PlatformParams* params,
+                        PlatformVarsType* platform);
 
 /**
  * @brief Update global position of point @f$A_i@f$ and relative segments.
@@ -84,7 +84,7 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
  * can be used.
  */
 template <class PlatformVarsType>
-void UpdatePosA(const CableParams* params, const PlatformVarsType* platform,
+void UpdatePosA(const ActuatorParams* params, const PlatformVarsType* platform,
                 CableVars* cable);
 
 /**
@@ -96,23 +96,23 @@ void UpdatePosA(const CableParams* params, const PlatformVarsType* platform,
  * \hat{\mathbf{w}}_i = -\hat{\mathbf{i}}_i \sin(\sigma_i) + \hat{\mathbf{j}}_i \cos(\sigma_i)
  * @f]
  * being @f$\hat{\mathbf{i}}_i, \hat{\mathbf{j}}_i@f$ known parameters.
- * @param[in] params A pointer to cable parameters.
+ * @param[in] params Swivel pulley parameters.
  * @param[in] swivel_ang [rad] Swivel angle @f$\sigma_i@f$.
  * @param[out] cable A pointer to the cable structure including the versors to be updated.
  * @note See @ref legend for symbols reference.
  * @note This expression results from the fact that, by definition,
  * @f$ \hat{\mathbf{u}}_i \perp \hat{\mathbf{w}}_i \perp \hat{\mathbf{k}}_i @f$.
  */
-void CalcPulleyVersors(const CableParams* params, const double swivel_ang,
+void CalcPulleyVersors(const PulleyParams& params, const double swivel_ang,
                        CableVars* cable);
 /**
  * @brief Calculate swivel pulley versors @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i@f$.
- * @param[in] params A pointer to cable parameters.
+ * @param[in] params Swivel pulley parameters.
  * @param[in,out] cable A pointer to the cable structure including the versors to be
  * updated.
  * @see CalcPulleyVersors()
  */
-void CalcPulleyVersors(const CableParams* params, CableVars* cable);
+void CalcPulleyVersors(const PulleyParams& params, CableVars* cable);
 
 /**
  * @brief Calculate pulley swivel angle @f$\sigma_i@f$.
@@ -122,7 +122,7 @@ void CalcPulleyVersors(const CableParams* params, CableVars* cable);
  * \sigma_i = \arctan_2(\hat{\mathbf{i}}_i \cdot \mathbf{f}_i , \hat{\mathbf{j}}_i \cdot \mathbf{f}_i)
  * @f]
  * being @f$\hat{\mathbf{i}}_i, \hat{\mathbf{j}}_i@f$ known parameters.
- * @param[in] params A pointer to cable parameters.
+ * @param[in] params Swivel pulley parameters.
  * @param[in] pos_DA_glob [m] Vector @f$\mathbf{f}_i@f$.
  * @return Swivel angle @f$\sigma_i@f$ in radians.
  * @note See @ref legend for symbols reference.
@@ -130,15 +130,16 @@ void CalcPulleyVersors(const CableParams* params, CableVars* cable);
  * constraint
  * @f[ \hat{\mathbf{w}}_i \cdot \mathbf{f}_i = 0 @f]
  */
-double CalcSwivelAngle(const CableParams* params, const grabnum::Vector3d& pos_DA_glob);
+double CalcSwivelAngle(const PulleyParams& params,
+                       const grabnum::Vector3d& pos_DA_glob);
 /**
  * @brief Calculate pulley swivel angle @f$\sigma_i@f$.
- * @param[in] params A pointer to cable parameters.
+ * @param[in] params Swivel pulley parameters.
  * @param[in] cable A pointer to the cable structure.
  * @return Swivel angle @f$\sigma_i@f$ in radians.
  * @see CalcSwivelAngle()
  */
-double CalcSwivelAngle(const CableParams* params, const CableVars* cable);
+double CalcSwivelAngle(const PulleyParams& params, const CableVars* cable);
 
 /**
  * @brief Calculate pulley tangent angle @f$\psi_i@f$.
@@ -153,7 +154,7 @@ double CalcSwivelAngle(const CableParams* params, const CableVars* cable);
  *      \right)^2}\right]
  * @f]
  * being @f$\hat{\mathbf{k}}_i, r_i@f$ known parameters.
- * @param[in] params A pointer to cable parameters.
+ * @param[in] params Swivel pulley parameters.
  * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
  * @param[in] pos_DA_glob [m] Vector @f$\mathbf{f}_i@f$.
  * @return Tangent angle @f$\psi_i@f$  in radians.
@@ -162,16 +163,16 @@ double CalcSwivelAngle(const CableParams* params, const CableVars* cable);
  * constraint
  * @f[ \hat{\mathbf{n}}_i \cdot \boldsymbol{\rho}_i = 0 @f]
  */
-double CalcTangentAngle(const CableParams* params, const grabnum::Vector3d& vers_u,
+double CalcTangentAngle(const PulleyParams& params, const grabnum::Vector3d& vers_u,
                         const grabnum::Vector3d& pos_DA_glob);
 /**
  * @brief Calculate pulley tangent angle @f$\psi_i@f$.
- * @param[in] params A pointer to cable parameters.
+ * @param[in] params Swivel pulley parameters.
  * @param[in] cable A pointer to the cable structure.
  * @return Tangent angle @f$\psi_i@f$  in radians.
  * @see CalcTangentAngle()
  */
-double CalcTangentAngle(const CableParams* params, const CableVars* cable);
+double CalcTangentAngle(const PulleyParams& params, const CableVars* cable);
 
 /**
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\boldsymbol{\rho}}_i@f$ and
@@ -189,7 +190,7 @@ double CalcTangentAngle(const CableParams* params, const CableVars* cable);
  * \boldsymbol{\rho}_i = \mathbf{f}_i - r_i (\hat{\mathbf{u}}_i + \hat{\mathbf{n}}_i )
  * @f]
  * being @f$r_i@f$ a known parameter too.
- * @param[in] params A pointer to cable parameters.
+ * @param[in] params Swivel pulley parameters.
  * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
  * @param[in] pos_DA_glob [m] Vector @f$\mathbf{f}_i@f$.
  * @param[in] tan_ang [rad] Tangent angle @f$\psi_i@f$.
@@ -202,18 +203,18 @@ double CalcTangentAngle(const CableParams* params, const CableVars* cable);
  * together with the fact that, by definition,
  * @f$ \hat{\mathbf{w}}_i \perp \hat{\boldsymbol{\rho}}_i \perp \hat{\mathbf{n}}_i @f$.
  */
-void CalcCableVectors(const CableParams* params, const grabnum::Vector3d& vers_u,
+void CalcCableVectors(const PulleyParams& params, const grabnum::Vector3d& vers_u,
                       const grabnum::Vector3d& pos_DA_glob, const double tan_ang,
                       CableVars* cable);
 /**
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\boldsymbol{\rho}}_i@f$ and
  * cable vector @f$\boldsymbol{\rho}_i@f$.
- * @param[in] params A pointer to cable parameters.
+ * @param[in] params Swivel pulley parameters.
  * @param[in,out] cable A pointer to the cable structure including the variables to be
  * calculated.
  * @see CalcCableVectors()
  */
-void CalcCableVectors(const CableParams* params, CableVars* cable);
+void CalcCableVectors(const PulleyParams& params, CableVars* cable);
 
 /**
  * @brief Calculate cable length @f$l_i@f$.
@@ -237,12 +238,12 @@ double CalcCableLen(const grabnum::Vector3d& pos_BA_glob, const double pulley_ra
                     const double tan_ang);
 /**
  * @brief Calculate cable length @f$l_i@f$.
- * @param[in] params A pointer to cable parameters structure.
+ * @param[in] params Swivel pulley parameters.
  * @param[in] cable A pointer to cable variables structure.
  * @return Cable length @f$l_i@f$ in meters.
  * @see CalcCableLen()
  */
-double CalcCableLen(const CableParams* params, const CableVars* cable);
+double CalcCableLen(const PulleyParams& params, const CableVars* cable);
 
 /**
  * @brief Update all zero-order variables of a single cable at once.
@@ -253,7 +254,7 @@ double CalcCableLen(const CableParams* params, const CableVars* cable);
  * can be used.
  */
 template <class PlatformVarsType>
-void UpdateCableZeroOrd(const CableParams* params, const PlatformVarsType* platform,
+void UpdateCableZeroOrd(const ActuatorParams* params, const PlatformVarsType* platform,
                         CableVars* cable);
 
 /**

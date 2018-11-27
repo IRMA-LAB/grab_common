@@ -245,10 +245,7 @@ struct PlatformVars : PlatformVarsBase
    * @brief Constructor to explicitly declare rotation parametrization desired only.
    * @param[in] _angles_type Desired rotation parametrization.
    */
-  PlatformVars(const RotParametrization _angles_type)
-  {
-    angles_type = _angles_type;
-  }
+  PlatformVars(const RotParametrization _angles_type) { angles_type = _angles_type; }
 
   /**
    * @brief Constructor to initialize platform vars with position and angles and their
@@ -268,13 +265,12 @@ struct PlatformVars : PlatformVarsBase
    * @note See @ref legend for more details.
    * @see Update()
    */
-  PlatformVars(const grabnum::Vector3d& _position,
-                     const grabnum::Vector3d& _velocity,
-                     const grabnum::Vector3d& _acceleration,
-                     const grabnum::Vector3d& _orientation,
-                     const grabnum::Vector3d& _orientation_dot,
-                     const grabnum::Vector3d& _orientation_ddot,
-                     const RotParametrization _angles_type = TILT_TORSION)
+  PlatformVars(const grabnum::Vector3d& _position, const grabnum::Vector3d& _velocity,
+               const grabnum::Vector3d& _acceleration,
+               const grabnum::Vector3d& _orientation,
+               const grabnum::Vector3d& _orientation_dot,
+               const grabnum::Vector3d& _orientation_ddot,
+               const RotParametrization _angles_type = TILT_TORSION)
   {
     angles_type = _angles_type;
     Update(_position, _velocity, _acceleration, _orientation, _orientation_dot,
@@ -503,12 +499,11 @@ struct PlatformQuatVars : PlatformVarsBase
    * @note See @ref legend for more details.
    * @see Update()
    */
-  PlatformQuatVars(const grabnum::Vector3d& _position,
-                         const grabnum::Vector3d& _velocity,
-                         const grabnum::Vector3d& _acceleration,
-                         const grabgeom::Quaternion& _orientation,
-                         const grabgeom::Quaternion& _orientation_dot,
-                         const grabgeom::Quaternion& _orientation_ddot)
+  PlatformQuatVars(const grabnum::Vector3d& _position, const grabnum::Vector3d& _velocity,
+                   const grabnum::Vector3d& _acceleration,
+                   const grabgeom::Quaternion& _orientation,
+                   const grabgeom::Quaternion& _orientation_dot,
+                   const grabgeom::Quaternion& _orientation_ddot)
   {
     Update(_position, _velocity, _acceleration, _orientation, _orientation_dot,
            _orientation_ddot);
@@ -700,7 +695,6 @@ struct CableVars
   grabnum::Vector3d
     acc_OA_glob; /**< [_m/s<sup>2</sup>_] vector @f$\ddot{\mathbf{a}}_i@f$. */
   /** @} */      // end of SecondOrderKinematics group
-
 };
 
 /**
@@ -733,36 +727,79 @@ struct VarsQuat
  */
 struct PlatformParams
 {
-  double mass = 0.0; /**< [Kg] platform mass (@f$m@f$). */
+  grabnum::Matrix3d inertia_mat_G_loc; /**< inertia matrix. */
   grabnum::Vector3d
     ext_torque_loc; /**< [Nm] external torque vector expressed in the local frame. */
   grabnum::Vector3d
     ext_force_loc; /**< [N] external force vector expressed in the local frame. */
   grabnum::Vector3d pos_PG_loc;        /**< [m] vector @f$^\mathcal{P}\mathbf{r}'@f$. */
-  grabnum::Matrix3d inertia_mat_G_loc; /**< inertia matrix. */
+  double mass = 0.0; /**< [Kg] platform mass (@f$m@f$). */
 };
 
 /**
- * @brief Structure collecting parameters related to a single generic cable of a CDPR.
+ * @brief Structure collecting parameters related to a single swivel pulley of a CDPR.
  */
-struct CableParams
+struct PulleyParams
 {
-  double l0 = 0.0; /**< [m] length between @f$D_i@f$ and the exit point of the _i-th_
-                      cable from the corresponding winch. */
-  double motor_cable_tau = 0.0; /**< cable length-to-motor revolution ratio. */
-  uint32_t motor_encoder_res =
-    0; /**< motor encoder resolution in counts per revolution. */
-  uint32_t swivel_pulley_encoder_res =
-    0; /**< _i-th_ swivel pulley encoder resolution in counts per revolution. */
-  double swivel_pulley_r = 0.0;  /**< [m] _i-th_ swivel pulley radius length @f$r_i@f$ */
   grabnum::Vector3d pos_OD_glob; /**< [m] vector @f$\mathbf{d}_i@f$. */
-  grabnum::Vector3d pos_PA_loc;  /**< vector @f$\mathbf{a}_i'@f$. */
   grabnum::Vector3d vers_i; /**< versor @f$\hat{\mathbf{i}}_i@f$ of _i-th_ swivel pulley
                                expressed in global frame. */
   grabnum::Vector3d vers_j; /**< versor @f$\hat{\mathbf{j}}_i@f$ of _i-th_ swivel pulley
                                expressed in global frame. */
   grabnum::Vector3d vers_k; /**< versor @f$\hat{\mathbf{k}}_i@f$ of _i-th_ swivel pulley
                                expressed in global frame. */
+  double radius = 0.0; /**< [m] _i-th_ swivel pulley radius length @f$r_i@f$ */
+  uint32_t encoder_res =
+    0;                 /**< _i-th_ pulley encoder resolution in counts per revolution. */
+
+  /**
+   * @brief PulleyAngleFactorRad
+   * @return
+   */
+  inline double PulleyAngleFactorRad() const { return 2.0 * M_PI / encoder_res; }
+  /**
+   * @brief PulleyAngleFactorDeg
+   * @return
+   */
+  inline double PulleyAngleFactorDeg() const { return 360.0 / encoder_res; }
+};
+
+/**
+ * @brief Structure collecting parameters related to a single winch of a CDPR.
+ */
+struct WinchParams
+{
+  grabnum::Vector3d pos_PA_loc; /**< vector @f$\mathbf{a}_i'@f$. */
+  double l0 = 0.0; /**< [m] length between @f$D_i@f$ and the exit point of the _i-th_
+                      cable from the corresponding winch. */
+  double drum_pitch = 0.007;  /**< [m] todo..*/
+  double drum_diameter = 0.1; /**< [m] todo..*/
+  double gear_ratio = 5.0;    /**< [m] todo..*/
+  uint32_t motor_encoder_res =
+    0; /**< motor encoder resolution in counts per revolution. */
+
+  /**
+   * @brief CountsToLengthFactor
+   * @return
+   */
+  double CountsToLengthFactor()
+  {
+    static double tau = -1.0;
+
+    if (tau < 0.0)
+      tau = sqrt(pow(M_PI * drum_diameter, 2.0) + pow(drum_pitch, 2.0)) /
+            (motor_encoder_res * gear_ratio);
+    return tau;
+  }
+};
+
+/**
+ * @brief Structure collecting parameters related to a single generic actuator of a CDPR.
+ */
+struct ActuatorParams
+{
+  PulleyParams pulley; /**< swivel pulley parameters set */
+  WinchParams winch;   /**< winch parameters set */
 };
 
 /**
@@ -771,8 +808,8 @@ struct CableParams
 struct Params
 {
   PlatformParams* platform; /**< parameters of a generic 6DoF platform. */
-  std::vector<CableParams>
-    cables; /**< vector of parameters of a single cables in a CDPR. */
+  std::vector<ActuatorParams>
+    actuators; /**< vector of parameters of a single actuator in a CDPR. */
 };
 
 } // end namespace grabcdpr

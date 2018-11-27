@@ -38,10 +38,10 @@ private:
 
   bool ExtractConfig(const json& raw_data);
   bool ExtractPlatform(const json& raw_data);
-  bool ExtractCables(const json& raw_data);
+  bool ExtractActuators(const json& raw_data);
 
   bool ArePlatformParamsValid() const;
-  bool AreCableParamsValid(const grabcdpr::CableParams& params) const;
+  bool AreCableParamsValid(const grabcdpr::ActuatorParams& params) const;
 };
 
 #endif // GRABCOMMON_LIBCDPR_ROBOTCONFIGJSONPARSER_H

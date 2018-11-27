@@ -471,7 +471,7 @@ double CalcCableAcc(const CableVars* cable);
 
 /**
  * @brief Update all second-order variables of a single cable at once.
- * @param[in] params A pointer to the cable parameters structure.
+ * @param[in] params Swivel pulley parameters.
  * @param[in] platform A pointer to the updated platform structure.
  * @param[in,out] cable A pointer to the cable structure with updated zero and first-order
  * variables and second-order variables to be updated.
@@ -479,7 +479,7 @@ double CalcCableAcc(const CableVars* cable);
  * can be used.
  */
 template <class PlatformVarsType>
-void UpdateCableSecondOrd(const CableParams* params, const PlatformVarsType* platform,
+void UpdateCableSecondOrd(const PulleyParams& params, const PlatformVarsType* platform,
                           CableVars* cable);
 
 /**

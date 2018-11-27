@@ -230,11 +230,11 @@ double CalcCableAcc(const CableVars* cable)
 }
 
 template <class PlatformVarsType>
-void UpdateCableSecondOrd(const CableParams* params, const PlatformVarsType* platform,
+void UpdateCableSecondOrd(const PulleyParams& params, const PlatformVarsType* platform,
                           CableVars* cable)
 {
   UpdateAccA(cable->pos_PA_glob, platform, cable);
-  cable->tan_ang_acc = CalcTangAngAcc(params->swivel_pulley_r, cable);
+  cable->tan_ang_acc = CalcTangAngAcc(params.radius, cable);
   cable->swivel_ang_acc = CalcSwivelAngAcc(cable);
   cable->acceleration = CalcCableAcc(cable);
 }
@@ -246,7 +246,7 @@ void UpdateIK2(const grabnum::Vector3d& acceleration,
 {
   UpdatePlatformAcc(acceleration, orientation_ddot, vars->platform);
   for (uint8_t i = 0; i < vars->cables.size(); ++i)
-    UpdateCableSecondOrd(&(params->cables[i]), vars->platform, &(vars->cables[i]));
+    UpdateCableSecondOrd(&(params->actuators[i]), vars->platform, &(vars->cables[i]));
 }
 
 template <class OrientationType, class VarsType>
@@ -261,9 +261,9 @@ void UpdateIK(const grabnum::Vector3d& position, const OrientationType& orientat
   UpdatePlatformAcc(acceleration, orientation_ddot, vars->platform);
   for (uint8_t i = 0; i < vars->cables.size(); ++i)
   {
-    UpdateCableZeroOrd(&(params->cables[i]), vars->platform, &(vars->cables[i]));
+    UpdateCableZeroOrd(&(params->actuators[i]), vars->platform, &(vars->cables[i]));
     UpdateCableFirstOrd(vars->platform, &(vars->cables[i]));
-    UpdateCableSecondOrd(&(params->cables[i]), vars->platform, &(vars->cables[i]));
+    UpdateCableSecondOrd(&(params->actuators[i]), vars->platform, &(vars->cables[i]));
   }
 }
 
