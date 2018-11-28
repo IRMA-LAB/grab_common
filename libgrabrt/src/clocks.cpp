@@ -1,7 +1,7 @@
 /**
  * @file clocks.cpp
  * @author Simone Comari
- * @date 14 Sep 2018
+ * @date 28 Nov 2018
  * @brief File containing definitions of functions and class declared in clocks.h.
  */
 
@@ -21,22 +21,41 @@ double NanoSec2Sec(const long nanoseconds)
 }
 
 /////////////////////////////////////////////////
-/// ThreadClock Class Methods
+/// Clock Class Methods
 /////////////////////////////////////////////////
 
-void ThreadClock::Reset()
+void Clock::Reset()
 {
   //  printf("[%s] RESET\n", name_.c_str());
   clock_gettime(CLOCK_MONOTONIC, &time_);
 }
 
-double ThreadClock::Elapsed() const
+double Clock::Elapsed() const
 {
   static struct timespec end;
   clock_gettime(CLOCK_MONOTONIC, &end);
   return end.tv_sec - time_.tv_sec +
          (end.tv_nsec - time_.tv_nsec) / static_cast<double>(kNanoSec2Sec);
 }
+
+void Clock::DispCurrentTime() const
+{
+  printf("%s status:\n\ttime =\t%lu.%ld sec\n", name_.c_str(), time_.tv_sec,
+         time_.tv_nsec);
+}
+
+[[noreturn]] void Clock::HandleErrorEnWrapper(const int en, const char* msg) const
+{
+  std::string full_msg = "[";
+  full_msg.append(name_);
+  full_msg.append("] ");
+  full_msg.append(msg);
+  HandleErrorEn(en, full_msg.c_str());
+}
+
+/////////////////////////////////////////////////
+/// ThreadClock Class Methods
+/////////////////////////////////////////////////
 
 void ThreadClock::Next()
 {
@@ -71,15 +90,6 @@ void ThreadClock::DispNextTime()
 {
   Next();
   DispCurrentTime();
-}
-
-[[noreturn]] void ThreadClock::HandleErrorEnWrapper(const int en, const char* msg) const
-{
-  std::string full_msg = "[";
-  full_msg.append(name_);
-  full_msg.append("] ");
-  full_msg.append(msg);
-  HandleErrorEn(en, full_msg.c_str());
 }
 
 } // end namespace grabrt
