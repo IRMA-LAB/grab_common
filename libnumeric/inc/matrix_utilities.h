@@ -293,6 +293,22 @@ template <typename T, uint8_t dim> T Det(const Matrix<T, dim, dim>& matrix);
 template <typename T, uint8_t dim>
 MatrixXd<dim, dim> Cholesky(const Matrix<T, dim, dim>& matrix);
 
+/**
+ * Mean value of a vector.
+ *
+ * @param[in] vvect A m-dimensional vertical vector.
+ * @return A scalar value.
+ */
+template <typename T, uint8_t dim> double Mean(const VectorX<T, dim>& vvect);
+
+/**
+ * Standard deviation of a vector.
+ *
+ * @param[in] vvect A m-dimensional vertical vector.
+ * @return A scalar value.
+ */
+template <typename T, uint8_t dim> double Std(const VectorX<T, dim>& vvect);
+
 } //  end namespace grabnum
 
 // This is a trick to define templated functions in a source file.

@@ -1,7 +1,7 @@
 /**
  * @file matrix_utilities.tcc
  * @author Edoardo Idà, Simone Comari
- * @date 23 Oct 2018
+ * @date 06 Dec 2018
  * @brief File containing definitions and implementation of matrix utilities.
  */
 
@@ -351,6 +351,23 @@ MatrixXd<dim, dim> Cholesky(const Matrix<T, dim, dim>& A)
         L(i, j) = 1.0 / L(j, j) * (A(i, j) - s);
     }
   return L;
+}
+
+template <typename T, uint8_t dim> double Mean(const VectorX<T, dim>& vvect)
+{
+  T sum = 0;
+  for (uint8_t i = 1; i <= dim; ++i)
+    sum += vvect(i);
+  return static_cast<double>(sum) / static_cast<double>(dim);
+}
+
+template <typename T, uint8_t dim> double Std(const VectorX<T, dim>& vvect)
+{
+  double mean = Mean(vvect);
+  double sum = 0;
+  for (uint8_t i = 1; i <= dim; ++i)
+    sum += SQUARE(vvect(i) - mean);
+  return sqrt(static_cast<double>(sum) / static_cast<double>(dim));
 }
 
 } //  end namespace grabnum

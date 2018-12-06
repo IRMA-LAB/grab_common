@@ -1,7 +1,7 @@
 /**
  * @file matrix.h
  * @author Edoardo Idà, Simone Comari
- * @date 23 Oct 2018
+ * @date 06 Dec 2018
  * @brief File containing matrix class and utilities to be included in the GRAB numeric
  * library.
  *
@@ -28,10 +28,6 @@
 #if (MCU_TARGET == 0)
 #include <iostream>
 #include <iomanip>
-#endif
-
-#ifndef SQUARE
-#define SQUARE(x) (x * x) /**< returns the square of an element. */
 #endif
 
 /**
