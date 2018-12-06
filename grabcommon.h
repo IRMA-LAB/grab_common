@@ -1,10 +1,9 @@
 /**
  * @file grabcommon.h
  * @author Simone Comari
- * @date 18 Sep 2018
+ * @date 06 Dec 2018
  * @brief This file collects common utilities which are not specifically related to any of
- * GRAB
- * libraries.
+ * GRAB libraries.
  */
 
 #ifndef GRABCOMMON_H
@@ -13,9 +12,9 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <bitset>
-#include <cstdint>
-#include <type_traits>
+#include <vector>
+
+#include "bitfield.h"
 
 /*---------------------- DEFINES ------------------------*/
 
@@ -87,271 +86,128 @@
   exit(EXIT_FAILURE);
 }
 
-/*---------------------- BitField ------------------------*/
-
-/********************************************
- ********* Prototypes and Typedefs *********
- ********************************************/
-template <typename T> class Bitfield;
-
-using Bitfield8 = Bitfield<uint8_t>;   /**< 8-bit Bitfield. */
-using Bitfield16 = Bitfield<uint16_t>; /**< 16-bit Bitfield. */
-using Bitfield32 = Bitfield<uint32_t>; /**< 32-bit Bitfield. */
-using Bitfield64 = Bitfield<uint64_t>; /**< 64-bit Bitfield. */
-
-/********************************************
- ************ Class Declaration *************
- ********************************************/
-
-/* Since std::conditional requires both arguments to be true, we need a little wrapper
- * to allow evaluation of underlying_type for non-enum types.
- *
- * If T is an enum, we get the specialized templatization calling the underlying type.
- * If T is not an enum, the default version is called with type == void.
- */
-template <typename T, typename = typename std::is_enum<T>::type>
-/**
- * @brief The safe_underlying_type struct
- */
-struct safe_underlying_type
-{
-  using type = void; /**< ... */
-};
+/*---------------------- Generic classes ------------------------*/
 
 /**
- * @brief templated safe_underlying_type
+ * RingBuffer class
  */
-template <typename T> struct safe_underlying_type<T, std::true_type>
+template <typename T> class RingBuffer
 {
-  using type = typename std::underlying_type<T>::type; /**< ... */
-};
-
-/**
- * @brief Wrap bitset class to have safe bitfields of full integral type unsigned
- *integrals
- * and enums with unsigned integrals as underlying type.
- *
- * The individual bits are accessed via their position (0, 1, 2, 3) in the case of
- * unsigned integral types, but have to be accessed via enum elements for the
- * enum case. This automatically ensures enum validity.
- * If more types will be wrapped, we should create each case as subclass.
- *
- * Examples:
- * @code{.cpp}
- * Bitfield<uint8_t> b1; // ok
- * Bitfield<int> b2;     // error: only unsigned types supported
- *
- * enum class E1 : uint16_t { A = 0, B, C, D };
- * enum class E2 : int { A = 0, B, C, D };
- * enum class E3 { A = 0, B, C, D };
- *
- * Bitfield<E1> b3;      // ok
- * Bitfield<E2> b4;      // error: underlying type is signed
- * Bitfield<E3> b5;      // error: default underlying type will most likely be
- *                       // signed int
- * @endcode
- *
- */
-template <typename T> class Bitfield
-{
-  // Type checks at compile time, but only when the type is actually used (or inherited).
-  // However, this approach allows more readable error feedback.
-  static_assert((std::is_integral<T>::value && std::is_unsigned<T>::value) ||
-                  (std::is_enum<T>::value &&
-                   std::is_unsigned<typename safe_underlying_type<T>::type>::value),
-                "Bitfield type need to be unsigned integers or enums with unsigned "
-                "underlying type");
-
 public:
-  /** Type to use to access positions. */
-  using PosType = typename std::conditional<std::is_enum<T>::value, T, size_t>::type;
-  /** Underlying type used to define bitset. */
-  using UnderlyingBitsetType =
-    typename std::conditional<std::is_enum<T>::value,
-                              typename safe_underlying_type<T>::type, T>::type;
+  RingBuffer(const size_t buffer_size) { buffer_.resize(buffer_size); }
+  RingBuffer(const size_t buffer_size, const T& element)
+  {
+    buffer_.resize(buffer_size, element);
+  }
+  RingBuffer(const std::vector<T> vector) : buffer_(vector) {}
 
-  // Definition up here for prototypes
-  const static size_t bitset_size = (8 * (sizeof(UnderlyingBitsetType))); /**< ... */
-
-  // operators
   /**
-   * @brief For b[i]
-   * @param pos
+   * @brief operator [] Dynamic indexing, that is if given index = k, then the k-th
+   * element starting from current ring's head is given.
+   * @param index The index of the element from 0 to buffer's size - 1.
+   * @return A reference to the desired element.
+   */
+  T& operator[](const uint64_t& index)
+  {
+    assert(index <= this->linear_idx_);
+
+    return buffer_[(linear_idx_ + index + 1) % buffer_.size()];
+  }
+  const T& operator[](const uint64_t& index) const
+  {
+    assert(index <= this->linear_idx_);
+
+    return buffer_[(linear_idx_ + index + 1) % buffer_.size()];
+  }
+
+  /**
+   * @brief Returns a reference to the last element in the ring vector.
+   * @return A reference to the last element in the ring vector.
+   */
+  T& Tail() { return buffer_[ring_idx_]; }
+  const T& Tail() const { return buffer_[ring_idx_]; }
+
+  /**
+   * @brief Returns a reference to the first element in the ring vector.
+   * @return A reference to the first element in the ring vector.
+   */
+  T& Head()
+  {
+    return buffer_[(linear_idx_ == ring_idx_ | ring_idx_ == buffer_.size() - 1)
+                     ? buffer_.front()
+                     : buffer_[ring_idx_ + 1]];
+  }
+  const T& Head() const
+  {
+    return buffer_[(linear_idx_ == ring_idx_ | ring_idx_ == buffer_.size() - 1)
+                     ? buffer_.front()
+                     : buffer_[ring_idx_ + 1]];
+  }
+
+  /**
+   * @brief Data
    * @return
    */
-  constexpr bool operator[](const PosType pos) const;
+  std::vector<T>& Data() { return buffer_; }
+  const std::vector<T>& Data() const { return buffer_; }
+
   /**
-   * @brief For b[i] as l value
-   * @param pos
+   * @brief IsEmpty
    * @return
    */
-  typename std::bitset<Bitfield<T>::bitset_size>::reference operator[](const PosType pos);
-
-  /** Set all bits to true. */
-  void SetAllTrue();
+  bool IsEmpty() const { return linear_idx_ == 0; }
 
   /**
-   * @brief Set particular bit in bitfield.
-   *
-   * Value is set to 1 by default, but can be used for clearing too.
-   * @param [in] pos bit within bitfield to set.
-   * @param [in] value value to which bit should be set, default is true.
+   * @brief IsFull
+   * @return
    */
-  void Set(const PosType pos, const bool value = true);
+  bool IsFull() const { return linear_idx_ >= (buffer_.size() - 1); }
 
   /**
-   * @brief Set all bits in bitfield to 0.
+   * @brief Size
+   * @return
    */
-  void ClearAll();
+  size_t Size() const { return buffer_.size(); }
 
   /**
-   * Set particular bit in bitfield to 0.
-   * @param [in] pos bit within bitfield to set.
+   * @brief GetLinearIdx
+   * @return
    */
-  void Clear(const PosType pos);
+  uint64_t GetLinearIdx() const { return linear_idx_; }
 
   /**
-   * Flip particular bit in bitfield.
-   *
-   * If bit was 1, set it to 0. If it was 0, set it to 1.
-   * @param [in] pos bit within bitfield to set.
+   * @brief GetRingIdx
+   * @return
    */
-  void Flip(const PosType pos);
+  uint64_t GetRingIdx() const { return ring_idx_; }
 
   /**
-   * @brief Check value of particular bit in bitfield.
-   *
-   * Value is set to true by default, but can be used for clearing too
-   * @param [in] pos bit within bitfield to set.
-   * @return value of bit, or -1 if bitfield does not contain bit (because it is
-   * too small).
+   * @brief Add
+   * @param element
    */
-  bool CheckBit(const PosType pos) const;
+  void Add(const T& element)
+  {
+    ring_idx_ = linear_idx_ % buffer_.size();
+    buffer_[ring_idx_] = element;
+    linear_idx_++;
+  }
 
   /**
-   * Check how many bits are true.
-   * @return size_t number of bits that are true
+   * @brief Clear
    */
-  size_t Count() const;
-
-  /** Check if any bits are on. */
-  bool AnyOn() const;
-
-  /** Check if any bits are off. */
-  bool AnyOff() const;
-
-  /** Return whole bitset. */
-  typename std::bitset<Bitfield<T>::bitset_size> GetBitset() const;
-
-  /**
-   * Return bitfield with bitset cast to underlying type.
-   *
-   * For unsigned integral types T, this will be of type T.
-   * For enums or enum classes E, this will be of std::underlying_type<E>::type.
-   */
-  typename Bitfield<T>::UnderlyingBitsetType GetBitfield() const;
-
-  /**
-   * Set whole bitset.
-   * @param [in] bitset desired bitset of same size.
-   */
-  void SetBitset(const typename std::bitset<bitset_size>& bitset);
-
-  /**
-   * Set whole bitset.
-   * @param [in] bitset_value type (e.g. number) to be interpreted as bitset,
-   * needs to be smaller or equal in size to current bitset type size.
-   */
-  template <typename U> void SetBitset(const U& bitset_value);
-
-  /** Set whole bitfield.
-   * @param [in] bitfield bitfield of same type from which to extract bitset.
-   */
-  void SetBitfield(const Bitfield<T>& bitfield);
+  void Clear()
+  {
+    linear_idx_ = 0UL;
+    ring_idx_ = 0UL;
+    buffer_.clear();
+  }
 
 private:
-  std::bitset<bitset_size> bitset_;
+  std::vector<T> buffer_;
+  uint64_t linear_idx_ = 0UL;
+  uint64_t ring_idx_ = 0UL;
 };
 
-/********************************************
- ************ Template Definition ***********
- ********************************************/
-template <typename T> constexpr bool Bitfield<T>::operator[](const PosType pos) const
-{
-  return bitset_[static_cast<size_t>(pos)];
-} // for b[i]
-
-template <typename T>
-typename std::bitset<Bitfield<T>::bitset_size>::reference Bitfield<T>::
-operator[](const PosType pos)
-{
-  return bitset_[static_cast<size_t>(pos)];
-} // for b[i] as l value
-
-template <typename T> void Bitfield<T>::SetAllTrue() { bitset_.set(); }
-
-template <typename T>
-void Bitfield<T>::Set(const PosType pos, const bool value /*= true*/)
-{
-  bitset_.set(static_cast<size_t>(pos), value);
-}
-
-template <typename T> void Bitfield<T>::ClearAll() { bitset_.reset(); }
-
-template <typename T> void Bitfield<T>::Clear(const PosType pos)
-{
-  bitset_.reset(static_cast<size_t>(pos));
-}
-
-template <typename T> void Bitfield<T>::Flip(const PosType pos)
-{
-  bitset_.flip(static_cast<size_t>(pos));
-}
-
-template <typename T> bool Bitfield<T>::CheckBit(const PosType pos) const
-{
-  return bitset_.test(static_cast<size_t>(pos));
-}
-
-template <typename T> size_t Bitfield<T>::Count() const { return bitset_.count(); }
-
-template <typename T> bool Bitfield<T>::AnyOn() const { return bitset_.any(); }
-
-template <typename T> bool Bitfield<T>::AnyOff() const { return bitset_.all(); }
-
-template <typename T>
-typename std::bitset<Bitfield<T>::bitset_size> Bitfield<T>::GetBitset() const
-{
-  return bitset_;
-}
-
-template <typename T>
-typename Bitfield<T>::UnderlyingBitsetType Bitfield<T>::GetBitfield() const
-{
-  return static_cast<UnderlyingBitsetType>(bitset_.to_ulong());
-}
-
-template <typename T>
-void Bitfield<T>::SetBitset(const typename std::bitset<bitset_size>& bitset)
-{
-  this->bitset_ = bitset;
-}
-
-template <typename T>
-template <typename U>
-void Bitfield<T>::SetBitset(const U& bitset_value)
-{
-  // Prevent lossy casting. If desired, cast before passing.
-  if (this->bitset_size < 8 * sizeof(U))
-  {
-    return;
-  }
-  this->SetBitset(std::bitset<bitset_size>(bitset_value));
-}
-
-template <typename T> void Bitfield<T>::SetBitfield(const Bitfield<T>& bitfield)
-{
-  this->bitset_ = bitfield.GetBitset();
-}
+using RingBufferD = RingBuffer<double>;
 
 #endif // GRABCOMMON_H
