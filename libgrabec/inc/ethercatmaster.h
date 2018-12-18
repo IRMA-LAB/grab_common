@@ -66,6 +66,17 @@ public:
    */
   void Start();
 
+  /**
+   * @brief Mutex
+   * @return
+   */
+  pthread_mutex_t& Mutex() {return mutex_;}
+  /**
+   * @brief Mutex
+   * @return
+   */
+  const pthread_mutex_t& Mutex() const {return mutex_;}
+
 protected:
   /**
    *@brief Ethercat state check flags bit position enum.
@@ -88,6 +99,8 @@ protected:
     MASTER,
     CONFIG
   };
+
+  pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER; /**< RT thread mutex. */
 
   RtThreadsParams threads_params_; /**< Threads scheduler parameters. */
 
@@ -112,7 +125,7 @@ protected:
 
   EthercatSlave** slave_ = NULL;   /**< Vector of pointers to slaves. */
   uint8_t num_domain_elements_ = 0;  /**< Number of elements in ethercat domain. */
-  int num_slaves_ = 0;              /**< Number of slaves. */
+  size_t num_slaves_ = 0;              /**< Number of slaves. */
 
   /**
    * @brief LoopFunction

@@ -36,6 +36,7 @@ void EthercatMaster::Start()
   DispRetVal(ret, "Initializing EtherCAT devices... ");
   if (ret)
     return;
+  mutex_ = thread_rt.Mutex();
   // Adjust this thread
   grabrt::SetThreadCPUs(grabrt::BuildCPUSet(threads_params_.gui_cpu_id));
   grabrt::SetThreadSchedAttr(SCHED_RR, threads_params_.gui_priority);

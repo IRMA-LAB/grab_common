@@ -12,6 +12,35 @@
 #include <iostream>
 #include "grabcommon.h"
 
+/**
+ * @brief operator +
+ * @param time1
+ * @param time2
+ * @return
+ */
+struct timespec operator+(const struct timespec& time1, const struct timespec& time2);
+/**
+ * @brief operator +
+ * @param time1
+ * @param time_sec
+ * @return
+ */
+struct timespec operator+(const struct timespec& time1, const double& time_sec);
+/**
+ * @brief operator +
+ * @param time1
+ * @param time_nsec
+ * @return
+ */
+struct timespec operator+(const struct timespec& time1, const int64_t& time_nsec);
+/**
+ * @brief operator +
+ * @param time1
+ * @param time_nsec
+ * @return
+ */
+struct timespec operator+(const struct timespec& time1, const uint64_t& time_nsec);
+
 namespace grabrt
 {
 
@@ -41,7 +70,7 @@ public:
   Clock(const std::string& clk_name = "ThreadClock") : name_(clk_name) { Reset(); }
   virtual ~Clock() {}
 
-  static constexpr uint64_t kNanoSec2Sec = 1000000000L;
+  static constexpr uint64_t kNanoSec2Sec = 1000000000UL; /**< .. */
 
   /**
    * @brief Sets internal time to current clock value (it uses @c CLOCK_MONOTONIC ).
@@ -75,9 +104,11 @@ public:
   virtual void DispCurrentTime() const;
 
 protected:
-  std::string name_;
-  struct timespec time_;
+  std::string name_;     /**< .. */
+  struct timespec time_; /**< .. */
 
+  /**
+    */
   [[noreturn]] void HandleErrorEnWrapper(const int en, const char* msg) const;
 };
 
@@ -132,9 +163,17 @@ public:
    * @return Next internal time.
    * @note For further details about output time structure, click
    * <a href="https://en.cppreference.com/w/c/chrono/timespec">here</a>.
-   * @see GetCurrentTime()
+   * @see GetCurrentTime() GetNextTime()
    */
-  struct timespec GetNextTime();
+  struct timespec SetAndGetNextTime();
+  /**
+   * @brief Returns current value + _cycle period_.
+   * @return Next internal time.
+   * @note For further details about output time structure, click
+   * <a href="https://en.cppreference.com/w/c/chrono/timespec">here</a>.
+   * @see GetCurrentTime() SetAndGetNextTime()
+   */
+  struct timespec GetNextTime() const { return time_ + period_nsec_; }
 
   /**
    * @brief Displays current internal time in a pretty format.

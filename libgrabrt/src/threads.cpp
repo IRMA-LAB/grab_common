@@ -478,14 +478,18 @@ void Thread::TargetFun()
     time_expired = !(clock.WaitUntilNext() | ignore_deadline);
   }
 
+  struct timespec max_wait_time;
   while (active_ & !time_expired)
   {
     clock.Reset();
     while (run_ & !time_expired)
     {
-      pthread_mutex_lock(&mutex_);
-      loop_fun_ptr_(loop_fun_args_ptr_);
-      pthread_mutex_unlock(&mutex_);
+      max_wait_time = clock.GetNextTime();
+      if (pthread_mutex_timedlock(&mutex_, &max_wait_time) == 0)
+      {
+        loop_fun_ptr_(loop_fun_args_ptr_);
+        pthread_mutex_unlock(&mutex_);
+      }
       time_expired = !(clock.WaitUntilNext() | ignore_deadline);
     }
   }

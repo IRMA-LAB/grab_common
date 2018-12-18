@@ -7,6 +7,38 @@
 
 #include "clocks.h"
 
+struct timespec operator+(const struct timespec& time1, const struct timespec& time2)
+{
+  struct timespec total_time;
+  total_time.tv_sec =
+    time1.tv_sec + time2.tv_sec + (time1.tv_nsec + time2.tv_nsec) / 1000000000L;
+  total_time.tv_nsec = static_cast<int64_t>(time1.tv_nsec + time2.tv_nsec) % 1000000000L;
+  return total_time;
+}
+
+struct timespec operator+(const struct timespec& time1, const double& time_sec)
+{
+  struct timespec total_time;
+  int64_t whole = static_cast<int64_t>(time_sec);
+  int64_t decimal = static_cast<int64_t>((time_sec - whole) * 1000000000L);
+  total_time.tv_sec = time1.tv_sec + whole + (time1.tv_nsec + decimal) / 1000000000L;
+  total_time.tv_nsec = (time1.tv_nsec + decimal) % 1000000000L;
+  return total_time;
+}
+
+struct timespec operator+(const struct timespec& time1, const int64_t& time_nsec)
+{
+  struct timespec total_time;
+  total_time.tv_sec = time1.tv_sec + (time1.tv_nsec + time_nsec) / 1000000000L;
+  total_time.tv_nsec = (time1.tv_nsec + time_nsec) % 1000000000L;
+  return total_time;
+}
+
+struct timespec operator+(const struct timespec& time1, const uint64_t& time_nsec)
+{
+  return time1 + static_cast<int64_t>(time_nsec);
+}
+
 namespace grabrt
 {
 
@@ -74,7 +106,7 @@ bool ThreadClock::WaitUntilNext()
   return true;
 }
 
-struct timespec ThreadClock::GetNextTime()
+struct timespec ThreadClock::SetAndGetNextTime()
 {
   Next();
   return GetCurrentTime();

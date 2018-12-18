@@ -423,6 +423,16 @@ public:
    * @return A pointer to char string.
    */
   const char* GetNameCstr() const { return name_.c_str(); }
+  /**
+   * @brief Mutex
+   * @return
+   */
+  const pthread_mutex_t& Mutex() const { return mutex_; }
+  /**
+   * @brief Mutex
+   * @return
+   */
+  pthread_mutex_t& Mutex() { return mutex_; }
 
   /**
    * @brief Set thread loop cycle time and verifies if thread setup is completed before
@@ -509,6 +519,7 @@ private:
   static constexpr uint32_t kPreAllocationSize =
     100 * 1024 * 1024;  /**< 100MB pagefault free buffer */
 
+  pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;
   pthread_t thread_id_;
   pthread_attr_t attr_;
   std::string name_;
@@ -526,8 +537,6 @@ private:
 
   bool run_ = false;
   bool active_ = false;
-
-  pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;
 
   /**
    * @brief Initializes thread with default attributes and CPU set.

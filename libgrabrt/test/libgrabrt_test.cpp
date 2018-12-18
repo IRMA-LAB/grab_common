@@ -79,7 +79,7 @@ void LibgrabrtTest::testThreadClock()
   const double period = 0.145;
   grabrt::ThreadClock clock(grabrt::Sec2NanoSec(period));
   // test waiting time
-  struct timespec ts_start, ts_end;
+  struct timespec ts_start, ts_end, ts_end2;
   double t_start, t_end;
   for (uint i = 0; i < 20; ++i)
   {
@@ -99,6 +99,9 @@ void LibgrabrtTest::testThreadClock()
   ts_end = clock.GetNextTime();
   t_start = ts_start.tv_sec + grabrt::NanoSec2Sec(ts_start.tv_nsec);
   t_end = ts_end.tv_sec + grabrt::NanoSec2Sec(ts_end.tv_nsec);
+  QVERIFY(grabnum::IsClose(t_end - t_start, period));
+  ts_end2 = clock.SetAndGetNextTime();
+  t_end = ts_end2.tv_sec + grabrt::NanoSec2Sec(ts_end2.tv_nsec);
   QVERIFY(grabnum::IsClose(t_end - t_start, period));
 }
 
