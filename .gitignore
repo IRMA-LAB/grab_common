@@ -45,3 +45,5 @@ lib
 doc*
 Doxyfile
 
+# Python
+*.pyc
