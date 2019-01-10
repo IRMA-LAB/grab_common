@@ -33,17 +33,17 @@ namespace grabec
 {
 
 /**
- * @brief The EasyCatSlave class
+ * @brief The %sSlave class
  */
-class EasyCatSlave : public virtual EthercatSlave
+class %sSlave : public virtual EthercatSlave
 {
 public:
   /**
-   * @brief EasyCatSlave
+   * @brief %sSlave
    * @param slave_position
    */
-  EasyCatSlave(const uint8_t slave_position);
-  ~EasyCatSlave();
+  %sSlave(const uint8_t slave_position);
+  ~%sSlave();
 
   /**
    * @brief Slave's main function to be cycled.
@@ -60,7 +60,7 @@ public:
    */
   void WriteOutputs() override final;
 
-""")
+""" % tuple([config_params['DeviceName'][0].upper() + config_params['DeviceName'][1:]] * 5))
     if outputs_present:
         f.write('PROCBUFFER_OUT BufferOut; /**< output buffer, i.e. data received from master (read)*/\n')
     if inputs_present:
@@ -148,18 +148,18 @@ def gen_source(filepath, config_params):
 namespace grabec
 {
 // Must provide redundant definition of the static member as well as the declaration.
-constexpr ec_pdo_entry_info_t EasyCatSlave::kPdoEntries_[];
-constexpr ec_pdo_info_t EasyCatSlave::kPDOs_[];
-constexpr ec_sync_info_t EasyCatSlave::kSyncs_[];
+constexpr ec_pdo_entry_info_t %sSlave::kPdoEntries_[];
+constexpr ec_pdo_info_t %sSlave::kPDOs_[];
+constexpr ec_sync_info_t %sSlave::kSyncs_[];
 
-EasyCatSlave::EasyCatSlave(const uint8_t slave_position)
+%sSlave::%sSlave(const uint8_t slave_position)
 {
   alias_ = kAlias_;
   vendor_id_ = kVendorID_;
   product_code_ = kProductCode_;
   num_domain_entries_ = kDomainEntries_;
   position_ = slave_position;
-""")
+""" % tuple([config_params['DeviceName'][0].upper() + config_params['DeviceName'][1:]] * 5))
     if outputs_present:
         for i, entry in enumerate(config_params['Outputs']['Entries']):
             f.write("""  domain_registers_[%d] = {alias_, position_, vendor_id_, product_code_,
@@ -180,39 +180,39 @@ EasyCatSlave::EasyCatSlave(const uint8_t slave_position)
   slave_sync_ptr_ = const_cast<ec_sync_info_t*>(kSyncs_);
 }
 
-EasyCatSlave::~EasyCatSlave()
+%sSlave::~%sSlave()
 {
   /*
    * Your code here..
    */
 }
 
-void EasyCatSlave::DoWork()
+void %sSlave::DoWork()
 {
   /*
    * Your code here..
    */
 }
 
-void EasyCatSlave::ReadInputs()
+void %sSlave::ReadInputs()
 {
-""")
+""" % tuple([config_params['DeviceName'][0].upper() + config_params['DeviceName'][1:]] * 4))
     if inputs_present:
         f.write('  // This is the way we can read the PDOs, according to ecrt.h\n')
         for entry in config_params['Inputs']['Entries']:
             f.write('  input_pdos_.%s = EC_READ_U8(domain_data_ptr_ + offset_in_.%s);\n' % (entry.Name, entry.Name))
     f.write("""}
 
-void EasyCatSlave::WriteOutputs()
+void %sSlave::WriteOutputs()
 {
-""")
+""" % (config_params['DeviceName'][0].upper() + config_params['DeviceName'][1:]))
     if outputs_present:
         f.write('  // This is the way we can write the PDOs, according to ecrt.h\n')
         for entry in config_params['Outputs']['Entries']:
             f.write('  EC_WRITE_U8(domain_data_ptr_ + offset_out_.%s, output_pdos_.%s);\n' % (entry.Name, entry.Name))
     f.write("""}
 
-void EasyCatSlave::InitFun()
+void %sSlave::InitFun()
 {
   /*
    * Your code here..
@@ -220,7 +220,7 @@ void EasyCatSlave::InitFun()
 }
 
 } // end namespace grabec
-""")
+""" % (config_params['DeviceName'][0].upper() + config_params['DeviceName'][1:]))
     f.close()
 
 def main():
