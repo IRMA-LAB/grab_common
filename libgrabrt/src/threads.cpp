@@ -1,7 +1,7 @@
 /**
  * @file threads.cpp
  * @author Simone Comari
- * @date 14 Sep 2018
+ * @date 14 Gen 2019
  * @brief File containing definitions of functions and class declared in threads.h.
  */
 
@@ -376,6 +376,7 @@ void Thread::Stop()
     Pause();
     active_ = false;
     pthread_join(thread_id_, NULL);
+    printf("Thread %ld STOP\n", tid_);
   }
 }
 

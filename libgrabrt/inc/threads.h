@@ -1,7 +1,7 @@
 /**
  * @file threads.h
  * @author Simone Comari
- * @date 14 Sep 2018
+ * @date 14 Gen 2019
  * @brief This file collects utilities to create a new thread in a user-friendly way,
  * hiding most
  * of the complexity linked to multi-threading. It also allows the setup of a real-time
@@ -51,7 +51,9 @@ namespace grabrt
 #define THREAD_RUN(t)                                                                    \
   int ret = pthread_create(t.GetThreadIDPtr(), t.GetAttrPtr(), t._StaticTargetFun, &t);  \
   if (ret != 0)                                                                          \
-    t.HandleErrorEnWrapper(ret, "pthread_create ");
+    t.HandleErrorEnWrapper(ret, "pthread_create ");\
+  else\
+    printf("Thread START with ID: %ld\n", t.GetTID());
 #endif
 
 /**
@@ -520,10 +522,10 @@ private:
     100 * 1024 * 1024;  /**< 100MB pagefault free buffer */
 
   pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;
-  pthread_t thread_id_;
+  pthread_t thread_id_ = 0;
   pthread_attr_t attr_;
   std::string name_;
-  long tid_;
+  long tid_ = -1;
   struct sched_param sched_param_;
   cpu_set_t cpu_set_;
   uint64_t cycle_time_nsec_;
