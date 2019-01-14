@@ -47,3 +47,4 @@ Doxyfile
 
 # Python
 *.pyc
+/bitfield.h
