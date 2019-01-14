@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.h
  * @author Edoardo Idà, Simone Comari
- * @date 18 Sep 2018
+ * @date 14 Gen 2019
  * @brief This file includes an abstract class to setup an ethercat master-slave
  * communication.
  */
@@ -70,12 +70,12 @@ public:
    * @brief Mutex
    * @return
    */
-  pthread_mutex_t& Mutex() {return mutex_;}
+  pthread_mutex_t& Mutex() { return mutex_; }
   /**
    * @brief Mutex
    * @return
    */
-  const pthread_mutex_t& Mutex() const {return mutex_;}
+  const pthread_mutex_t& Mutex() const { return mutex_; }
 
 protected:
   /**
@@ -109,13 +109,14 @@ protected:
    * implemenation.
    * @{
    */
-  ec_master_t* master_ptr_ = NULL;            /**< Pointer to ethercat master. */
-  ec_master_state_t master_state_ = {};       /**< State of ethercat master. */
-  ec_domain_t* domain_ptr_ = NULL;            /**< Pointer to ethercat domain. */
-  ec_domain_state_t domain_state_ = {};       /**< State of ethercat domain. */
-  ec_slave_config_t* config_ptr_ = NULL;      /**< Pointer to ethercat configuration. */
-  ec_slave_config_state_t config_state_ = {}; /**< State of ethercat configuration. */
-  uint8_t* domain_data_ptr_ = NULL;           /**< Pointer to ethercat domain data. */
+  ec_master_t* master_ptr_ = NULL;             /**< Pointer to ethercat master. */
+  ec_master_state_t master_state_ = {};        /**< State of ethercat master. */
+  ec_domain_t* domain_ptr_ = NULL;             /**< Pointer to ethercat domain. */
+  ec_domain_state_t domain_state_ = {};        /**< State of ethercat domain. */
+  ec_slave_config_t* slave_config_ptr_ = NULL; /**< Pointer to ethercat configuration. */
+  ec_slave_config_state_t slave_config_state_ =
+    {};                             /**< State of ethercat configuration. */
+  uint8_t* domain_data_ptr_ = NULL; /**< Pointer to ethercat domain data. */
 
   Bitfield8
     check_state_flags_; /**< Bitfield object where every bit represents the state of an
@@ -123,9 +124,8 @@ protected:
                                       * it is not. */
   /** @} */             // end of EthercatUtilities group
 
-  EthercatSlave** slave_ = NULL;   /**< Vector of pointers to slaves. */
-  uint8_t num_domain_elements_ = 0;  /**< Number of elements in ethercat domain. */
-  size_t num_slaves_ = 0;              /**< Number of slaves. */
+  std::vector<EthercatSlave*> slaves_ptrs_; /**< Vector of pointers to slaves. */
+  uint8_t num_domain_elements_ = 0;         /**< Number of elements in ethercat domain. */
 
   /**
    * @brief LoopFunction
@@ -137,44 +137,24 @@ protected:
   virtual void StartUpFunction() = 0; // called before the cycle begins
 
 private:
-  /**
-   * @brief ThreadFunction
-   */
-  void ThreadFunction();
-  /**
-   * @brief ThreadFunWrapper
-   * @param obj
-   */
-  static void ThreadFunWrapper(void* obj);
-  /**
-   * @brief StartUpFunWrapper
-   * @param obj
-   */
-  static void StartUpFunWrapper(void* obj);
+  grabrt::Thread thread_rt_;
 
-  /**
-   * @brief CheckDomainState
-   * @ingroup EthercatUtilities
-   */
-  void CheckDomainState();
-  /**
-   * @brief CheckMasterState
-   */
-  void CheckMasterState();
-  /**
-   * @brief CheckConfigState
-   */
-  void CheckConfigState();
-  /**
-   * @brief GetDomainElements
-   * @param regs
-   */
-  void GetDomainElements(ec_pdo_entry_reg_t* regs);
-  /**
-   * @brief InitProtocol
-   * @return
-   */
   uint8_t InitProtocol();
+
+  static void StartUpFunWrapper(void* obj);
+  static void ThreadFunWrapper(void* obj);
+  static void ExitFunWrapper(void* obj);
+
+  void ThreadFunction();
+  void ExitFunction();
+
+  void CheckDomainState();
+  void CheckMasterState();
+  void CheckConfigState();
+
+  void GetDomainElements(std::vector<ec_pdo_entry_reg_t>& regs) const;
+
+  void PrintAlState(const uint al_state) const;
 };
 
 } // end namespace grabec

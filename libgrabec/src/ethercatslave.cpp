@@ -15,31 +15,31 @@ namespace grabec
 
 EthercatSlave::~EthercatSlave() {}  // necessary for pure abstract destructor
 
-void EthercatSlave::Init(uint8_t* _domain_data_ptr)
+void EthercatSlave::Init(uint8_t* domain_data_ptr)
 {
-  SetDomainDataPtr(_domain_data_ptr);
+  SetDomainDataPtr(domain_data_ptr);
   InitFun();
 }
 
-RetVal EthercatSlave::Configure(ec_master_t* master_ptr, ec_slave_config_t* config_ptr)
+RetVal EthercatSlave::Configure(ec_master_t* master_ptr, ec_slave_config_t** config_ptr)
 {
-  if (!(config_ptr = ecrt_master_slave_config(master_ptr, alias_, position_, vendor_id_,
+  if (!(*config_ptr = ecrt_master_slave_config(master_ptr, alias_, position_, vendor_id_,
                                               product_code_)))
   {
-    DispRetVal(ECONFIG, "Configuring slave device... ");
+    DispRetVal(ECONFIG, "[EthercatSlave]\tConfiguring device... ");
     return ECONFIG;
   }
-  DispRetVal(OK, "Configuring slave device... ");
+  DispRetVal(OK, "[EthercatSlave]\tConfiguring slave device... ");
 
-  if (ecrt_slave_config_pdos(config_ptr, EC_END, slave_sync_ptr_))
+  if (ecrt_slave_config_pdos(*config_ptr, EC_END, slave_sync_ptr_))
   {
-    DispRetVal(ECONFIG, "Configuring PDOs... ");
+    DispRetVal(ECONFIG, "[EthercatSlave]\tConfiguring PDOs... ");
     return ECONFIG;
   }
-  DispRetVal(OK, "Configuring PDOs... ");
+  DispRetVal(OK, "[EthercatSlave]\tConfiguring PDOs... ");
 
-  RetVal ret = SdoRequests(config_ptr);
-  DispRetVal(ret, "Creating SDO request... ");
+  RetVal ret = SdoRequests(*config_ptr);
+  DispRetVal(ret, "[EthercatSlave]\tCreating SDO request... ");
   return ret;
 }
 
@@ -67,9 +67,9 @@ RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)  // virtual
 /// Private methods
 /////////////////////////////////////////////////
 
-void EthercatSlave::SetDomainDataPtr(uint8_t* _domain_data_ptr)
+void EthercatSlave::SetDomainDataPtr(uint8_t* domain_data_ptr)
 {
-  domain_data_ptr_ = _domain_data_ptr;
+  domain_data_ptr_ = domain_data_ptr;
 }
 
 } // end namespace grabec

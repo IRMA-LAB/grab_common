@@ -1,7 +1,7 @@
 /**
  * @file types.h
  * @author Edoardo Idà, Simone Comari
- * @date 18 Sep 2018
+ * @date 14 Gen 2019
  * @brief This file includes common types and struct of libgrabec.
  */
 
@@ -17,6 +17,13 @@
 
 namespace grabec
 {
+  /* Working Counter state's corresponding meaning. */
+  // clang-format off
+  constexpr char* WcStateStr[] = {
+    const_cast<char*>("ZERO"),
+    const_cast<char*>("INCOMPLETE"),
+    const_cast<char*>("COMPLETE")};
+  // clang-format on
 
 /**
  * @brief The RtThreadsParams struct
@@ -59,6 +66,7 @@ enum RetVal: uint8_t
  * @param msg
  */
 void DispRetVal(const int err, const char* msg, ...);
+
 
 } // end namespace grabec
 
