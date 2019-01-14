@@ -14,7 +14,7 @@ class DomainEntry():
         self.Name = element.find('Name').text
         self.DataType = self._convert2Ctype(element.find('DataType').text)
 
-    def print(self):
+    def print_fields(self):
         print("Index =", self.Index)
         print("SubIndex =", self.SubIndex)
         print("BitLen =", self.BitLen)

@@ -1,4 +1,5 @@
 from EasyCAT_Config_xml_parser import *
+import numpy as np
 
 
 def gen_header(filepath, config_params):
@@ -25,7 +26,6 @@ def gen_header(filepath, config_params):
 //-------------------------------------------------------------------------------//
 
 """)
-    f.write('#include "%s.h"\n' % config_params['DeviceName'])
     f.write("""#include "ethercatslave.h"
 #include "types.h"
 
@@ -62,9 +62,33 @@ public:
 
 """ % tuple([config_params['DeviceName'][0].upper() + config_params['DeviceName'][1:]] * 5))
     if outputs_present:
-        f.write('PROCBUFFER_OUT BufferOut; /**< output buffer, i.e. data received from master (read)*/\n')
+        f.write("""
+  // Output buffer, i.e. data received from master (read)
+  union CustBufferOut
+  {
+    uint8_t Byte[%d];
+    struct
+    {
+""" % (4 * np.ceil(len(config_params['Outputs']['Entries']) / 4.)))
+        for entry in config_params['Outputs']['Entries']:
+            f.write('      %s %s;\n' % (entry.DataType, entry.Name))
+        f.write("""    } Cust;
+  } BufferOut;
+""")
     if inputs_present:
-        f.write('PROCBUFFER_IN BufferIn; /**< input buffer, i.e. data sent to master (write)*/\n')
+        f.write("""
+  // Input buffer, i.e. data sent to master (write)
+  union CustBufferIn
+  {
+    uint8_t Byte[%d];
+    struct
+    {
+""" % (4 * np.ceil(len(config_params['Inputs']['Entries']) / 4.)))
+        for entry in config_params['Inputs']['Entries']:
+            f.write('      %s %s;\n' % (entry.DataType, entry.Name))
+        f.write("""    } Cust;
+  } BufferIn;
+""")
     f.write("""
 protected:
   void InitFun() override; // need to override it even if not used
@@ -98,7 +122,7 @@ private:
     else:
         num_output_pdos = 0
     if inputs_present:
-        f.write('    {%s, %d, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_)} + %d, /**< Inputs PDOs */\n'
+        f.write('    {%s, %d, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + %d}, /**< Inputs PDOs */\n'
             % (config_params['Inputs']['Index'], len(config_params['Inputs']['Entries']), num_output_pdos))
     f.write("""  };
 
@@ -136,6 +160,22 @@ private:
     f.write('#endif // GRABCOMMON_LIBGRABEC_EASYCATSLAVE_%s_H\n' % config_params['DeviceName'].upper())
     f.close()
 
+def data_type2macro_suffix(text):    
+    # Integers
+    if text[0] == 'u':
+        sign = 'U'
+    else:
+        sign = 'S'
+    
+    if text[1:] == 'int8_t':
+        return sign + '8'
+    if text[1:] == 'int16_t':
+        return sign + '16'
+    if text[1:] == 'int32_t' or text == 'float':
+        return sign + '32'
+    if text[1:] == 'int64_t' or text == 'double':
+        return sign + '64'        
+    
 def gen_source(filepath, config_params):
     # Flags
     outputs_present = 'Outputs' in config_params
@@ -200,7 +240,7 @@ void %sSlave::ReadInputs()
     if inputs_present:
         f.write('  // This is the way we can read the PDOs, according to ecrt.h\n')
         for entry in config_params['Inputs']['Entries']:
-            f.write('  input_pdos_.%s = EC_READ_U8(domain_data_ptr_ + offset_in_.%s);\n' % (entry.Name, entry.Name))
+            f.write('  BufferIn.Cust.%s = EC_READ_%s(domain_data_ptr_ + offset_in_.%s);\n' % (entry.Name, data_type2macro_suffix(entry.DataType), entry.Name))
     f.write("""}
 
 void %sSlave::WriteOutputs()
@@ -209,7 +249,7 @@ void %sSlave::WriteOutputs()
     if outputs_present:
         f.write('  // This is the way we can write the PDOs, according to ecrt.h\n')
         for entry in config_params['Outputs']['Entries']:
-            f.write('  EC_WRITE_U8(domain_data_ptr_ + offset_out_.%s, output_pdos_.%s);\n' % (entry.Name, entry.Name))
+            f.write('  EC_WRITE_%s(domain_data_ptr_ + offset_out_.%s, BufferOut.Cust.%s);\n' % (data_type2macro_suffix(entry.DataType), entry.Name, entry.Name))
     f.write("""}
 
 void %sSlave::InitFun()
