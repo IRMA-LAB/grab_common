@@ -28,8 +28,8 @@ def gen_header(filepath, config_params):
             config_params['DeviceName'])
     f.write("""
 //                                                                           //
-//   You can either insert your code in the designated areas or inherit      //
-//   from this class.                                                        //
+//   You can either insert your code in the designated areas and extend it   //
+//   or inherit from this class.                                             //
 //                                                                           //
 //---------------------------------------------------------------------------//
 
@@ -186,21 +186,72 @@ private:
     f.close()
 
 
-def data_type2macro_suffix(text):
+def ec_readln(f, entry):
+    # Floating
+    if entry.DataType == 'float':
+        f.write('  int32_t %s = EC_READ_S32(domain_data_ptr_ + '
+                'offset_in_.%s);\n' % (entry.Name, entry.Name))
+        f.write('  memcpy(&BufferIn.Cust.%s, &%s, '
+                'sizeof(float));\n' % (entry.Name, entry.Name))
+        return
+    if entry.DataType == 'double':
+        f.write('  int64_t %s = EC_READ_S64(domain_data_ptr_ + '
+                'offset_in_.%s);\n' % (entry.Name, entry.Name))
+        f.write('  memcpy(&BufferIn.Cust.%s, &%s, '
+                'sizeof(double));\n' % (entry.Name, entry.Name))
+        return
+
     # Integers
-    if text[0] == 'u':
+    if entry.DataType[0] == 'u':
         sign = 'U'
     else:
         sign = 'S'
 
-    if text[1:] == 'int8_t':
-        return sign + '8'
-    if text[1:] == 'int16_t':
-        return sign + '16'
-    if text[1:] == 'int32_t' or text == 'float':
-        return sign + '32'
-    if text[1:] == 'int64_t' or text == 'double':
-        return sign + '64'
+    if entry.DataType[1:] == 'int8_t':
+        data_type = sign + '8'
+    if entry.DataType[1:] == 'int16_t':
+        data_type = sign + '16'
+    if entry.DataType[1:] == 'int32_t':
+        data_type = sign + '32'
+    if entry.DataType[1:] == 'int64_t':
+        data_type = sign + '64'
+    f.write('  BufferIn.Cust.%s = EC_READ_%s(domain_data_ptr_ + '
+            'offset_in_.%s);\n' % (entry.Name, data_type, entry.Name))
+
+
+def ec_writeln(f, entry):
+    # Floating
+    if entry.DataType == 'float':
+        f.write('  int32_t %s;\n' % entry.Name)
+        f.write('  memcpy(&%s, &BufferOut.Cust.%s, sizeof(float));\n' %
+                (entry.Name, entry.Name))
+        f.write('  EC_WRITE_S32(domain_data_ptr_ + offset_out_.%s, %s);\n' %
+                (entry.Name, entry.Name))
+        return
+    if entry.DataType == 'double':
+        f.write('  int64_t %s;\n' % entry.Name)
+        f.write('  memcpy(&%s, &BufferOut.Cust.%s, sizeof(double));\n' %
+                (entry.Name, entry.Name))
+        f.write('  EC_WRITE_S64(domain_data_ptr_ + offset_out_.%s, %s);\n' %
+                (entry.Name, entry.Name))
+        return
+
+    # Integers
+    if entry.DataType[0] == 'u':
+        sign = 'U'
+    else:
+        sign = 'S'
+
+    if entry.DataType[1:] == 'int8_t':
+        data_type = sign + '8'
+    if entry.DataType[1:] == 'int16_t':
+        data_type = sign + '16'
+    if entry.DataType[1:] == 'int32_t':
+        data_type = sign + '32'
+    if entry.DataType[1:] == 'int64_t':
+        data_type = sign + '64'
+    f.write('  EC_WRITE_%s(domain_data_ptr_ + offset_out_.%s, '
+            'BufferOut.Cust.%s);\n' % (data_type, entry.Name, entry.Name))
 
 
 def gen_source(filepath, config_params):
@@ -210,8 +261,28 @@ def gen_source(filepath, config_params):
 
     # Write source file.
     f = open(filepath, 'w')
-    f.write('#include "slaves/%s.h"\n' %
-            os.path.splitext(filepath.split('\\')[-1])[0])
+    f.write("""//---------------------------------------------------------------------------//
+//                                                                           //
+//   This file has been created by GRAB EasyCAT C++ class generation tool    //
+//                                                                           //
+""")
+    f.write('//     Easy Configurator project %s.prj\n' %
+            config_params['DeviceName'])
+    f.write('//     Easy Configurator XML %s.xml' %
+            config_params['DeviceName'])
+    f.write("""
+//                                                                           //
+//   You can either insert your code in the designated areas and extend it   //
+//   or inherit from this class.                                             //
+//                                                                           //
+//---------------------------------------------------------------------------//
+
+#include <cstring>
+
+""")
+    f.write('#include "%s.h"\n' %
+            os.path.join('slaves',
+                         os.path.splitext(os.path.split(filepath)[1])[0]))
     f.write("""
 namespace grabec
 {
@@ -272,10 +343,7 @@ void %sSlave::ReadInputs()
         f.write('  // This is the way we can read the PDOs, according to '
                 'ecrt.h\n')
         for entry in config_params['Inputs']['Entries']:
-            f.write('  BufferIn.Cust.%s = EC_READ_%s(domain_data_ptr_ +\n\t'
-                    'offset_in_.%s);\n' %
-                    (entry.Name, data_type2macro_suffix(entry.DataType),
-                     entry.Name))
+            ec_readln(f, entry)
     f.write("""}
 
 void %sSlave::WriteOutputs()
@@ -286,10 +354,7 @@ void %sSlave::WriteOutputs()
         f.write('  // This is the way we can write the PDOs, according to '
                 'ecrt.h\n')
         for entry in config_params['Outputs']['Entries']:
-            f.write('  EC_WRITE_%s(domain_data_ptr_ + offset_out_.%s,\n\t'
-                    'BufferOut.Cust.%s);\n' %
-                    (data_type2macro_suffix(entry.DataType), entry.Name,
-                     entry.Name))
+            ec_writeln(f, entry)
     f.write("""}
 
 void %sSlave::InitFun()
@@ -336,17 +401,17 @@ def main():
 
     # Generate class files.
     print('Generating header file...')
-    gen_header(os.path.join(os.path.dirname(__file__), '..\\inc\\slaves',
+    gen_header(os.path.join(os.path.dirname(__file__), '..', 'inc', 'slaves',
                             ofilename + '.h'), config_params)
     print('Generating source file...')
-    gen_source(os.path.join(os.path.dirname(__file__), '..\\src\\slaves',
+    gen_source(os.path.join(os.path.dirname(__file__), '..', 'src', 'slaves',
                             ofilename + '.cpp'), config_params)
     print('Generation complete.\nYou can find the new files in the "slaves" '
           'folders of your local "libgrabec" directory.')
     print("Don't forget to copy '%s.h' in '%s'!" %
-          (os.path.splitext(parsed_args.ifile.split('\\')[-1])[0],
+          (os.path.splitext(os.path.split(parsed_args.ifile)[1])[0],
            os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                        '..\\inc\\slaves'))))
+                                        '..', 'inc', 'slaves'))))
 
 
 if __name__ == "__main__":
