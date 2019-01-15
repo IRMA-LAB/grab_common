@@ -87,7 +87,7 @@ class EasyCatXmlParser(object):
         self._file_loaded = True
 
     def decode(self, out=False):
-        """Decode `Pilot.AI` configuration file and arrange them in dictionary format.
+        """Read `EasyCAT_Config` xml file and arrange it in dictionary format.
 
         Parameters
         ----------
@@ -99,11 +99,12 @@ class EasyCatXmlParser(object):
         boolean
             `True` if decoding process was successful, `False` otherwise.
         dict, optional
-            The decoded information in dictionary format. Given only if `out` is
-            set to `True`.
+            The decoded information in dictionary format. Given only if `out`
+            is set to `True`.
         """
         if not self._file_loaded:
-            warnings.warn('Configuration file not found. Please load a new file first.')
+            warnings.warn(
+                'Configuration file not found. Please load a new file first.')
             self._file_decoded = False
             if out:
                 return False, None
@@ -125,16 +126,21 @@ class EasyCatXmlParser(object):
 
         self._output = {
             'DeviceName': self._root.find('.//Device/Type').text,
-            'DomainEntriesNum': len(output_domain_entries) + len(input_domain_entries),
-            'Alias': 0, # dove trovo questo??
-            'VendorId': '0' + self._root.find('Vendor').find('Id').text[1:].lower(),
-            'ProductCode': '0' + self._root.find('.//Device/Type').get('ProductCode')[1:].lower(),
+            'DomainEntriesNum': len(output_domain_entries) +
+            len(input_domain_entries),
+            'Alias': 0,
+            'VendorId': '0' +
+            self._root.find('Vendor').find('Id').text[1:].lower(),
+            'ProductCode': '0' +
+            self._root.find('.//Device/Type').get('ProductCode')[1:].lower(),
             'Outputs': {
-                'Index': '0' + self._root.find('.//RxPdo/Index').text[1:].lower(),
+                'Index': '0' +
+                self._root.find('.//RxPdo/Index').text[1:].lower(),
                 'Entries': output_domain_entries
                 },
-            'Inputs':{
-                'Index': '0' + self._root.find('.//TxPdo/Index').text[1:].lower(),
+            'Inputs': {
+                'Index': '0' +
+                self._root.find('.//TxPdo/Index').text[1:].lower(),
                 'Entries': input_domain_entries
                 }
             }
@@ -160,24 +166,25 @@ class EasyCatXmlParser(object):
             }
         """
         if not self._file_decoded:
-            warnings.warn('Decoded information missing. Please run "decode" first.')
+            warnings.warn(
+                    'Decoded information missing. Please run "decode" first.')
             return None
 
         output = copy.deepcopy(self._output)
         return output
 
     def save(self, ofilename=None, outdir=None):
-        """Save the outcome of the decoding process in a text file via pickle dump.
+        """Save the outcome of the reading process in a text file with pickle.
 
-        Pickle is used to dump the dictionary containing the decoded information
-        in a text file that can be loaded and used in future.
+        Pickle is used to dump the dictionary containing the decoded
+        information in a text file that can be loaded and used in future.
 
         Parameters
         ----------
         ofilename : str, optional
-            The name of the output text file. This is NOT the path to that file.
-            If not given the name of the original file will be used and extended
-            with `_decoded`.
+            The name of the output text file. This is NOT the path to that
+            file. If not given the name of the original file will be used and
+            extended with `_decoded`.
         outdir : str, optional
             The absolute or relative (to this script) path of the directory
             where the output file should be saved. If not given the same
@@ -189,20 +196,23 @@ class EasyCatXmlParser(object):
             The outcome of the saving operation.
         """
         if not self._file_decoded:
-            warnings.warn('Decoded information missing. Please run "decode" first.')
+            warnings.warn(
+                    'Decoded information missing. Please run "decode" first.')
             return False
 
         # Output file name.
         if ofilename is None:
-            ofilename = os.path.splitext(os.path.split(self._ifile.name)[1])[0]+'_decoded.txt'
+            ofilename = os.path.splitext(os.path.split(self._ifile.name)[1])[0]
+            +'_decoded.txt'
         elif not ofilename.endswith('.txt'):
             ofilename += '.txt'
 
         # Parent directory.
         if outdir is not None:
             if not os.path.exists(outdir):
-                warnings.warn('Output directory "%s" not found. Please provide'\
-                              ' an existing path.' % os.path.abspath(outdir))
+                warnings.warn('Output directory "%s" not found. Please '
+                              'provide an existing path.' %
+                              os.path.abspath(outdir))
                 return False
         else:
             outdir = os.path.split(os.path.abspath(self._ifile.name))[0]
@@ -219,19 +229,21 @@ class EasyCatXmlParser(object):
 
 ''' MAIN '''
 
+
 def main():
     """Method to execute parser/decoder directly from command line."""
     # Command line argument parser.
-    parser = argparse.ArgumentParser(description='Parse a .XML file produced by'\
-            ' EasyCAT_Config_GUI.')
-    parser.add_argument('-i','--ifile', dest='ifile', required=True,
-                        help='absolute or relative path of input configuration file')
-    parser.add_argument('-s','--save', dest='save', action='store_true',
-                        default=False, help='save decoded data in pickle format'\
-                        ' (i.e. text file)')
-    parser.add_argument('-o','--ofile', dest='ofile',
+    parser = argparse.ArgumentParser(description='Parse a .XML file produced'
+                                     ' by EasyCAT_Config_GUI.')
+    parser.add_argument('-i', '--ifile', dest='ifile', required=True,
+                        help='absolute or relative path of input configuration'
+                        'file')
+    parser.add_argument('-s', '--save', dest='save', action='store_true',
+                        default=False, help='save decoded data in pickle'
+                        ' format (i.e. text file)')
+    parser.add_argument('-o', '--ofile', dest='ofile',
                         help='output text file name (not path)')
-    parser.add_argument('-d','--outdir', dest='odir',
+    parser.add_argument('-d', '--outdir', dest='odir',
                         help='output directory')
     parsed_args = parser.parse_args()
 
@@ -242,6 +254,7 @@ def main():
 
     if parsed_args.save:
         decoder.save(ofilename=parsed_args.ofile, outdir=parsed_args.odir)
+
 
 if __name__ == "__main__":
     import sys
