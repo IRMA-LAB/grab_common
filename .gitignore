@@ -48,3 +48,7 @@ Doxyfile
 # Python
 *.pyc
 /bitfield.h
+
+# Custom EasyCAT classes
+libgrabec/inc/slaves/easycat/*
+libgrabec/src/slaves/easycat/*

@@ -289,7 +289,7 @@ def gen_source(filepath, config_params):
 
 """)
     f.write('#include "%s.h"\n' %
-            os.path.join('slaves',
+            os.path.join('slaves', 'easycat',
                          os.path.splitext(os.path.split(filepath)[1])[0]))
     f.write("""
 namespace grabec
@@ -426,16 +426,16 @@ def main():
     # Generate class files.
     print('Generating header file...')
     gen_header(os.path.join(os.path.dirname(__file__), '..', 'inc', 'slaves',
-                            ofilename + '.h'), config_params)
+                            'easycat', ofilename + '.h'), config_params)
     print('Generating source file...')
     gen_source(os.path.join(os.path.dirname(__file__), '..', 'src', 'slaves',
-                            ofilename + '.cpp'), config_params)
+                            'easycat', ofilename + '.cpp'), config_params)
     print('Generation complete.\nYou can find the new files in the "slaves" '
           'folders of your local "libgrabec" directory.')
     print("Don't forget to copy '%s.h' in '%s'!" %
           (os.path.splitext(os.path.split(parsed_args.ifile)[1])[0],
            os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                        '..', 'inc', 'slaves'))))
+                                        '..', 'inc', 'slaves', 'easycat'))))
 
 
 if __name__ == "__main__":

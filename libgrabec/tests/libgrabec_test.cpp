@@ -2,8 +2,8 @@
 #include <QtTest>
 
 #include "types.h"
-#include "slaves/TestEasyCAT1_slave.h"
-#include "slaves/TestEasyCAT2_slave.h"
+#include "slaves/easycat/TestEasyCAT1_slave.h"
+#include "slaves/easycat/TestEasyCAT2_slave.h"
 #include "ethercatmaster.h"
 
 class MinimalMaster : public virtual grabec::EthercatMaster
