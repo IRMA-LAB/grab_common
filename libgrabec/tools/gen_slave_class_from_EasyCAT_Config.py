@@ -56,7 +56,7 @@ public:
   /**
    * @brief Slave's main function to be cycled.
    */
-  void DoWork() override; // need to override it even if not used
+  void DoWork() override;
 
   /**
    * @brief Function to specify what to read.
@@ -67,7 +67,15 @@ public:
    * @brief Function to specify what to write.
    */
   void WriteOutputs() override final;
-
+  /**
+   * @brief SafeExit
+   */
+  void SafeExit() override;
+  /**
+   * @brief IsReadyToShutDown
+   * @return
+   */
+  bool IsReadyToShutDown() const override;
 """ % tuple([config_params['DeviceName'][0].upper() +
              config_params['DeviceName'][1:]] * 5))
     if outputs_present:
@@ -100,7 +108,7 @@ public:
 """)
     f.write("""
 protected:
-  void InitFun() override; // need to override it even if not used
+  void InitFun() override;
 
 private:
   // EasyCAT slave device specific info
@@ -357,6 +365,22 @@ void %sSlave::WriteOutputs()
             ec_writeln(f, entry)
     f.write("""}
 
+void %sSlave::SafeExit()
+{
+  /*
+   * Your code here..
+   */
+}
+
+bool %sSlave::IsReadyToShutDown() const
+{
+  /*
+   * Your code here..
+   * Return bool accordingly..
+   */
+  return true;
+}
+
 void %sSlave::InitFun()
 {
   /*
@@ -365,8 +389,8 @@ void %sSlave::InitFun()
 }
 
 } // end namespace grabec
-""" % (config_params['DeviceName'][0].upper() +
-       config_params['DeviceName'][1:]))
+""" % tuple([config_params['DeviceName'][0].upper() +
+             config_params['DeviceName'][1:]] * 3))
     f.close()
 
 

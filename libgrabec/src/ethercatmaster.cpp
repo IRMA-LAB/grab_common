@@ -34,6 +34,7 @@ void EthercatMaster::Start()
   thread_rt_.SetSchedAttr(SCHED_RR, threads_params_.rt_priority);
   thread_rt_.SetInitFunc(&StartUpFunWrapper, this);
   thread_rt_.SetLoopFunc(&ThreadFunWrapper, this);
+  thread_rt_.SetEndFunc(&ExitFunWrapper, this);
   // Setup ethercat communication
   printf("[EthercatMaster] Initializing EtherCAT network...\n");
   uint8_t ret = InitProtocol();
@@ -142,7 +143,7 @@ void EthercatMaster::ThreadFunction()
   CheckMasterState();
   CheckDomainState();
   // If everything is ok, execute main function of master
-  if (check_state_flags_.Count() == 3)  // EthercatStateFlagsBit all set
+  if (check_state_flags_.Count() == 3) // EthercatStateFlagsBit all set
     LoopFunction();
   // Write data
   ecrt_domain_queue(domain_ptr_);
@@ -151,18 +152,45 @@ void EthercatMaster::ThreadFunction()
 
 void EthercatMaster::ExitFunction()
 {
-  printf("[EthercatMaster] Deactivating slaves...");
-  ecrt_master_deactivate_slaves(master_ptr_);
+  grabrt::ThreadClock clock(thread_rt_.GetCycleTimeNsec());
+  printf("[EthercatMaster] Sending out SHUTDOWN signals...\n");
+  while (!AllSlavesReadyToShutDown())
+  {
+    // Receive data
+    ecrt_master_receive(master_ptr_);
+    ecrt_domain_process(domain_ptr_);
+    // Check EtherCAT network state
+    CheckConfigState();
+    CheckMasterState();
+    CheckDomainState();
+    // Send out signal to safely shut down
+    for (EthercatSlave* slave_ptr : slaves_ptrs_)
+      slave_ptr->SafeExit();
+    // Write data
+    ecrt_domain_queue(domain_ptr_);
+    ecrt_master_send(master_ptr_);
+
+    pthread_mutex_unlock(&mutex_);
+    clock.WaitUntilNext();
+    pthread_mutex_lock(&mutex_);
+  }
+  printf("[EthercatMaster] All slaves ready to be disconnected\n");
+
+  ecrt_master_deactivate(master_ptr_);
   while (1)
   {
-    ecrt_master_state(master_ptr_, &master_state_);
+    CheckMasterState();
+    // Check if master has been deactivated
     if (master_state_.al_states == EC_AL_STATE_PREOP)
       break;
-    usleep(threads_params_.cycle_cime_nsec * 1000);
+
+    pthread_mutex_unlock(&mutex_);
+    clock.WaitUntilNext();
+    pthread_mutex_lock(&mutex_);
   }
-  printf("SUCCESS\n");
-  ecrt_master_deactivate(master_ptr_);
   printf("[EthercatMaster] Master deactivated\n");
+  ecrt_release_master(master_ptr_);
+  printf("[EthercatMaster] Master released\n");
 }
 
 void EthercatMaster::CheckConfigState()
@@ -205,7 +233,7 @@ void EthercatMaster::CheckMasterState()
   }
   if (master_state.link_up != master_state_.link_up)
   {
-    printf("[EthercatMaster] Master link is %s\n", master_state.link_up ? "up" : "down");
+    printf("[EthercatMaster] Master link is %s\n", master_state.link_up ? "UP" : "DOWN");
   }
   master_state_ = master_state;
 }
@@ -232,6 +260,14 @@ void EthercatMaster::CheckDomainState()
                            domain_state.wc_state == EC_WC_COMPLETE); // operational?
   }
   domain_state_ = domain_state;
+}
+
+bool EthercatMaster::AllSlavesReadyToShutDown() const
+{
+  for (EthercatSlave* slave_ptr : slaves_ptrs_)
+    if (!slave_ptr->IsReadyToShutDown())
+      return false;
+  return true;
 }
 
 void EthercatMaster::GetDomainElements(std::vector<ec_pdo_entry_reg_t>& regs) const

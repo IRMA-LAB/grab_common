@@ -152,6 +152,8 @@ private:
   void CheckMasterState();
   void CheckConfigState();
 
+  bool AllSlavesReadyToShutDown() const;
+
   void GetDomainElements(std::vector<ec_pdo_entry_reg_t>& regs) const;
 
   void PrintAlState(const uint al_state) const;

@@ -46,7 +46,7 @@ public:
   /**
    * @brief DoWork
    */
-  virtual void DoWork() = 0;   // pure virtual
+  virtual void DoWork() {}
   /**
    * @brief ReadInputs
    */
@@ -55,6 +55,15 @@ public:
    * @brief WriteOutputs
    */
   virtual void WriteOutputs() = 0;   // pure virtual
+  /**
+   * @brief SafeExit
+   */
+  virtual void SafeExit() {}
+  /**
+   * @brief IsReadyToShutDown
+   * @return
+   */
+  virtual bool IsReadyToShutDown() const { return true; }
 
   /**
    * @brief GetDomainRegister
@@ -96,10 +105,12 @@ protected:
    * definition in derived class.
    */
   virtual RetVal SdoRequests(ec_slave_config_t* config_ptr);
+  /**
+   * @brief InitFun
+   */
+  virtual void InitFun() {}
 
 private:
-  virtual void InitFun() = 0; // pure virtual
-
   void SetDomainDataPtr(uint8_t* domain_data_ptr);
 };
 

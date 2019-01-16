@@ -357,6 +357,11 @@ public:
   void SetEndFunc(void (*fun_ptr)(void*), void* args);
 
   /**
+   * @brief Get thread cycle time in nanoseconds.
+   * @return Thread cycle time in nanoseconds.
+   */
+  uint64_t GetCycleTimeNsec() const { return cycle_time_nsec_; }
+  /**
    * @brief Get the integral thread of @c this. This is equivalent to its LWP ID in Linux.
    * @return Integral thread ID (aka LWP ID) if thread is active, -1 otherwise.
    * @note Not cross-platform valid!
@@ -528,7 +533,7 @@ private:
   long tid_ = -1;
   struct sched_param sched_param_;
   cpu_set_t cpu_set_;
-  uint64_t cycle_time_nsec_;
+  uint64_t cycle_time_nsec_ = 1000000LL;  // = 1ms
 
   void (*init_fun_ptr_)(void*) = NULL;
   void (*loop_fun_ptr_)(void*) = NULL;
