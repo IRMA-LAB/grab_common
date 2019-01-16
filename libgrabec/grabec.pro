@@ -17,14 +17,12 @@ HEADERS += \
     $$PWD/inc/ethercatmaster.h \
     $$PWD/inc/ethercatslave.h \
     $$PWD/inc/types.h \
-    $$PWD/inc/slaves/easycatslave.h \
     $$PWD/inc/slaves/goldsolowhistledrive.h
 
 SOURCES += \
     $$PWD/src/ethercatmaster.cpp \
     $$PWD/src/ethercatslave.cpp \
     $$PWD/src/types.cpp \
-    $$PWD/src/slaves/easycatslave.cpp \
     $$PWD/src/slaves/goldsolowhistledrive.cpp
 
 INCLUDEPATH += \
