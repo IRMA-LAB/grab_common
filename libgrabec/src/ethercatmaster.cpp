@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.cpp
  * @author Simone Comari
- * @date 14 Gen 2019
+ * @date 17 Gen 2019
  * @brief File containing definitions of functions and class declared in ethercatmaster.h.
  */
 
@@ -37,11 +37,17 @@ void EthercatMaster::Start()
   thread_rt_.SetEndFunc(&ExitFunWrapper, this);
   // Setup ethercat communication
   printf("[EthercatMaster] Initializing EtherCAT network...\n");
+//  PrintToQConsoleCb("[EthercatMaster] Initializing EtherCAT network...\n");
   uint8_t ret = InitProtocol();
   printf("[EthercatMaster] Initialization EtherCAT network %s\n",
          ret ? "FAILED" : "COMPLETE");
   if (ret)
+  {
+    EcStateChangedCb(check_state_flags_);
+    if (master_ptr_ != NULL)
+      ReleaseMaster();
     return;
+  }
   mutex_ = thread_rt_.Mutex();
   // Adjust this thread
   grabrt::SetThreadCPUs(grabrt::BuildCPUSet(threads_params_.gui_cpu_id));
@@ -176,21 +182,7 @@ void EthercatMaster::ExitFunction()
   }
   printf("[EthercatMaster] All slaves ready to be disconnected\n");
 
-  ecrt_master_deactivate(master_ptr_);
-  while (1)
-  {
-    CheckMasterState();
-    // Check if master has been deactivated
-    if (master_state_.al_states == EC_AL_STATE_PREOP)
-      break;
-
-    pthread_mutex_unlock(&mutex_);
-    clock.WaitUntilNext();
-    pthread_mutex_lock(&mutex_);
-  }
-  printf("[EthercatMaster] Master deactivated\n");
-  ecrt_release_master(master_ptr_);
-  printf("[EthercatMaster] Master released\n");
+  ReleaseMaster();
 }
 
 void EthercatMaster::CheckConfigState()
@@ -202,6 +194,7 @@ void EthercatMaster::CheckConfigState()
     printf("[EthercatMaster] Slaves application-layer state: ");
     PrintAlState(slave_config_state.al_state);
     check_state_flags_.Set(CONFIG, slave_config_state.al_state == EC_AL_STATE_OP);
+    EcStateChangedCb(check_state_flags_);
   }
   if (slave_config_state.online != slave_config_state_.online)
   {
@@ -228,8 +221,8 @@ void EthercatMaster::CheckMasterState()
   {
     printf("[EthercatMaster] Master state: ");
     PrintAlState(master_state.al_states);
-    check_state_flags_.Set(MASTER,
-                           master_state.al_states == EC_AL_STATE_OP); // operational?
+    check_state_flags_.Set(MASTER, master_state.al_states == EC_AL_STATE_OP);
+    EcStateChangedCb(check_state_flags_);
   }
   if (master_state.link_up != master_state_.link_up)
   {
@@ -256,8 +249,8 @@ void EthercatMaster::CheckDomainState()
   if (domain_state.wc_state != domain_state_.wc_state)
   {
     printf("[EthercatMaster] Domain State: %s\n", WcStateStr[domain_state.wc_state]);
-    check_state_flags_.Set(EC_DOMAIN,
-                           domain_state.wc_state == EC_WC_COMPLETE); // operational?
+    check_state_flags_.Set(EC_DOMAIN, domain_state.wc_state == EC_WC_COMPLETE);
+    EcStateChangedCb(check_state_flags_);
   }
   domain_state_ = domain_state;
 }
@@ -268,6 +261,26 @@ bool EthercatMaster::AllSlavesReadyToShutDown() const
     if (!slave_ptr->IsReadyToShutDown())
       return false;
   return true;
+}
+
+void EthercatMaster::ReleaseMaster()
+{
+  grabrt::ThreadClock clock(thread_rt_.GetCycleTimeNsec());
+  ecrt_master_deactivate(master_ptr_);
+  while (1)
+  {
+    CheckMasterState();
+    // Check if master has been deactivated
+    if (master_state_.al_states == EC_AL_STATE_PREOP)
+      break;
+
+    pthread_mutex_unlock(&mutex_);
+    clock.WaitUntilNext();
+    pthread_mutex_lock(&mutex_);
+  }
+  printf("[EthercatMaster] Master DEACTIVATED\n");
+  ecrt_release_master(master_ptr_);
+  printf("[EthercatMaster] Master RELEASED\n");
 }
 
 void EthercatMaster::GetDomainElements(std::vector<ec_pdo_entry_reg_t>& regs) const

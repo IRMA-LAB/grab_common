@@ -29,7 +29,7 @@ RetVal EthercatSlave::Configure(ec_master_t* master_ptr, ec_slave_config_t** con
     DispRetVal(ECONFIG, "[EthercatSlave]\tConfiguring device... ");
     return ECONFIG;
   }
-  DispRetVal(OK, "[EthercatSlave]\tConfiguring slave device... ");
+  DispRetVal(OK, "[EthercatSlave]\tConfiguring device... ");
 
   if (ecrt_slave_config_pdos(*config_ptr, EC_END, slave_sync_ptr_))
   {

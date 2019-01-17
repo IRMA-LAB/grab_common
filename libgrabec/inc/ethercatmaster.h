@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.h
  * @author Edoardo Idà, Simone Comari
- * @date 14 Gen 2019
+ * @date 17 Gen 2019
  * @brief This file includes an abstract class to setup an ethercat master-slave
  * communication.
  */
@@ -76,6 +76,10 @@ public:
    * @return
    */
   const pthread_mutex_t& Mutex() const { return mutex_; }
+
+protected:
+  virtual void EcStateChangedCb(const Bitfield8&) const {}
+  virtual void PrintToQConsoleCb(const std::string&) const {}
 
 protected:
   /**
@@ -153,6 +157,7 @@ private:
   void CheckConfigState();
 
   bool AllSlavesReadyToShutDown() const;
+  void ReleaseMaster();
 
   void GetDomainElements(std::vector<ec_pdo_entry_reg_t>& regs) const;
 
