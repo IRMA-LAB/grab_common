@@ -270,6 +270,9 @@ void EthercatMaster::ReleaseMaster()
   while (1)
   {
     CheckMasterState();
+    // Check if master is still up
+    if (!master_state_.link_up)
+      break;
     // Check if master has been deactivated
     if (master_state_.al_states == EC_AL_STATE_PREOP)
       break;

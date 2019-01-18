@@ -798,6 +798,7 @@ struct WinchParams
  */
 struct ActuatorParams
 {
+  bool active = false;
   PulleyParams pulley; /**< swivel pulley parameters set */
   WinchParams winch;   /**< winch parameters set */
 };

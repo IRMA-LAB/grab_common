@@ -98,12 +98,14 @@ void RobotConfigJsonParser::PrintConfig() const
   for (size_t i = 0; i < config_params_.actuators.size(); i++)
   {
     std::cout << "ACTUATOR PARAMETERS #" << i << "\n============================="
+              << "\n " << (config_params_.actuators[i].active
+                             ? "ACTIVE\n-----------"
+                             : "INACTIVE\n--------------")
               << "\n Winch:\n-----------"
               << "\n   l0\t\t" << config_params_.actuators[i].winch.l0
               << "\n   drum_pitch\t" << config_params_.actuators[i].winch.drum_pitch
-              << "\n   drum_diameter\t"
-              << config_params_.actuators[i].winch.drum_diameter << "\n   gear_ratio\t\t"
-              << config_params_.actuators[i].winch.gear_ratio
+              << "\n   drum_diameter\t" << config_params_.actuators[i].winch.drum_diameter
+              << "\n   gear_ratio\t\t" << config_params_.actuators[i].winch.gear_ratio
               << "\n   motor_encoder_res\t"
               << config_params_.actuators[i].winch.motor_encoder_res
               << "\n   pos_PA_loc\n" << config_params_.actuators[i].winch.pos_PA_loc
@@ -179,6 +181,9 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
     grabcdpr::ActuatorParams temp;
     try
     {
+      field = "active";
+      subfield = "";
+      temp.active = actuator[field];
       field = "winch";
       subfield = "drum_pitch";
       temp.winch.drum_pitch = actuator[field][subfield];
@@ -215,8 +220,8 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
     }
     catch (json::type_error)
     {
-      std::cerr << "[ERROR] Missing or invalid actuator parameter: " << field << "-"
-                << subfield << std::endl;
+      std::cerr << "[ERROR] Missing or invalid actuator parameter: " << field
+                << (subfield == "" ? "" : "-") << subfield << std::endl;
       return false;
     }
 
