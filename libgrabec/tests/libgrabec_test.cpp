@@ -40,8 +40,8 @@ MinimalMaster::MinimalMaster()
 
 MinimalMaster::~MinimalMaster()
 {
-  free(easycat1_ptr_);
-  free(easycat2_ptr_);
+  delete  easycat1_ptr_;
+  delete easycat2_ptr_;
 }
 
 void MinimalMaster::LoopFunction()

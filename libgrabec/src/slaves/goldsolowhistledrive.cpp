@@ -20,15 +20,45 @@ GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
 {
 }
 
+GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
+                                                   const GSWDriveInPdos& input_pdos,
+                                                   const bool verbose /* = false */)
+  : op_mode(_op_mode)
+{
+  // Set target value to current one
+  switch (op_mode)
+  {
+  case CYCLIC_POSITION:
+    value = input_pdos.pos_actual_value;
+    if (verbose)
+      printf("\tTarget operational mode: CYCLIC_POSITION @ %d\n", value);
+    break;
+  case CYCLIC_VELOCITY:
+    value = input_pdos.vel_actual_value;
+    if (verbose)
+      printf("\tTarget operational mode: CYCLIC_VELOCITY @ %d\n", value);
+    break;
+  case CYCLIC_TORQUE:
+    value = input_pdos.torque_actual_value;
+    if (verbose)
+      printf("\tTarget operational mode: CYCLIC_TORQUE @ %d\n", value);
+    break;
+  default:
+    if (verbose)
+      printf("\tTarget operational mode: NO_MODE\n");
+    break;
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //// GoldSoloWhistleDrive
 ////////////////////////////////////////////////////////////////////////////
 
 // Must provide redundant definition of the static member as well as the declaration.
-constexpr ec_pdo_entry_info_t GoldSoloWhistleDrive::kPdoEntries[];
-constexpr ec_pdo_info_t GoldSoloWhistleDrive::kPDOs[];
-constexpr ec_sync_info_t GoldSoloWhistleDrive::kSyncs[];
-constexpr char* GoldSoloWhistleDrive::kStatesStr[];
+constexpr ec_pdo_entry_info_t GoldSoloWhistleDrive::kPdoEntries_[];
+constexpr ec_pdo_info_t GoldSoloWhistleDrive::kPDOs_[];
+constexpr ec_sync_info_t GoldSoloWhistleDrive::kSyncs_[];
+constexpr char* GoldSoloWhistleDrive::kStatesStr_[];
 
 GoldSoloWhistleDrive::GoldSoloWhistleDrive(const uint8_t slave_position)
   : StateMachine(ST_MAX_STATES)
@@ -69,9 +99,9 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const uint8_t slave_position)
                            &offset_in_.aux_pos_actual_value, NULL};
 
   domain_registers_ptr_ = domain_registers_;
-  slave_pdo_entries_ptr_ = const_cast<ec_pdo_entry_info_t*>(kPdoEntries);
-  slave_pdos_ptr_ = const_cast<ec_pdo_info_t*>(kPDOs);
-  slave_sync_ptr_ = const_cast<ec_sync_info_t*>(kSyncs);
+  slave_pdo_entries_ptr_ = const_cast<ec_pdo_entry_info_t*>(kPdoEntries_);
+  slave_pdos_ptr_ = const_cast<ec_pdo_info_t*>(kPDOs_);
+  slave_sync_ptr_ = const_cast<ec_sync_info_t*>(kSyncs_);
 
   drive_state_ = ST_START;
   prev_state_ = static_cast<GoldSoloWhistleDriveStates>(GetCurrentState());
@@ -113,7 +143,7 @@ GoldSoloWhistleDrive::GetDriveState(const Bitfield16& status_word)
 
 std::string GoldSoloWhistleDrive::GetDriveStateStr(const Bitfield16& status_word)
 {
-  return kStatesStr[GetDriveState(status_word)];
+  return kStatesStr_[GetDriveState(status_word)];
 }
 ////////////////////////////////////////////////////////////////////////////
 //// Overwritten virtual functions from base class
@@ -161,8 +191,15 @@ void GoldSoloWhistleDrive::ReadInputs()
   drive_state_ = GetDriveState(input_pdos_.status_word);
   if (drive_state_ != GetCurrentState())
   {
+    printf("state changed %d --> %d\n", (int)GetCurrentState(),
+           (int)drive_state_); // debug
     if (drive_state_ == ST_OPERATION_ENABLED)
-      ChangeOpMode(input_pdos_.display_op_mode);
+    {
+      // Get target default
+      GoldSoloWhistleDriveData* data =
+        new GoldSoloWhistleDriveData(input_pdos_.display_op_mode, input_pdos_);
+      InternalEvent(ST_OPERATION_ENABLED, data);
+    }
     else
       InternalEvent(drive_state_);
   }
@@ -302,54 +339,18 @@ void GoldSoloWhistleDrive::ChangeDeltaTorque(const int16_t delta_torque)
 void GoldSoloWhistleDrive::ChangeOpMode(const int8_t target_op_mode)
 {
   PrintCommand("ChangeOpMode");
-
-  GoldSoloWhistleDriveData data(target_op_mode);
   // Set target value to current one
-  switch (target_op_mode)
-  {
-  case CYCLIC_POSITION:
-    data.value = input_pdos_.pos_actual_value;
-    printf("\tTarget operational mode: CYCLIC_POSITION\n");
-    break;
-  case CYCLIC_VELOCITY:
-    data.value = input_pdos_.vel_actual_value;
-    printf("\tTarget operational mode: CYCLIC_VELOCITY\n");
-    break;
-  case CYCLIC_TORQUE:
-    data.value = input_pdos_.torque_actual_value;
-    printf("\tTarget operational mode: CYCLIC_TORQUE\n");
-    break;
-  default:
-    printf("\tTarget operational mode: NO_MODE\n");
-    break;
-  }
+  GoldSoloWhistleDriveData data(target_op_mode, input_pdos_, true);
+  // Apply
   SetChange(data);
 }
 
 void GoldSoloWhistleDrive::SetTargetDefaults()
 {
   PrintCommand("SetTargetDefaults");
-
   // Set target operational mode and value to current ones
-  GoldSoloWhistleDriveData data(input_pdos_.display_op_mode);
-  switch (data.op_mode)
-  {
-  case CYCLIC_POSITION:
-    data.value = input_pdos_.pos_actual_value;
-    printf("\tDefault operational mode: CYCLIC_POSITION @ %d\n", data.value);
-    break;
-  case CYCLIC_VELOCITY:
-    data.value = input_pdos_.vel_actual_value;
-    printf("\tDefault operational mode: CYCLIC_VELOCITY @ %d\n", data.value);
-    break;
-  case CYCLIC_TORQUE:
-    data.value = input_pdos_.torque_actual_value;
-    printf("\tDefault operational mode: CYCLIC_TORQUE @ %d\n", data.value);
-    break;
-  default:
-    printf("\tDefault operational mode: NO_MODE\n");
-    break;
-  }
+  GoldSoloWhistleDriveData data(input_pdos_.display_op_mode, input_pdos_, true);
+  // Apply
   SetChange(data);
 }
 
@@ -377,7 +378,7 @@ void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData& data)
 STATE_DEFINE(GoldSoloWhistleDrive, Start, NoEventData)
 {
   prev_state_ = ST_START;
-  printf("GoldSoloWhistleDrive %u initial state: %s\n", position_, kStatesStr[ST_START]);
+  printf("GoldSoloWhistleDrive %u initial state: %s\n", position_, kStatesStr_[ST_START]);
   // This happens automatically on drive's start up. We simply imitate the behavior here.
   InternalEvent(ST_NOT_READY_TO_SWITCH_ON);
 }
@@ -466,7 +467,7 @@ void GoldSoloWhistleDrive::PrintStateTransition(
   if (current_state == new_state)
     return;
   printf("GoldSoloWhistleDrive %u state transition: %s --> %s\n", position_,
-         kStatesStr[current_state], kStatesStr[new_state]);
+         kStatesStr_[current_state], kStatesStr_[new_state]);
 }
 
 } // end namespace grabec

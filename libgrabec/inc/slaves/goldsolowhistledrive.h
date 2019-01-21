@@ -98,15 +98,23 @@ public:
    * @param[in] _op_mode The desired operation mode of the drive. See
    * GoldSoloWhistleOperationModes for valid accounted entries.
    * @param[in] _value The target set point for the desired operation mode (position,
-   * velocity
-   * or torque).
+   * velocity or torque).
    * @attention Torque setpoint is automaticallly casted to INT16, so values needs to be
    * in range [–32,768, 32,767].
    */
   GoldSoloWhistleDriveData(const int8_t _op_mode, const int32_t _value = 0);
+  /**
+   * @brief Constructor from drive current status (for safe switch).
+   * @param[in] _op_mode The desired operation mode of the drive. See
+   * GoldSoloWhistleOperationModes for valid accounted entries.
+   * @param input_pdos The current set of PDOs, from which to extract the value to be set
+   * according to the desired operation mode.
+   */
+  GoldSoloWhistleDriveData(const int8_t _op_mode, const GSWDriveInPdos& input_pdos,
+                           const bool verbose = false);
 
   int8_t op_mode = NONE; /**< The desired operation mode of the drive. */
-  int32_t value = 0; /**< The target set point for the desired operation mode. */
+  int32_t value = 0;     /**< The target set point for the desired operation mode. */
 };
 
 /**
@@ -376,7 +384,7 @@ private:
   static constexpr uint8_t kOperationOffset = 8;
 
   // ethercat utilities, can be retrieved in the xml config file provided by the vendor
-  static constexpr ec_pdo_entry_info_t kPdoEntries[kDomainEntries] = {
+  static constexpr ec_pdo_entry_info_t kPdoEntries_[kDomainEntries] = {
     {kControlWordIdx, kControlWordSubIdx, 16}, // Start of RxPdo mapping (Outputs)
     {kOpModeIdx, kOpModeSubIdx, 8},
     {kTargetTorqueIdx, kTargetTorqueSubIdx, 16},
@@ -391,20 +399,20 @@ private:
     {kAuxPosActualValueIdx, kAuxPosActualValueSubIdx, 32}};
 
   // ethercat utilities, can be retrieved in the xml config file provided by the vendor
-  static constexpr ec_pdo_info_t kPDOs[2] = {
-    {0x1607, 5, const_cast<ec_pdo_entry_info_t*>(kPdoEntries) + 0}, /* Outputs */
-    {0x1a07, 7, const_cast<ec_pdo_entry_info_t*>(kPdoEntries) + 5}, /* Inputs */
+  static constexpr ec_pdo_info_t kPDOs_[2] = {
+    {0x1607, 5, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 0}, /* Outputs */
+    {0x1a07, 7, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 5}, /* Inputs */
   };
 
-  static constexpr ec_sync_info_t kSyncs[5] = {
+  static constexpr ec_sync_info_t kSyncs_[5] = {
     {0, EC_DIR_OUTPUT, 0, NULL, EC_WD_DISABLE},
     {1, EC_DIR_INPUT, 0, NULL, EC_WD_DISABLE},
-    {2, EC_DIR_OUTPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs) + 0, EC_WD_ENABLE},
-    {3, EC_DIR_INPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs) + 1, EC_WD_DISABLE},
+    {2, EC_DIR_OUTPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs_) + 0, EC_WD_ENABLE},
+    {3, EC_DIR_INPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs_) + 1, EC_WD_DISABLE},
     {0xff, EC_DIR_INVALID, 0, 0x00, EC_WD_DEFAULT}};
 
   // clang-format off
-  static constexpr char* kStatesStr[] = {
+  static constexpr char* kStatesStr_[] = {
     const_cast<char*>("START"),
     const_cast<char*>("NOT_READY_TO_SWITCH_ON"),
     const_cast<char*>("NOT_SWITCH_ON_DISABLED"),
@@ -488,8 +496,6 @@ private:
   void SetChange(const GoldSoloWhistleDriveData& data);
 
   RetVal SdoRequests(ec_slave_config_t* config_ptr) override final;
-  void DoWork() override {}
-  void InitFun() override {}
 
   inline void PrintCommand(const char* cmd) const;
   void PrintStateTransition(const GoldSoloWhistleDriveStates current_state,
