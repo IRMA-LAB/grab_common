@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.h
  * @author Edoardo Idà, Simone Comari
- * @date 17 Gen 2019
+ * @date 22 Gen 2019
  * @brief This file includes an abstract class to setup an ethercat master-slave
  * communication.
  */
@@ -78,7 +78,7 @@ public:
   const pthread_mutex_t& Mutex() const { return mutex_; }
 
 protected:
-  virtual void EcStateChangedCb(const Bitfield8&) const {}
+  virtual void EcStateChangedCb(const Bitfield8&) {}
   virtual void PrintToQConsoleCb(const std::string&) const {}
 
 protected:

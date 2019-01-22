@@ -1,10 +1,9 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 08 Nov 2018
+ * @date 22 Gen 2019
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
- * GRAB
- * ethercat library.
+ * GRAB ethercat library.
  */
 
 #ifndef GRABCOMMON_LIBGRABEC_GOLDSOLOWHISTLEDRIVE_H
@@ -12,10 +11,14 @@
 
 #include <bitset>
 #include <iostream>
-#include "ethercatslave.h"
-#include "types.h"
+
+#include <QObject>
+
 #include "grabcommon.h"
 #include "StateMachine.h"
+
+#include "ethercatslave.h"
+#include "types.h"
 
 namespace grabec
 {
@@ -137,15 +140,18 @@ public:
  * - fast stop during operation
  * - reaction to a specific fault
  */
-class GoldSoloWhistleDrive : public virtual EthercatSlave, public StateMachine
+class GoldSoloWhistleDrive : public QObject,
+                             public virtual EthercatSlave,
+                             public StateMachine
 {
+  Q_OBJECT
+
 public:
   /**
    * @brief Constructor.
    * @param[in] slave_position Slave position in ethercat chain.
    */
-  GoldSoloWhistleDrive(const uint8_t slave_position);
-  ~GoldSoloWhistleDrive() {}
+  GoldSoloWhistleDrive(const uint8_t slave_position, QObject* parent = NULL);
 
   /**
    * @brief Get latest known physical drive state.
@@ -329,6 +335,9 @@ public:
    */
   void WriteOutputs() override final;
 
+signals:
+  void driveFaulted() const;
+
 protected:
   GSWDriveInPdos input_pdos_; /**< input_pdos_ */
 
@@ -411,20 +420,6 @@ private:
     {3, EC_DIR_INPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs_) + 1, EC_WD_DISABLE},
     {0xff, EC_DIR_INVALID, 0, 0x00, EC_WD_DEFAULT}};
 
-  // clang-format off
-  static constexpr char* kStatesStr_[] = {
-    const_cast<char*>("START"),
-    const_cast<char*>("NOT_READY_TO_SWITCH_ON"),
-    const_cast<char*>("NOT_SWITCH_ON_DISABLED"),
-    const_cast<char*>("READY_TO_SWITCH_ON"),
-    const_cast<char*>("SWITCHED_ON"),
-    const_cast<char*>("OPERATION_ENABLED"),
-    const_cast<char*>("QUICK_STOP_ACTIVE"),
-    const_cast<char*>("FAULT_REACTION_ACTIVE"),
-    const_cast<char*>("FAULT"),
-    const_cast<char*>("MAX_STATE")};
-  // clang-format on
-
   // Useful ethercat struct
   struct OffsetOut
   {
@@ -464,8 +459,32 @@ private:
              FAULT = 7)
   // clang-format on
 
-  GoldSoloWhistleDriveStates prev_state_;
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries]; // ethercat utilities
+
+  void SetChange(const GoldSoloWhistleDriveData* data);
+
+  RetVal SdoRequests(ec_slave_config_t* config_ptr) override final;
+
+  inline void PrintCommand(const char* cmd) const;
+
+private:
+  //--------- State machine --------------------------------------------------//
+
+  // clang-format off
+  static constexpr char* kStatesStr_[] = {
+    const_cast<char*>("START"),
+    const_cast<char*>("NOT_READY_TO_SWITCH_ON"),
+    const_cast<char*>("SWITCH_ON_DISABLED"),
+    const_cast<char*>("READY_TO_SWITCH_ON"),
+    const_cast<char*>("SWITCHED_ON"),
+    const_cast<char*>("OPERATION_ENABLED"),
+    const_cast<char*>("QUICK_STOP_ACTIVE"),
+    const_cast<char*>("FAULT_REACTION_ACTIVE"),
+    const_cast<char*>("FAULT"),
+    const_cast<char*>("MAX_STATE")};
+  // clang-format on
+
+  GoldSoloWhistleDriveStates prev_state_;
 
   // Define the state machine state functions with event data type
   STATE_DECLARE(GoldSoloWhistleDrive, Start, NoEventData)
@@ -493,11 +512,6 @@ private:
   // clang-format on
   END_STATE_MAP
 
-  void SetChange(const GoldSoloWhistleDriveData& data);
-
-  RetVal SdoRequests(ec_slave_config_t* config_ptr) override final;
-
-  inline void PrintCommand(const char* cmd) const;
   void PrintStateTransition(const GoldSoloWhistleDriveStates current_state,
                             const GoldSoloWhistleDriveStates new_state) const;
 };
