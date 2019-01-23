@@ -151,7 +151,7 @@ public:
    * @brief Constructor.
    * @param[in] slave_position Slave position in ethercat chain.
    */
-  GoldSoloWhistleDrive(const uint8_t slave_position, QObject* parent = NULL);
+  GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position, QObject* parent = NULL);
 
   /**
    * @brief Get latest known physical drive state.
@@ -339,6 +339,7 @@ signals:
   void driveFaulted() const;
 
 protected:
+  id_t id_;
   GSWDriveInPdos input_pdos_; /**< input_pdos_ */
 
   /**
