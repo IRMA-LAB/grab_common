@@ -12,7 +12,9 @@
 #include <string>
 #include <stdio.h>
 #include <stdarg.h>
+
 #include "grabcommon.h"
+
 #include "threads.h"
 
 namespace grabec
@@ -67,6 +69,12 @@ enum RetVal: uint8_t
  */
 void DispRetVal(const int err, const char* msg, ...);
 
+/**
+ * @brief GetRetValStr
+ * @param err
+ * @return
+ */
+std::string GetRetValStr(const int err);
 
 } // end namespace grabec
 

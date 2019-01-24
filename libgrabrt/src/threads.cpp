@@ -1,7 +1,7 @@
 /**
  * @file threads.cpp
  * @author Simone Comari
- * @date 14 Gen 2019
+ * @date 24 Gen 2019
  * @brief File containing definitions of functions and class declared in threads.h.
  */
 
@@ -165,9 +165,9 @@ void DisplayThreadSchedAttr(const pthread_t thread_id /*= pthread_self()*/)
   DisplaySchedAttr(policy, param);
 }
 
-/////////////////////////////////////////////////
-/// Thread Class Methods
-/////////////////////////////////////////////////
+//------------------------------------------------------------------------//
+//  Thread CLASS
+//------------------------------------------------------------------------//
 
 Thread::Thread(const cpu_set_t& cpu_set, const std::string& thread_name /*= "Thread"*/)
 {
@@ -199,6 +199,8 @@ Thread::~Thread()
   pthread_attr_destroy(&attr_);
 }
 
+//--------- Public functions ---------------------------------------------------------//
+
 void Thread::SetAttr(const pthread_attr_t& attr)
 {
   int ret;
@@ -214,8 +216,8 @@ void Thread::SetAttr(const pthread_attr_t& attr)
   if (IsActive())
     printf(
       ANSI_COLOR_YELLOW
-      "WARNING: Thread is active. New attributes set but not effective!" ANSI_COLOR_RESET
-      "\n");
+      "[%s] WARNING: Thread is active. New attributes set but not effective!" ANSI_COLOR_RESET
+      "\n", name_.c_str());
 }
 
 void Thread::SetCPUs(const cpu_set_t& cpu_set)
@@ -265,8 +267,8 @@ void Thread::SetSchedAttr(const int policy, const int priority /*= -1*/)
     if (policy == SCHED_OTHER)
     {
       printf(ANSI_COLOR_YELLOW
-             "WARNING: Priority for SCHED_OTHER policy must be 0. Ignoring invalid "
-             "user-set priority: %d." ANSI_COLOR_RESET "\n",
+             "[%s] WARNING: Priority for SCHED_OTHER policy must be 0. Ignoring invalid "
+             "user-set priority: %d." ANSI_COLOR_RESET "\n", name_.c_str(),
              priority);
       sched_param_.sched_priority = 0;
     }
@@ -287,8 +289,8 @@ void Thread::SetInitFunc(void (*fun_ptr)(void*), void* args)
   if (IsRunning())
     printf(
       ANSI_COLOR_YELLOW
-      "WARNING: Thread is running. New InitFunc set but not effective!" ANSI_COLOR_RESET
-      "\n");
+      "[%s] WARNING: Thread is running. New InitFunc set but not effective!" ANSI_COLOR_RESET
+      "\n", name_.c_str());
 
   init_fun_ptr_ = fun_ptr;
   init_fun_args_ptr_ = args;
@@ -299,8 +301,8 @@ void Thread::SetLoopFunc(void (*fun_ptr)(void*), void* args)
   if (IsRunning())
   {
     printf(ANSI_COLOR_YELLOW
-           "WARNING: Thread is running. Cannot set new LoopFunc now!" ANSI_COLOR_RESET
-           "\n");
+           "[%s] WARNING: Thread is running. Cannot set new LoopFunc now!" ANSI_COLOR_RESET
+           "\n", name_.c_str());
   }
   else
   {
@@ -315,11 +317,24 @@ void Thread::SetEndFunc(void (*fun_ptr)(void*), void* args)
   {
     printf(
       ANSI_COLOR_YELLOW
-      "WARNING: Thread is closed. New EndFunc set but not effective!" ANSI_COLOR_RESET
-      "\n");
+      "[%s] WARNING: Thread is closed. New EndFunc set but not effective!" ANSI_COLOR_RESET
+      "\n", name_.c_str());
   }
   end_fun_ptr_ = fun_ptr;
   end_fun_args_ptr_ = args;
+}
+
+void Thread::SetEmergencyExitFunc(void (*fun_ptr)(void*), void* args)
+{
+  if (IsActive())
+  {
+    printf(
+      ANSI_COLOR_YELLOW
+      "[%s] WARNING: Thread is closed. New EndFunc set but not effective!" ANSI_COLOR_RESET
+      "\n", name_.c_str());
+  }
+  emergency_exit_fun_ptr_ = fun_ptr;
+  emergency_exit_fun_args_ptr_ = args;
 }
 
 long Thread::GetTID() const { return IsRunning() ? tid_ : -1; }
@@ -374,9 +389,19 @@ void Thread::Stop()
   if (IsActive())
   {
     Pause();
-    active_ = false;
+    stop_cmd_recv_ = true;
     pthread_join(thread_id_, NULL);
-    printf("Thread %ld STOP\n", tid_);
+    active_ = false;
+    stop_cmd_recv_ = false;
+    printf("[%s] Thread %ld STOP\n", name_.c_str(), tid_);
+    return;
+  }
+  if (rt_deadline_missed_)
+  {
+    pthread_join(thread_id_, NULL);
+    rt_deadline_missed_ = false;
+    printf("[%s] Thread %ld STOP\n", name_.c_str(), tid_);
+    return;
   }
 }
 
@@ -433,6 +458,17 @@ void Thread::DispAttr() const
   printf("%sStack size          = 0x%zx bytes\n", prefix, v);
 }
 
+[[noreturn]] void Thread::HandleErrorEnWrapper(const int en, const char* msg) const
+{
+  std::string full_msg = "[";
+  full_msg.append(name_);
+  full_msg.append("] ");
+  full_msg.append(msg);
+  HandleErrorEn(en, full_msg.c_str());
+}
+
+//--------- Private functions --------------------------------------------------------//
+
 void Thread::InitDefault()
 {
   // Configure memory so to be pagefault free.
@@ -468,7 +504,7 @@ void Thread::TargetFun()
   pthread_mutex_unlock(&mutex_);
   ThreadClock clock(cycle_time_nsec_);
   bool ignore_deadline = GetPolicy() == SCHED_OTHER;
-  bool time_expired = false;
+  active_ = true;
 
   if (init_fun_ptr_ != NULL)
   {
@@ -476,14 +512,14 @@ void Thread::TargetFun()
     pthread_mutex_lock(&mutex_);
     init_fun_ptr_(init_fun_args_ptr_);
     pthread_mutex_unlock(&mutex_);
-    time_expired = !(clock.WaitUntilNext() | ignore_deadline);
+    rt_deadline_missed_ = !(clock.WaitUntilNext() || ignore_deadline);
   }
 
   struct timespec max_wait_time;
-  while (active_ & !time_expired)
+  while (!(stop_cmd_recv_ || rt_deadline_missed_))
   {
     clock.Reset();
-    while (run_ & !time_expired)
+    while (run_ & !rt_deadline_missed_)
     {
       max_wait_time = clock.GetNextTime();
       if (pthread_mutex_timedlock(&mutex_, &max_wait_time) == 0)
@@ -491,13 +527,21 @@ void Thread::TargetFun()
         loop_fun_ptr_(loop_fun_args_ptr_);
         pthread_mutex_unlock(&mutex_);
       }
-      time_expired = !(clock.WaitUntilNext() | ignore_deadline);
+      rt_deadline_missed_ = !(clock.WaitUntilNext() || ignore_deadline);
     }
   }
 
-  if (time_expired)
+  if (rt_deadline_missed_)
+  {
     std::cerr << "[" << name_ << "] RT deadline missed. Thread will close automatically."
               << std::endl;
+    pthread_mutex_lock(&mutex_);
+    emergency_exit_fun_ptr_(emergency_exit_fun_args_ptr_);
+    pthread_mutex_unlock(&mutex_);
+    run_ = false;
+    active_ = false;
+    return;
+  }
 
   if (end_fun_ptr_ != NULL)
   {
@@ -505,15 +549,6 @@ void Thread::TargetFun()
     end_fun_ptr_(end_fun_args_ptr_);
     pthread_mutex_unlock(&mutex_);
   }
-}
-
-[[noreturn]] void Thread::HandleErrorEnWrapper(const int en, const char* msg) const
-{
-  std::string full_msg = "[";
-  full_msg.append(name_);
-  full_msg.append("] ");
-  full_msg.append(msg);
-  HandleErrorEn(en, full_msg.c_str());
 }
 
 } // end namespace grabrt

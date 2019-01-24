@@ -1,7 +1,7 @@
 /**
  * @file threads.h
  * @author Simone Comari
- * @date 14 Gen 2019
+ * @date 24 Gen 2019
  * @brief This file collects utilities to create a new thread in a user-friendly way,
  * hiding most
  * of the complexity linked to multi-threading. It also allows the setup of a real-time
@@ -328,7 +328,7 @@ public:
    * @param args Pointer to optional arguments to the initial function. Set it to @c NULL
    *if
    * not needed.
-   * @see SetLoopFunc() SetEndFunc()
+   * @see SetLoopFunc() SetEndFunc() SetEmergencyExitFunc()
    */
   void SetInitFunc(void (*fun_ptr)(void*), void* args);
   /**
@@ -340,7 +340,7 @@ public:
    * @param fun_ptr Pointer to function to be looped forever.
    * @param args Pointer to optional arguments to the loop function. Set it to @c NULL if
    * not needed.
-   * @see SetInitFunc() SetEndFunc()
+   * @see SetInitFunc() SetEndFunc() SetEmergencyExitFunc()
    */
   void SetLoopFunc(void (*fun_ptr)(void*), void* args);
   /**
@@ -352,9 +352,20 @@ public:
    * @param fun_ptr Pointer to function to be called before thread is closed.
    * @param args Pointer to optional arguments to the end function. Set it to @c NULL if
    * not needed.
-   * @see SetLoopFunc() SetInitFunc()
+   * @see SetLoopFunc() SetInitFunc() SetEmergencyExitFunc()
    */
   void SetEndFunc(void (*fun_ptr)(void*), void* args);
+  /**
+   * @brief Set thread _emergency exit_ function.
+   *
+   * The _emergency exit_ function is called once after the end of main loop, iff the real time
+   * deadline is missed and right before thread is closed.
+   * @param fun_ptr Pointer to function to be called before thread is closed.
+   * @param args Pointer to optional arguments to the emergency exit function. Set it to @c NULL if
+   * not needed.
+   * @see SetLoopFunc() SetInitFunc() SetEndFunc()
+   */
+  void SetEmergencyExitFunc(void (*fun_ptr)(void*), void* args);
 
   /**
    * @brief Get thread cycle time in nanoseconds.
@@ -538,12 +549,16 @@ private:
   void (*init_fun_ptr_)(void*) = NULL;
   void (*loop_fun_ptr_)(void*) = NULL;
   void (*end_fun_ptr_)(void*) = NULL;
+  void (*emergency_exit_fun_ptr_)(void*) = NULL;
   void* init_fun_args_ptr_ = NULL;
   void* loop_fun_args_ptr_ = NULL;
   void* end_fun_args_ptr_ = NULL;
+  void* emergency_exit_fun_args_ptr_ = NULL;
 
   bool run_ = false;
   bool active_ = false;
+  bool stop_cmd_recv_ = false;
+  bool rt_deadline_missed_ = false;
 
   /**
    * @brief Initializes thread with default attributes and CPU set.

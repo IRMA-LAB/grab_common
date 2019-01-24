@@ -14,7 +14,14 @@ void DispRetVal(const int err, const char * msg, ...)
 {
   va_list args;
   va_start(args, msg);
-  std::string description, full_msg;
+  std::string full_msg = msg + GetRetValStr(err);
+  PrintColor(err ? 'r' : 'w', full_msg.c_str(), args);
+  va_end(args);
+}
+
+std::string GetRetValStr(const int err)
+{
+  std::string description;
   switch (err)
   {
   case OK:
@@ -39,12 +46,7 @@ void DispRetVal(const int err, const char * msg, ...)
     description = "FAILED";
     break;
   }
-  if  (!err)
-    full_msg = msg + description + "\n";
-  else
-    full_msg = ANSI_COLOR_RED + (msg + description + ANSI_COLOR_RESET + "\n");
-  vprintf(full_msg.c_str(), args);
-  va_end(args);
+  return description;
 }
 
 } // end namespace grabec

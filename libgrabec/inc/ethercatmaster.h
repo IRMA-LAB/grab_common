@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.h
  * @author Edoardo Idà, Simone Comari
- * @date 22 Gen 2019
+ * @date 24 Gen 2019
  * @brief This file includes an abstract class to setup an ethercat master-slave
  * communication.
  */
@@ -78,8 +78,11 @@ public:
   const pthread_mutex_t& Mutex() const { return mutex_; }
 
 protected:
-  virtual void EcStateChangedCb(const Bitfield8&) {}
-  virtual void PrintToQConsoleCb(const std::string&) const {}
+  //------- Workaround to generate pseudo-qt-signals ------------------//
+
+  virtual void EcStateChangedCb(const Bitfield8& /*new_state*/) {}
+  virtual void EcPrintCb(const std::string& msg, const char color = 'w') const;
+  virtual void EcRtThreadStatusChanged(const bool /*active*/) const {}
 
 protected:
   /**
@@ -132,25 +135,36 @@ protected:
   uint8_t num_domain_elements_ = 0;         /**< Number of elements in ethercat domain. */
 
   /**
-   * @brief LoopFunction
+   * @brief EcStartUpFun
    */
-  virtual void LoopFunction() = 0;
+  virtual void EcStartUpFun() {} // called before the cycle begins
+
   /**
-   * @brief StartUpFunction
+   * @brief EcWorkFun
    */
-  virtual void StartUpFunction() = 0; // called before the cycle begins
+  virtual void EcWorkFun() = 0; // called at every cycle
+
+  /**
+   * @brief EcEmergencyFun
+   */
+  virtual void EcEmergencyFun() {} // called at emergency exit (on rt deadline missed)
 
 private:
+  //------- Thread related --------------------------------//
+
   grabrt::Thread thread_rt_;
 
-  uint8_t InitProtocol();
-
   static void StartUpFunWrapper(void* obj);
-  static void ThreadFunWrapper(void* obj);
-  static void ExitFunWrapper(void* obj);
+  static void LoopFunWrapper(void* obj);
+  static void EndFunWrapper(void* obj);
+  static void EmergencyExitFunWrapper(void* obj);
 
-  void ThreadFunction();
-  void ExitFunction();
+  void LoopFunction();
+  void EndFunction();
+  void EmergencyExitFunction();
+
+private:
+  uint8_t InitProtocol();
 
   void CheckDomainState();
   void CheckMasterState();
@@ -161,7 +175,7 @@ private:
 
   void GetDomainElements(std::vector<ec_pdo_entry_reg_t>& regs) const;
 
-  void PrintAlState(const uint al_state) const;
+  std::string GetAlStateStr(const uint al_state) const;
 };
 
 } // end namespace grabec

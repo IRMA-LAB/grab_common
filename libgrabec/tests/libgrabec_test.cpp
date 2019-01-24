@@ -18,8 +18,8 @@ private:
   grabec::TestEasyCAT1Slave* easycat1_ptr_;
   grabec::TestEasyCAT2Slave* easycat2_ptr_;
 
-  void StartUpFunction() override final {}
-  void LoopFunction() override final;
+  void EcStartUpFun() override final {}
+  void EcWorkFun() override final;
 };
 
 MinimalMaster::MinimalMaster()
@@ -44,7 +44,7 @@ MinimalMaster::~MinimalMaster()
   delete easycat2_ptr_;
 }
 
-void MinimalMaster::LoopFunction()
+void MinimalMaster::EcWorkFun()
 {
   static uint16_t analog = 0;
 
