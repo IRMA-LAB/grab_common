@@ -20,6 +20,7 @@ HEADERS += \
     $$PWD/inc/slaves/goldsolowhistledrive.h
 
 SOURCES += \
+    $$PWD/../grabcommon.cpp \
     $$PWD/src/ethercatmaster.cpp \
     $$PWD/src/ethercatslave.cpp \
     $$PWD/src/types.cpp \

@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <stdarg.h>
 
 #include "bitfield.h"
 
@@ -79,12 +80,11 @@
  * @note For further details about error number convention, click
  * <a href="http://man7.org/linux/man-pages/man3/errno.3.html">here</a>.
  */
-[[noreturn]] inline void HandleErrorEn(const int en, const char* msg)
-{
-  errno = en;
-  perror(msg);
-  exit(EXIT_FAILURE);
-}
+[[noreturn]] void HandleErrorEn(const int en, const char* msg);
+
+void PrintColor(const char color, const char* text, ...);
+void PrintColor(const char color, const char* text, va_list args);
+
 
 /*---------------------- Generic classes ------------------------*/
 

@@ -10,6 +10,7 @@ HEADERS += \
     $$PWD/inc/slaves/easycat/TestEasyCAT2_slave.h
 
 SOURCES += \
+    $$PWD/../grabcommon.cpp \
     $$PWD/src/ethercatmaster.cpp \
     $$PWD/src/ethercatslave.cpp \
     $$PWD/src/types.cpp \
@@ -20,7 +21,7 @@ SOURCES += \
 
 INCLUDEPATH += \
       $$PWD/inc \
-      ../
+      $$PWD/../
 
 # Qt unit-test config
 QT       += testlib
