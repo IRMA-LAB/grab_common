@@ -33,6 +33,7 @@ void EthercatMaster::Start()
   thread_rt_.SetInitFunc(&StartUpFunWrapper, this);
   thread_rt_.SetLoopFunc(&LoopFunWrapper, this);
   thread_rt_.SetEndFunc(&EndFunWrapper, this);
+  thread_rt_.SetEmergencyExitFunc(&EmergencyExitFunWrapper, this);
   // Setup EtherCAT communication
   EcPrintCb("Initializing EtherCAT network...");
   uint8_t ret = InitProtocol();
@@ -50,7 +51,7 @@ void EthercatMaster::Start()
   grabrt::SetThreadCPUs(grabrt::BuildCPUSet(threads_params_.gui_cpu_id));
   grabrt::SetThreadSchedAttr(SCHED_RR, threads_params_.gui_priority);
   // Start the new rt-thread
-  if (~thread_rt_.GetReady(threads_params_.cycle_cime_nsec))
+  if (~thread_rt_.GetReady(threads_params_.cycle_time_nsec))
   {
     THREAD_RUN(thread_rt_);
   }
@@ -158,7 +159,7 @@ uint8_t EthercatMaster::InitProtocol()
   }
   EcPrintCb("...Requesting master: " + GetRetValStr(OK));
 
-  // Creating Domain Process associated with master 0
+  // Creating domain process associated with master 0
   if (!(domain_ptr_ = ecrt_master_create_domain(master_ptr_)))
   {
     EcPrintCb("...Creating domain: " + GetRetValStr(EINIT), 'r');
@@ -166,7 +167,7 @@ uint8_t EthercatMaster::InitProtocol()
   }
   EcPrintCb("...Creating domain: " + GetRetValStr(OK));
 
-  // Configuring Slaves
+  // Configuring slaves
   RetVal ret;
   for (uint8_t i = 0; i < slaves_ptrs_.size(); i++)
   {
@@ -179,14 +180,14 @@ uint8_t EthercatMaster::InitProtocol()
 
   // Configuring domain
   GetDomainElements(domain_registers);
-  if (ecrt_domain_reg_pdo_entry_list(domain_ptr_, domain_registers.data()))
+  if (ecrt_domain_reg_pdo_entry_list(domain_ptr_, domain_registers.data()) != 0)
   {
     EcPrintCb("...Registering PDOs' entries: " + GetRetValStr(EREG), 'r');
     return EREG;
   }
   EcPrintCb("...Registering PDOs' entries: " + GetRetValStr(OK));
 
-  if (ecrt_master_activate(master_ptr_))
+  if (ecrt_master_activate(master_ptr_) < 0)
   {
     EcPrintCb("...Activating master: " + GetRetValStr(EACTIVE), 'r');
     return EACTIVE;
@@ -213,20 +214,25 @@ void EthercatMaster::CheckConfigState()
   ecrt_slave_config_state(slave_config_ptr_, &slave_config_state);
   if (slave_config_state.al_state != slave_config_state_.al_state)
   {
-    EcPrintCb("Slaves application-layer state: " +
-              GetAlStateStr(slave_config_state.al_state));
     check_state_flags_.Set(CONFIG, slave_config_state.al_state == EC_AL_STATE_OP);
     EcStateChangedCb(check_state_flags_);
+    EcPrintCb("Slaves application-layer state: " +
+                GetAlStateStr(slave_config_state.al_state),
+              check_state_flags_.CheckBit(CONFIG) ? 'w' : 'y');
   }
   if (slave_config_state.online != slave_config_state_.online)
   {
-    EcPrintCb(std::string("Slaves status: ") +
-              (slave_config_state.online ? "ONLINE" : "OFFLINE"));
+    if (slave_config_state.online)
+      EcPrintCb(std::string("Slaves status: ONLINE"));
+    else
+      EcPrintCb(std::string("Slaves status: OFFLINE"), 'y');
   }
   if (slave_config_state.operational != slave_config_state_.operational)
   {
-    EcPrintCb(std::string("Slaves state: ") +
-              (slave_config_state.operational ? "OPERATIONAL" : "NOT OPERATIONAL"));
+    if (slave_config_state.operational)
+      EcPrintCb(std::string("Slaves state: OPERATIONAL"));
+    else
+      EcPrintCb(std::string("Slaves state: NOT OPERATIONAL"), 'y');
   }
   slave_config_state_ = slave_config_state; // update
 }
@@ -237,17 +243,23 @@ void EthercatMaster::CheckMasterState()
   ecrt_master_state(master_ptr_, &master_state);
   if (master_state.slaves_responding != master_state_.slaves_responding)
   {
-    EcPrintCb(std::to_string(master_state.slaves_responding) + "slave(s) on the bus");
+    EcPrintCb(std::to_string(master_state.slaves_responding) + "/" +
+                std::to_string(slaves_ptrs_.size()) + " slave(s) on the bus",
+              master_state.slaves_responding < slaves_ptrs_.size() ? 'y' : 'w');
   }
   if (master_state.al_states != master_state_.al_states)
   {
-    EcPrintCb("Master state: " + GetAlStateStr(master_state.al_states));
     check_state_flags_.Set(MASTER, master_state.al_states == EC_AL_STATE_OP);
     EcStateChangedCb(check_state_flags_);
+    EcPrintCb("Master state: " + GetAlStateStr(master_state.al_states),
+              check_state_flags_.CheckBit(MASTER) ? 'w' : 'y');
   }
   if (master_state.link_up != master_state_.link_up)
   {
-    EcPrintCb(std::string("Master link is ") + (master_state.link_up ? "UP" : "DOWN"));
+    if (master_state.link_up)
+      EcPrintCb(std::string("Master link is UP"));
+    else
+      EcPrintCb(std::string("Master link is DOWN"), 'y');
   }
   master_state_ = master_state;
 }
@@ -269,9 +281,10 @@ void EthercatMaster::CheckDomainState()
   }
   if (domain_state.wc_state != domain_state_.wc_state)
   {
-    EcPrintCb("Domain State: " + std::string(WcStateStr[domain_state.wc_state]));
     check_state_flags_.Set(EC_DOMAIN, domain_state.wc_state == EC_WC_COMPLETE);
     EcStateChangedCb(check_state_flags_);
+    EcPrintCb("Domain State: " + std::string(WcStateStr[domain_state.wc_state]),
+              check_state_flags_.CheckBit(EC_DOMAIN) ? 'w' : 'y');
   }
   domain_state_ = domain_state;
 }
@@ -286,23 +299,37 @@ bool EthercatMaster::AllSlavesReadyToShutDown() const
 
 void EthercatMaster::ReleaseMaster()
 {
+  static const double kMaxWaitTimeSec = 3.0;
+
   grabrt::ThreadClock clock(thread_rt_.GetCycleTimeNsec());
   ecrt_master_deactivate(master_ptr_);
+  struct timespec t0 = clock.GetCurrentTime();
   while (1)
   {
     CheckMasterState();
     // Check if master is still up
     if (!master_state_.link_up)
+    {
+      EcPrintCb("Master is DOWN. Skipping deactivation step", 'y');
       break;
+    }
     // Check if master has been deactivated
     if (master_state_.al_states == EC_AL_STATE_PREOP)
+    {
+      EcPrintCb("Master DEACTIVATED");
       break;
+    }
+    // Break if it takes too long (something is wrong)
+    if (clock.Elapsed(t0) > kMaxWaitTimeSec)
+    {
+      EcPrintCb("Master is taking too long to deactivate. Skipping this step", 'y');
+      break;
+    }
 
     pthread_mutex_unlock(&mutex_);
     clock.WaitUntilNext();
     pthread_mutex_lock(&mutex_);
   }
-  EcPrintCb("Master DEACTIVATED");
   ecrt_release_master(master_ptr_);
   EcPrintCb("Master RELEASED");
 }

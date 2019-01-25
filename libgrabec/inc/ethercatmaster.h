@@ -76,6 +76,11 @@ public:
    * @return
    */
   const pthread_mutex_t& Mutex() const { return mutex_; }
+  /**
+   * @brief GetRtCycleTimeNsec
+   * @return
+   */
+  uint32_t GetRtCycleTimeNsec() const { return threads_params_.cycle_time_nsec; }
 
 protected:
   //------- Workaround to generate pseudo-qt-signals ------------------//

@@ -106,7 +106,6 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
 
   drive_state_ = ST_START;
   prev_state_ = static_cast<GoldSoloWhistleDriveStates>(GetCurrentState());
-  ExternalEvent(drive_state_);
 }
 
 GoldSoloWhistleDriveStates
@@ -145,6 +144,7 @@ std::string GoldSoloWhistleDrive::GetDriveStateStr(const Bitfield16& status_word
 {
   return kStatesStr_[GetDriveState(status_word)];
 }
+
 ////////////////////////////////////////////////////////////////////////////
 //// Overwritten virtual functions from base class
 ////////////////////////////////////////////////////////////////////////////
@@ -156,20 +156,41 @@ RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
   if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(config_ptr, kOpModeIdx,
                                                        kOpModeSubIdx, CYCLIC_POSITION)))
   {
-    std::cout << "Failed to create SDO request." << std::endl;
+    EcPrintCb(
+      QString("Drive %1 failed to create OpMode SDO request").arg(id_).toStdString(),
+      'r');
     return ECONFIG;
   }
   ecrt_sdo_request_timeout(sdo_ptr, 500);
-  ecrt_slave_config_sdo8(config_ptr, kOpModeIdx, kOpModeSubIdx, CYCLIC_POSITION);
+  if (ecrt_slave_config_sdo8(config_ptr, kOpModeIdx, kOpModeSubIdx, CYCLIC_POSITION) != 0)
+  {
+    EcPrintCb(QString("Drive %1 failed to add a config value to OpMode SDO")
+                .arg(id_)
+                .toStdString(),
+              'r');
+    return ECONFIG;
+  }
+
   if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(
           config_ptr, kHomingMethodIdx, kHomingMethodSubIdx, kHomingOnPosMethod)))
   {
-    std::cout << "Failed to create SDO request." << std::endl;
+    EcPrintCb(QString("Drive %1 failed to create HomingMethod SDO request")
+                .arg(id_)
+                .toStdString(),
+              'r');
     return ECONFIG;
   }
   ecrt_sdo_request_timeout(sdo_ptr, 500);
-  ecrt_slave_config_sdo8(config_ptr, kHomingMethodIdx, kHomingMethodSubIdx,
-                         kHomingOnPosMethod);
+  if (ecrt_slave_config_sdo8(config_ptr, kHomingMethodIdx, kHomingMethodSubIdx,
+                             kHomingOnPosMethod) != 0)
+  {
+    EcPrintCb(QString("Drive %1 failed to add a config value to HomingMethod SDO")
+                .arg(id_)
+                .toStdString(),
+              'r');
+    return ECONFIG;
+  }
+
   return OK;
 }
 
@@ -217,6 +238,16 @@ void GoldSoloWhistleDrive::WriteOutputs()
     EC_WRITE_S16(domain_data_ptr_ + offset_out_.target_torque,
                  output_pdos_.target_torque);
   }
+}
+
+void GoldSoloWhistleDrive::EcPrintCb(const std::string& msg,
+                                     const char color /* = 'w' */) const
+{
+  EthercatSlave::EcPrintCb(msg, color);
+  if (color == 'r')
+    emit printMessage(msg.c_str());
+  else
+    emit logMessage(msg.c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -300,8 +331,8 @@ void GoldSoloWhistleDrive::ChangePosition(const int32_t target_position)
     return;
   prev_target = target_position;
 
-//  PrintCommand("ChangePosition");
-//  printf("\tTarget position: %d\n", target_position);
+  //  PrintCommand("ChangePosition");
+  //  printf("\tTarget position: %d\n", target_position);
 
   GoldSoloWhistleDriveData* data =
     new GoldSoloWhistleDriveData(CYCLIC_POSITION, target_position);
@@ -321,8 +352,8 @@ void GoldSoloWhistleDrive::ChangeVelocity(const int32_t target_velocity)
     return;
   prev_target = target_velocity;
 
-//  PrintCommand("ChangeVelocity");
-//  printf("\tTarget velocity: %d\n", target_velocity);
+  //  PrintCommand("ChangeVelocity");
+  //  printf("\tTarget velocity: %d\n", target_velocity);
 
   GoldSoloWhistleDriveData* data =
     new GoldSoloWhistleDriveData(CYCLIC_VELOCITY, target_velocity);
@@ -342,8 +373,8 @@ void GoldSoloWhistleDrive::ChangeTorque(const int16_t target_torque)
     return;
   prev_target = target_torque;
 
-//  PrintCommand("ChangeTorque");
-//  printf("\tTarget torque: %d\n", target_torque);
+  //  PrintCommand("ChangeTorque");
+  //  printf("\tTarget torque: %d\n", target_torque);
 
   GoldSoloWhistleDriveData* data =
     new GoldSoloWhistleDriveData(CYCLIC_TORQUE, target_torque);
@@ -398,7 +429,10 @@ void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData* data)
 STATE_DEFINE(GoldSoloWhistleDrive, Start, NoEventData)
 {
   prev_state_ = ST_START;
-  printf("GoldSoloWhistleDrive %u initial state: %s\n", id_, kStatesStr_[ST_START]);
+  EcPrintCb(QString("Drive %1 initial state: %2")
+              .arg(id_)
+              .arg(kStatesStr_[ST_START])
+              .toStdString());
   // This happens automatically on drive's start up. We simply imitate the behavior here.
   InternalEvent(ST_NOT_READY_TO_SWITCH_ON);
 }
@@ -479,7 +513,7 @@ STATE_DEFINE(GoldSoloWhistleDrive, Fault, NoEventData)
 
 inline void GoldSoloWhistleDrive::PrintCommand(const char* cmd) const
 {
-  printf("GoldSoloWhistleDrive %u received command: %s\n", id_, cmd);
+  EcPrintCb(QString("Drive %1 received command: %2").arg(id_).arg(cmd).toStdString());
 }
 
 void GoldSoloWhistleDrive::PrintStateTransition(
@@ -488,11 +522,10 @@ void GoldSoloWhistleDrive::PrintStateTransition(
 {
   if (current_state == new_state)
     return;
-  //  QString msg = QString("GoldSoloWhistleDrive %1 state transition: %2 --> %3")
-  //                  .arg(position_)
-  //                  .arg(kStatesStr_[current_state], kStatesStr_[new_state]);
-  printf("GoldSoloWhistleDrive %u state transition: %s --> %s\n", id_,
-         kStatesStr_[current_state], kStatesStr_[new_state]);
+  EcPrintCb(QString("Drive %1 state transition: %2 --> %3")
+              .arg(id_)
+              .arg(kStatesStr_[current_state], kStatesStr_[new_state])
+              .toStdString());
 }
 
 } // end namespace grabec

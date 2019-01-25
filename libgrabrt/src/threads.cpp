@@ -533,8 +533,7 @@ void Thread::TargetFun()
 
   if (rt_deadline_missed_)
   {
-    std::cerr << "[" << name_ << "] RT deadline missed. Thread will close automatically."
-              << std::endl;
+    PrintColor('r', "[%s] RT deadline missed. Thread will close automatically.", name_.c_str());
     pthread_mutex_lock(&mutex_);
     emergency_exit_fun_ptr_(emergency_exit_fun_args_ptr_);
     pthread_mutex_unlock(&mutex_);

@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 22 Gen 2019
+ * @date 25 Gen 2019
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -151,7 +151,8 @@ public:
    * @brief Constructor.
    * @param[in] slave_position Slave position in ethercat chain.
    */
-  GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position, QObject* parent = NULL);
+  GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position,
+                       QObject* parent = NULL);
 
   /**
    * @brief Get latest known physical drive state.
@@ -266,6 +267,7 @@ public:
    * - FAULT --> SWITCH ON DISABLED
    */
   void FaultReset();
+
   //////////////////////////////////////////////////////////////////////////////////////////
   //// Additional external events taken by this state machine
   ///  when it's operational
@@ -337,6 +339,8 @@ public:
 
 signals:
   void driveFaulted() const;
+  void logMessage(const QString&) const;
+  void printMessage(const QString&) const;
 
 protected:
   id_t id_;
@@ -355,6 +359,11 @@ protected:
   } output_pdos_;            /**< output_pdos_ */
 
   GoldSoloWhistleDriveStates drive_state_; /**< physical drive state */
+
+  /**
+   * @brief InitFun
+   */
+  void InitFun() override { ExternalEvent(ST_START); }
 
 private:
   static constexpr uint8_t kDomainInputs = 7;
@@ -467,6 +476,8 @@ private:
   RetVal SdoRequests(ec_slave_config_t* config_ptr) override final;
 
   inline void PrintCommand(const char* cmd) const;
+
+  void EcPrintCb(const std::string& msg, const char color = 'w') const override;
 
 private:
   //--------- State machine --------------------------------------------------//

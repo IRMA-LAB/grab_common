@@ -109,6 +109,12 @@ protected:
    * @brief InitFun
    */
   virtual void InitFun() {}
+  /**
+   * @brief EcPrintCb
+   * @param msg
+   * @param color
+   */
+  virtual void EcPrintCb(const std::string& msg, const char color = 'w') const;
 
 private:
   void SetDomainDataPtr(uint8_t* domain_data_ptr);

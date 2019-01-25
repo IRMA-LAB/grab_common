@@ -1,7 +1,7 @@
 /**
  * @file clocks.cpp
  * @author Simone Comari
- * @date 28 Nov 2018
+ * @date 25 Gen 2019
  * @brief File containing definitions of functions and class declared in clocks.h.
  */
 
@@ -62,12 +62,12 @@ void Clock::Reset()
   clock_gettime(CLOCK_MONOTONIC, &time_);
 }
 
-double Clock::Elapsed() const
+double Clock::Elapsed(const struct timespec& start_time) const
 {
   static struct timespec end;
   clock_gettime(CLOCK_MONOTONIC, &end);
-  return end.tv_sec - time_.tv_sec +
-         (end.tv_nsec - time_.tv_nsec) / static_cast<double>(kNanoSec2Sec);
+  return end.tv_sec - start_time.tv_sec +
+         (end.tv_nsec - start_time.tv_nsec) / static_cast<double>(kNanoSec2Sec);
 }
 
 void Clock::DispCurrentTime() const

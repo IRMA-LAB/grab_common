@@ -1,7 +1,7 @@
 /**
  * @file clocks.h
  * @author Simone Comari
- * @date 28 Nov 2018
+ * @date 25 Gen 2019
  * @brief This file includes time related utilities such as time conversion and clock
  * classes.
  */
@@ -82,7 +82,13 @@ public:
    * @brief Return elapsed time since latest Reset() or object instantiation.
    * @return Elapsed time since latest Reset() in seconds.
    */
-  double Elapsed() const;
+  double Elapsed() const { return Elapsed(time_); }
+  /**
+   * @brief Return elapsed time since given time.
+   * @param start_time Reference for elapsed time.
+   * @return Elapsed time in seconds since given time.
+   */
+  double Elapsed(const struct timespec& start_time) const;
 
   /**
    * @brief Gets instance name.

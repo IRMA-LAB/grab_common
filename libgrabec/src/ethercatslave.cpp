@@ -1,7 +1,7 @@
 /**
  * @file ethercatslave.cpp
  * @author Simone Comari
- * @date 18 Sep 2018
+ * @date 25 Gen 2019
  * @brief File containing definitions of functions and class declared in ethercatslave.h.
  */
 
@@ -9,11 +9,10 @@
 
 namespace grabec
 {
-/////////////////////////////////////////////////
-/// Public methods
-/////////////////////////////////////////////////
 
-EthercatSlave::~EthercatSlave() {}  // necessary for pure abstract destructor
+EthercatSlave::~EthercatSlave() {} // necessary for pure abstract destructor
+
+//--------- Public functions ---------------------------------------------------------//
 
 void EthercatSlave::Init(uint8_t* domain_data_ptr)
 {
@@ -24,22 +23,22 @@ void EthercatSlave::Init(uint8_t* domain_data_ptr)
 RetVal EthercatSlave::Configure(ec_master_t* master_ptr, ec_slave_config_t** config_ptr)
 {
   if (!(*config_ptr = ecrt_master_slave_config(master_ptr, alias_, position_, vendor_id_,
-                                              product_code_)))
+                                               product_code_)))
   {
-    DispRetVal(ECONFIG, "[EthercatSlave]\tConfiguring device... ");
+    EcPrintCb("Configuring device: " + GetRetValStr(ECONFIG), 'r');
     return ECONFIG;
   }
-  DispRetVal(OK, "[EthercatSlave]\tConfiguring device... ");
+  EcPrintCb("Configuring device: " + GetRetValStr(OK));
 
   if (ecrt_slave_config_pdos(*config_ptr, EC_END, slave_sync_ptr_))
   {
-    DispRetVal(ECONFIG, "[EthercatSlave]\tConfiguring PDOs... ");
+    EcPrintCb("Configuring PDOs: " + GetRetValStr(ECONFIG), 'r');
     return ECONFIG;
   }
-  DispRetVal(OK, "[EthercatSlave]\tConfiguring PDOs... ");
+  EcPrintCb("Configuring PDOs: " + GetRetValStr(OK));
 
   RetVal ret = SdoRequests(*config_ptr);
-  DispRetVal(ret, "[EthercatSlave]\tCreating SDO request... ");
+  EcPrintCb("Creating SDO request: " + GetRetValStr(ret), ret ? 'r' : 'w');
   return ret;
 }
 
@@ -48,11 +47,9 @@ ec_pdo_entry_reg_t EthercatSlave::GetDomainRegister(uint8_t index) const
   return domain_registers_ptr_[index];
 }
 
-/////////////////////////////////////////////////
-/// Protected methods
-/////////////////////////////////////////////////
+//--------- Protected virtual functions --------------------------------------------------------//
 
-RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)  // virtual
+RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)
 {
   static ec_sdo_request_t* sdo_ptr = NULL;
 
@@ -63,9 +60,15 @@ RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)  // virtual
   return OK;
 }
 
-/////////////////////////////////////////////////
-/// Private methods
-/////////////////////////////////////////////////
+void EthercatSlave::EcPrintCb(const std::string& msg, const char color /* = 'w' */) const
+{
+  if (color == 'w')
+    printf("[EthercatSlave] %s\n", msg.c_str());
+  else
+    PrintColor(color, "[EthercatSlave] %s", msg.c_str());
+}
+
+//--------- Private functions --------------------------------------------------------//
 
 void EthercatSlave::SetDomainDataPtr(uint8_t* domain_data_ptr)
 {
