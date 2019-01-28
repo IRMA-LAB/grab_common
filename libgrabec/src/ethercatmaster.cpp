@@ -111,7 +111,7 @@ void EthercatMaster::EndFunction()
 {
   grabrt::ThreadClock clock(thread_rt_.GetCycleTimeNsec());
   EcPrintCb("Sending out SHUTDOWN signals to all slaves...");
-  while (!AllSlavesReadyToShutDown())
+  while (check_state_flags_.Count() == 3 && !AllSlavesReadyToShutDown())
   {
     // Receive data
     ecrt_master_receive(master_ptr_);
@@ -139,6 +139,7 @@ void EthercatMaster::EndFunction()
 void EthercatMaster::EmergencyExitFunction()
 {
   EcRtThreadStatusChanged(false);
+  EcPrintCb("ERROR: Real-Time deadline missed", 'r');
   EcEmergencyFun();
   EndFunction();
 }

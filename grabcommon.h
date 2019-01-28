@@ -85,6 +85,10 @@
 void PrintColor(const char color, const char* text, ...);
 void PrintColor(const char color, const char* text, va_list args);
 
+template <typename T> T sign(const T& value)
+{
+  return value >= 0 ? static_cast<T>(1) : static_cast<T>(-1);
+}
 
 /*---------------------- Generic classes ------------------------*/
 
