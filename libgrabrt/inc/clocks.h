@@ -67,7 +67,7 @@ public:
    * @brief Clock
    * @param clk_name
    */
-  Clock(const std::string& clk_name = "ThreadClock") : name_(clk_name) { Reset(); }
+  Clock(const std::string& clk_name = "ThreadClock");
   virtual ~Clock() {}
 
   static constexpr uint64_t kNanoSec2Sec = 1000000000UL; /**< .. */
@@ -89,6 +89,11 @@ public:
    * @return Elapsed time in seconds since given time.
    */
   double Elapsed(const struct timespec& start_time) const;
+  /**
+   * @brief Return elapsed time since instantiation time.
+   * @return Elapsed time since instantiation time.
+   */
+  double ElapsedFromStart() const { return Elapsed(start_time_); }
 
   /**
    * @brief Gets instance name.
@@ -116,6 +121,9 @@ protected:
   /**
     */
   [[noreturn]] void HandleErrorEnWrapper(const int en, const char* msg) const;
+
+private:
+  struct timespec start_time_;
 };
 
 /**

@@ -56,6 +56,12 @@ double NanoSec2Sec(const long nanoseconds)
 /// Clock Class Methods
 /////////////////////////////////////////////////
 
+Clock::Clock(const std::string& clk_name /*= "ThreadClock"*/) : name_(clk_name)
+{
+  Reset();
+  start_time_ = time_;
+}
+
 void Clock::Reset()
 {
   //  printf("[%s] RESET\n", name_.c_str());
