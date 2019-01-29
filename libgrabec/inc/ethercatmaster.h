@@ -87,7 +87,7 @@ protected:
 
   virtual void EcStateChangedCb(const Bitfield8& /*new_state*/) {}
   virtual void EcPrintCb(const std::string& msg, const char color = 'w') const;
-  virtual void EcRtThreadStatusChanged(const bool /*active*/) const {}
+  virtual void EcRtThreadStatusChanged(const bool /*active*/) {}
 
 protected:
   /**
@@ -137,6 +137,7 @@ protected:
   /** @} */             // end of EthercatUtilities group
 
   std::vector<EthercatSlave*> slaves_ptrs_; /**< Vector of pointers to slaves. */
+  size_t num_slaves_;  /**< Number of slaves on the ethercat network */
   uint8_t num_domain_elements_ = 0;         /**< Number of elements in ethercat domain. */
 
   /**
