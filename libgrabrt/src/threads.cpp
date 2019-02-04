@@ -7,8 +7,7 @@
 
 #include "threads.h"
 
-namespace grabrt
-{
+namespace grabrt {
 
 void ConfigureMallocBehavior()
 {
@@ -147,8 +146,8 @@ void DisplaySchedAttr(const int policy, const struct sched_param& param)
   printf("    policy=%s, priority=%d\n",
          (policy == SCHED_FIFO)
            ? "SCHED_FIFO"
-           : (policy == SCHED_RR) ? "SCHED_RR" : (policy == SCHED_OTHER) ? "SCHED_OTHER"
-                                                                         : "???",
+           : (policy == SCHED_RR) ? "SCHED_RR"
+                                  : (policy == SCHED_OTHER) ? "SCHED_OTHER" : "???",
          param.sched_priority);
 }
 
@@ -214,10 +213,9 @@ void Thread::SetAttr(const pthread_attr_t& attr)
     HandleErrorEnWrapper(ret, "pthread_attr_getschedparam ");
 
   if (IsActive())
-    printf(
-      ANSI_COLOR_YELLOW
-      "[%s] WARNING: Thread is active. New attributes set but not effective!" ANSI_COLOR_RESET
-      "\n", name_.c_str());
+    printf(ANSI_COLOR_YELLOW "[%s] WARNING: Thread is active. New attributes set but not "
+                             "effective!" ANSI_COLOR_RESET "\n",
+           name_.c_str());
 }
 
 void Thread::SetCPUs(const cpu_set_t& cpu_set)
@@ -268,8 +266,8 @@ void Thread::SetSchedAttr(const int policy, const int priority /*= -1*/)
     {
       printf(ANSI_COLOR_YELLOW
              "[%s] WARNING: Priority for SCHED_OTHER policy must be 0. Ignoring invalid "
-             "user-set priority: %d." ANSI_COLOR_RESET "\n", name_.c_str(),
-             priority);
+             "user-set priority: %d." ANSI_COLOR_RESET "\n",
+             name_.c_str(), priority);
       sched_param_.sched_priority = 0;
     }
     else
@@ -287,12 +285,11 @@ void Thread::SetSchedAttr(const int policy, const int priority /*= -1*/)
 void Thread::SetInitFunc(void (*fun_ptr)(void*), void* args)
 {
   if (IsRunning())
-    printf(
-      ANSI_COLOR_YELLOW
-      "[%s] WARNING: Thread is running. New InitFunc set but not effective!" ANSI_COLOR_RESET
-      "\n", name_.c_str());
+    printf(ANSI_COLOR_YELLOW "[%s] WARNING: Thread is running. New InitFunc set but not "
+                             "effective!" ANSI_COLOR_RESET "\n",
+           name_.c_str());
 
-  init_fun_ptr_ = fun_ptr;
+  init_fun_ptr_      = fun_ptr;
   init_fun_args_ptr_ = args;
 }
 
@@ -300,13 +297,15 @@ void Thread::SetLoopFunc(void (*fun_ptr)(void*), void* args)
 {
   if (IsRunning())
   {
-    printf(ANSI_COLOR_YELLOW
-           "[%s] WARNING: Thread is running. Cannot set new LoopFunc now!" ANSI_COLOR_RESET
-           "\n", name_.c_str());
+    printf(
+      ANSI_COLOR_YELLOW
+      "[%s] WARNING: Thread is running. Cannot set new LoopFunc now!" ANSI_COLOR_RESET
+      "\n",
+      name_.c_str());
   }
   else
   {
-    loop_fun_ptr_ = fun_ptr;
+    loop_fun_ptr_      = fun_ptr;
     loop_fun_args_ptr_ = args;
   }
 }
@@ -315,12 +314,11 @@ void Thread::SetEndFunc(void (*fun_ptr)(void*), void* args)
 {
   if (IsActive())
   {
-    printf(
-      ANSI_COLOR_YELLOW
-      "[%s] WARNING: Thread is closed. New EndFunc set but not effective!" ANSI_COLOR_RESET
-      "\n", name_.c_str());
+    printf(ANSI_COLOR_YELLOW "[%s] WARNING: Thread is closed. New EndFunc set but not "
+                             "effective!" ANSI_COLOR_RESET "\n",
+           name_.c_str());
   }
-  end_fun_ptr_ = fun_ptr;
+  end_fun_ptr_      = fun_ptr;
   end_fun_args_ptr_ = args;
 }
 
@@ -328,12 +326,11 @@ void Thread::SetEmergencyExitFunc(void (*fun_ptr)(void*), void* args)
 {
   if (IsActive())
   {
-    printf(
-      ANSI_COLOR_YELLOW
-      "[%s] WARNING: Thread is closed. New EndFunc set but not effective!" ANSI_COLOR_RESET
-      "\n", name_.c_str());
+    printf(ANSI_COLOR_YELLOW "[%s] WARNING: Thread is closed. New EndFunc set but not "
+                             "effective!" ANSI_COLOR_RESET "\n",
+           name_.c_str());
   }
-  emergency_exit_fun_ptr_ = fun_ptr;
+  emergency_exit_fun_ptr_      = fun_ptr;
   emergency_exit_fun_args_ptr_ = args;
 }
 
@@ -373,8 +370,8 @@ int Thread::GetReady(const uint64_t cycle_time_nsec /*= 1000000LL*/)
     return EFAULT;
 
   cycle_time_nsec_ = cycle_time_nsec;
-  active_ = true;
-  run_ = true;
+  active_          = true;
+  run_             = true;
   return 0;
 }
 
@@ -388,10 +385,10 @@ void Thread::Stop()
 {
   if (IsActive())
   {
-    Pause();
     stop_cmd_recv_ = true;
+    Pause();
     pthread_join(thread_id_, NULL);
-    active_ = false;
+    active_        = false;
     stop_cmd_recv_ = false;
     printf("[%s] Thread %ld STOP\n", name_.c_str(), tid_);
     return;
@@ -440,9 +437,9 @@ void Thread::DispAttr() const
   if (ret != 0)
     HandleErrorEnWrapper(ret, "pthread_attr_getschedpolicy");
   printf("%sScheduling policy   = %s\n", prefix,
-         (i == SCHED_OTHER) ? "SCHED_OTHER" : (i == SCHED_FIFO)
-                                                ? "SCHED_FIFO"
-                                                : (i == SCHED_RR) ? "SCHED_RR" : "???");
+         (i == SCHED_OTHER)
+           ? "SCHED_OTHER"
+           : (i == SCHED_FIFO) ? "SCHED_FIFO" : (i == SCHED_RR) ? "SCHED_RR" : "???");
 
   printf("%sScheduling priority = %d\n", prefix, sched_param_.sched_priority);
 
@@ -489,7 +486,7 @@ void Thread::InitDefault()
     HandleErrorEnWrapper(ret, "pthread_attr_setinheritsched ");
 
   sched_param_.sched_priority = 0;
-  ret = pthread_attr_setschedparam(&attr_, &sched_param_);
+  ret                         = pthread_attr_setschedparam(&attr_, &sched_param_);
   if (ret != 0)
     HandleErrorEnWrapper(ret, "pthread_attr_setschedparam ");
 
@@ -504,7 +501,7 @@ void Thread::TargetFun()
   pthread_mutex_unlock(&mutex_);
   ThreadClock clock(cycle_time_nsec_);
   bool ignore_deadline = GetPolicy() == SCHED_OTHER;
-  active_ = true;
+  active_              = true;
 
   if (init_fun_ptr_ != NULL)
   {
@@ -533,11 +530,12 @@ void Thread::TargetFun()
 
   if (rt_deadline_missed_)
   {
-    PrintColor('r', "[%s] RT deadline missed. Thread will close automatically.", name_.c_str());
+    PrintColor('r', "[%s] RT deadline missed. Thread will close automatically.",
+               name_.c_str());
     pthread_mutex_lock(&mutex_);
     emergency_exit_fun_ptr_(emergency_exit_fun_args_ptr_);
     pthread_mutex_unlock(&mutex_);
-    run_ = false;
+    run_    = false;
     active_ = false;
     return;
   }

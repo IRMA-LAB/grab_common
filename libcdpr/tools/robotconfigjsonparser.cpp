@@ -1,14 +1,13 @@
 #include "robotconfigjsonparser.h"
 
-///////////////////////////////////////////////
-//// Public methods
-///////////////////////////////////////////////
+//--------- Public Functions --------------------------------------------------//
+
 RobotConfigJsonParser::RobotConfigJsonParser()
 {
   config_params_.platform = new grabcdpr::PlatformParams;
 }
 
-bool RobotConfigJsonParser::ParseFile(const std::string& filename,
+bool RobotConfigJsonParser::ParseFile(const std::string &filename,
                                       const bool verbose /* = false*/)
 {
   std::cout << "Parsing file '" << filename << "'...\n";
@@ -45,20 +44,20 @@ bool RobotConfigJsonParser::ParseFile(const std::string& filename,
   return file_parsed_;
 }
 
-bool RobotConfigJsonParser::ParseFile(const char* filename,
+bool RobotConfigJsonParser::ParseFile(const char *filename,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(std::string(filename), verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const QString& filename,
+bool RobotConfigJsonParser::ParseFile(const QString &filename,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(filename.toStdString(), verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const std::string& filename,
-                                      grabcdpr::Params* params,
+bool RobotConfigJsonParser::ParseFile(const std::string &filename,
+                                      grabcdpr::Params *params,
                                       const bool verbose /*= false*/)
 {
   if (ParseFile(filename, verbose))
@@ -69,13 +68,13 @@ bool RobotConfigJsonParser::ParseFile(const std::string& filename,
   return false;
 }
 
-bool RobotConfigJsonParser::ParseFile(const char* filename, grabcdpr::Params* params,
+bool RobotConfigJsonParser::ParseFile(const char *filename, grabcdpr::Params *params,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(std::string(filename), params, verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const QString& filename, grabcdpr::Params* params,
+bool RobotConfigJsonParser::ParseFile(const QString &filename, grabcdpr::Params *params,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(filename.toStdString(), params, verbose);
@@ -98,32 +97,32 @@ void RobotConfigJsonParser::PrintConfig() const
   for (size_t i = 0; i < config_params_.actuators.size(); i++)
   {
     std::cout << "ACTUATOR PARAMETERS #" << i << "\n============================="
-              << "\n " << (config_params_.actuators[i].active
-                             ? "ACTIVE\n-----------"
-                             : "INACTIVE\n--------------")
+              << "\n "
+              << (config_params_.actuators[i].active ? "ACTIVE\n-----------"
+                                                     : "INACTIVE\n--------------")
               << "\n Winch:\n-----------"
               << "\n   l0\t\t" << config_params_.actuators[i].winch.l0
               << "\n   drum_pitch\t" << config_params_.actuators[i].winch.drum_pitch
               << "\n   drum_diameter\t" << config_params_.actuators[i].winch.drum_diameter
-              << "\n   gear_ratio\t\t" << config_params_.actuators[i].winch.gear_ratio
+              << "\n   gear_ratio\t" << config_params_.actuators[i].winch.gear_ratio
               << "\n   motor_encoder_res\t"
               << config_params_.actuators[i].winch.motor_encoder_res
-              << "\n   pos_PA_loc\n" << config_params_.actuators[i].winch.pos_PA_loc
+              << "\n   pos_PA_loc\n"
+              << config_params_.actuators[i].winch.pos_PA_loc
               << "\n Swivel Pulley:\n--------------------"
               << "\n   encoder_res\t" << config_params_.actuators[i].pulley.encoder_res
               << "\n   radius\t\t" << config_params_.actuators[i].pulley.radius
-              << "\n   pos_OD_glob\n" << config_params_.actuators[i].pulley.pos_OD_glob
-              << "   vers_i\n" << config_params_.actuators[i].pulley.vers_i
-              << "   vers_j\n" << config_params_.actuators[i].pulley.vers_j
-              << "   vers_k\n" << config_params_.actuators[i].pulley.vers_k << std::endl;
+              << "\n   pos_OD_glob\n"
+              << config_params_.actuators[i].pulley.pos_OD_glob << "   vers_i\n"
+              << config_params_.actuators[i].pulley.vers_i << "   vers_j\n"
+              << config_params_.actuators[i].pulley.vers_j << "   vers_k\n"
+              << config_params_.actuators[i].pulley.vers_k << std::endl;
   }
 }
 
-///////////////////////////////////////////////
-//// Private methods
-///////////////////////////////////////////////
+//--------- Private Functions --------------------------------------------------//
 
-bool RobotConfigJsonParser::ExtractConfig(const json& raw_data)
+bool RobotConfigJsonParser::ExtractConfig(const json &raw_data)
 {
   if (!ExtractPlatform(raw_data))
     return false;
@@ -132,7 +131,7 @@ bool RobotConfigJsonParser::ExtractConfig(const json& raw_data)
   return ExtractActuators(raw_data);
 }
 
-bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
+bool RobotConfigJsonParser::ExtractPlatform(const json &raw_data)
 {
   if (raw_data.count("platform") != 1)
   {
@@ -167,7 +166,7 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
   return ArePlatformParamsValid();
 }
 
-bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
+bool RobotConfigJsonParser::ExtractActuators(const json &raw_data)
 {
   if (raw_data.count("actuator") != 1)
   {
@@ -176,7 +175,7 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
   }
   json actuators = raw_data["actuator"];
   std::string field, subfield;
-  for (auto& actuator : actuators)
+  for (auto &actuator : actuators)
   {
     grabcdpr::ActuatorParams temp;
     try
@@ -253,7 +252,7 @@ bool RobotConfigJsonParser::ArePlatformParamsValid() const
 }
 
 bool RobotConfigJsonParser::AreCableParamsValid(
-  const grabcdpr::ActuatorParams& params) const
+  const grabcdpr::ActuatorParams &params) const
 {
   bool ret = true;
 

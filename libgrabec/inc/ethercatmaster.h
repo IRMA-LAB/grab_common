@@ -9,29 +9,27 @@
 #ifndef ETHERCATMASTER_H
 #define ETHERCATMASTER_H
 
-#include <signal.h>
-#include <unistd.h>
-#include <malloc.h>
-#include <sys/mman.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <sys/types.h>
-#include <pthread.h>
-#include <limits.h>
-#include <iostream>
-#include <string>
 #include <cstring>
+#include <iostream>
+#include <limits.h>
+#include <malloc.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdlib.h>
+#include <string>
+#include <sys/mman.h>
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "ecrt.h" // ethercat library
 
+#include "ethercatslave.h"
 #include "threads.h"
 #include "types.h"
-#include "ethercatslave.h"
 
-namespace grabec
-{
+namespace grabec {
 
 /**
  * @brief Ethercat Master interface.
@@ -46,9 +44,8 @@ namespace grabec
  * that the ethercat master interface requires to overload some functions, which are
  * actually called every loop. This functions are the ones marked as @c virtual.
  */
-class EthercatMaster
-{
-public:
+class EthercatMaster {
+ public:
   /**
    * @brief Default constructor.
    */
@@ -82,14 +79,14 @@ public:
    */
   uint32_t GetRtCycleTimeNsec() const { return threads_params_.cycle_time_nsec; }
 
-protected:
+ protected:
   //------- Workaround to generate pseudo-qt-signals ------------------//
 
   virtual void EcStateChangedCb(const Bitfield8& /*new_state*/) {}
   virtual void EcPrintCb(const std::string& msg, const char color = 'w') const;
   virtual void EcRtThreadStatusChanged(const bool /*active*/) {}
 
-protected:
+ protected:
   /**
    *@brief Ethercat state check flags bit position enum.
    *
@@ -115,30 +112,30 @@ protected:
   pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER; /**< RT thread mutex. */
 
   RtThreadsParams threads_params_; /**< Threads scheduler parameters. */
+  grabrt::Thread thread_rt_;       /** Reatl-time thread. */
 
   /** @defgroup EthercatUtilities EtherCAT Utilities
    * This group collects all EtherCAT-specific elements in a generic master-slave
    * implemenation.
    * @{
    */
-  ec_master_t* master_ptr_ = NULL;             /**< Pointer to ethercat master. */
-  ec_master_state_t master_state_ = {};        /**< State of ethercat master. */
-  ec_domain_t* domain_ptr_ = NULL;             /**< Pointer to ethercat domain. */
-  ec_domain_state_t domain_state_ = {};        /**< State of ethercat domain. */
+  ec_master_t* master_ptr_             = NULL; /**< Pointer to ethercat master. */
+  ec_master_state_t master_state_      = {};   /**< State of ethercat master. */
+  ec_domain_t* domain_ptr_             = NULL; /**< Pointer to ethercat domain. */
+  ec_domain_state_t domain_state_      = {};   /**< State of ethercat domain. */
   ec_slave_config_t* slave_config_ptr_ = NULL; /**< Pointer to ethercat configuration. */
   ec_slave_config_state_t slave_config_state_ =
     {};                             /**< State of ethercat configuration. */
   uint8_t* domain_data_ptr_ = NULL; /**< Pointer to ethercat domain data. */
 
-  Bitfield8
-    check_state_flags_; /**< Bitfield object where every bit represents the state of an
-                                      * element. 1 means element is _operational_, 0 that
-                                      * it is not. */
-  /** @} */             // end of EthercatUtilities group
+  Bitfield8 check_state_flags_; /**< Bitfield object where every bit represents the state
+                                 * of an element. 1 means element is _operational_, 0 that
+                                 * it is not. */
+  /** @} */                     // end of EthercatUtilities group
 
   std::vector<EthercatSlave*> slaves_ptrs_; /**< Vector of pointers to slaves. */
-  size_t num_slaves_;  /**< Number of slaves on the ethercat network */
-  uint8_t num_domain_elements_ = 0;         /**< Number of elements in ethercat domain. */
+  size_t num_slaves_;               /**< Number of slaves on the ethercat network */
+  uint8_t num_domain_elements_ = 0; /**< Number of elements in ethercat domain. */
 
   /**
    * @brief EcStartUpFun
@@ -155,10 +152,9 @@ protected:
    */
   virtual void EcEmergencyFun() {} // called at emergency exit (on rt deadline missed)
 
-private:
+ private:
   //------- Thread related --------------------------------//
 
-  grabrt::Thread thread_rt_;
 
   static void StartUpFunWrapper(void* obj);
   static void LoopFunWrapper(void* obj);
@@ -169,7 +165,7 @@ private:
   void EndFunction();
   void EmergencyExitFunction();
 
-private:
+ private:
   uint8_t InitProtocol();
 
   void CheckDomainState();
