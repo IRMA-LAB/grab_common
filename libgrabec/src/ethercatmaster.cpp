@@ -133,7 +133,11 @@ void EthercatMaster::EndFunction()
     // Send out signals to safely shut down slaves
     if (check_state_flags_.Count() == 3) // EthercatStateFlagsBit all set
       for (EthercatSlave* slave_ptr : slaves_ptrs_)
+      {
+        slave_ptr->ReadInputs();
         slave_ptr->SafeExit();
+        slave_ptr->WriteOutputs();
+      }
     // Write data
     ecrt_domain_queue(domain_ptr_);
     ecrt_master_send(master_ptr_);

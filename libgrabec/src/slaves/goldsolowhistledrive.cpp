@@ -303,6 +303,10 @@ void GoldSoloWhistleDrive::SafeExit()
 {
   switch (prev_state_)
   {
+  case ST_START:
+    break;
+  case ST_NOT_READY_TO_SWITCH_ON:
+    break;
   case ST_SWITCH_ON_DISABLED:
     break;
   case ST_FAULT:
@@ -316,7 +320,7 @@ void GoldSoloWhistleDrive::SafeExit()
 
 bool GoldSoloWhistleDrive::IsReadyToShutDown() const
 {
-  return prev_state_ == ST_SWITCH_ON_DISABLED;
+  return prev_state_ <= ST_SWITCH_ON_DISABLED;
 }
 
 void GoldSoloWhistleDrive::EcPrintCb(const std::string& msg,

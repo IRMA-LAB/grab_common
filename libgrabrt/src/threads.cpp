@@ -533,7 +533,10 @@ void Thread::TargetFun()
       if (pthread_mutex_timedlock(&mutex_, &max_wait_time) == 0)
       {
         if (!run_)
+        {
+          pthread_mutex_unlock(&mutex_);
           break;
+        }
         loop_fun_ptr_(loop_fun_args_ptr_);
         pthread_mutex_unlock(&mutex_);
       }
