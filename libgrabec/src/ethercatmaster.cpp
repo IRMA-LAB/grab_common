@@ -1,14 +1,13 @@
 /**
  * @file ethercatmaster.cpp
  * @author Simone Comari
- * @date 24 Gen 2019
+ * @date 05 Feb 2019
  * @brief File containing definitions of functions and class declared in ethercatmaster.h.
  */
 
 #include "ethercatmaster.h"
 
-namespace grabec
-{
+namespace grabec {
 
 EthercatMaster::EthercatMaster() { check_state_flags_.ClearAll(); }
 
@@ -111,8 +110,19 @@ void EthercatMaster::EndFunction()
 {
   grabrt::ThreadClock clock(thread_rt_.GetCycleTimeNsec());
   EcPrintCb("Sending out SHUTDOWN signals to all slaves...");
-  while (check_state_flags_.Count() == 3 && !AllSlavesReadyToShutDown())
+  while (true)
   {
+    if (AllSlavesReadyToShutDown())
+    {
+      EcPrintCb("All slaves ready to be disconnected");
+      break;
+    }
+    if (clock.ElapsedFromStart() > max_shutdown_wait_time_sec_)
+    {
+      EcPrintCb("WARNING: Taking too long to safely shutdown slaves. Aborting operation",
+                'y');
+      break;
+    }
     // Receive data
     ecrt_master_receive(master_ptr_);
     ecrt_domain_process(domain_ptr_);
@@ -121,8 +131,9 @@ void EthercatMaster::EndFunction()
     CheckMasterState();
     CheckDomainState();
     // Send out signals to safely shut down slaves
-    for (EthercatSlave* slave_ptr : slaves_ptrs_)
-      slave_ptr->SafeExit();
+    if (check_state_flags_.Count() == 3) // EthercatStateFlagsBit all set
+      for (EthercatSlave* slave_ptr : slaves_ptrs_)
+        slave_ptr->SafeExit();
     // Write data
     ecrt_domain_queue(domain_ptr_);
     ecrt_master_send(master_ptr_);
@@ -131,17 +142,15 @@ void EthercatMaster::EndFunction()
     clock.WaitUntilNext();
     pthread_mutex_lock(&mutex_); // restore locked mutex
   }
-  EcPrintCb("All slaves ready to be disconnected");
-
   ReleaseMaster();
 }
 
 void EthercatMaster::EmergencyExitFunction()
 {
-  EcRtThreadStatusChanged(false);
   EcPrintCb("ERROR: Real-Time deadline missed", 'r');
   EcEmergencyFun();
   EndFunction();
+  EcRtThreadStatusChanged(false);
 }
 
 //--------- Private functions --------------------------------------------------------//
@@ -304,7 +313,6 @@ void EthercatMaster::ReleaseMaster()
 
   grabrt::ThreadClock clock(thread_rt_.GetCycleTimeNsec());
   ecrt_master_deactivate(master_ptr_);
-  struct timespec t0 = clock.GetCurrentTime();
   while (1)
   {
     CheckMasterState();
@@ -321,7 +329,7 @@ void EthercatMaster::ReleaseMaster()
       break;
     }
     // Break if it takes too long (something is wrong)
-    if (clock.Elapsed(t0) > kMaxWaitTimeSec)
+    if (clock.ElapsedFromStart() > kMaxWaitTimeSec)
     {
       EcPrintCb("Master is taking too long to deactivate. Skipping this step", 'y');
       break;

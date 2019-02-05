@@ -1,31 +1,30 @@
 /**
  * @file threads.h
  * @author Simone Comari
- * @date 24 Gen 2019
+ * @date 05 Feb 2019
  * @brief This file collects utilities to create a new thread in a user-friendly way,
- * hiding most
- * of the complexity linked to multi-threading. It also allows the setup of a real-time
- * thread.
+ * hiding most of the complexity linked to multi-threading. It also allows the setup of a
+ * real-time thread.
  */
 
 #ifndef GRABCOMMON_LIBGRABRT_THREADS_H
 #define GRABCOMMON_LIBGRABRT_THREADS_H
 
+#include <iostream>
+#include <limits.h>
+#include <malloc.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
-#include <sys/time.h>
 #include <sys/resource.h>
-#include <unistd.h>
 #include <sys/syscall.h>
-#include <iostream>
+#include <sys/time.h>
+#include <unistd.h>
 #include <vector>
-#include <limits.h>
-#include <malloc.h>
 
-#include "grabcommon.h"
 #include "clocks.h"
+#include "grabcommon.h"
 
 #ifndef CPU_CORES_NUM
 /**
@@ -38,8 +37,7 @@
 /**
  * @brief Namespace for real-time and multi-threading utilities of GRAB software.
  */
-namespace grabrt
-{
+namespace grabrt {
 
 #ifndef THREAD_RUN
 /**
@@ -51,19 +49,19 @@ namespace grabrt
 #define THREAD_RUN(t)                                                                    \
   int ret = pthread_create(t.GetThreadIDPtr(), t.GetAttrPtr(), t._StaticTargetFun, &t);  \
   if (ret != 0)                                                                          \
-    t.HandleErrorEnWrapper(ret, "pthread_create ");\
-  else\
+    t.HandleErrorEnWrapper(ret, "pthread_create ");                                      \
+  else                                                                                   \
     printf("Thread START with ID: %ld\n", t.GetTID());
 #endif
 
 /**
-* @brief Enum to collect particular core entries as argument to BuildCPUSet().
-* @see BuildCPUSet()
-*/
+ * @brief Enum to collect particular core entries as argument to BuildCPUSet().
+ * @see BuildCPUSet()
+ */
 enum CpuCores
 {
-  END_CORE = -1, /**< select end physical core on the machine (#CPU_CORES_NUM - 1). */
-  ALL_CORES = -2 /**< select all physical cores on the machine. */
+  END_CORE  = -1, /**< select end physical core on the machine (#CPU_CORES_NUM - 1). */
+  ALL_CORES = -2  /**< select all physical cores on the machine. */
 };
 
 /**
@@ -180,9 +178,8 @@ void DisplayThreadSchedAttr(const pthread_t thread_id = pthread_self());
  * @brief This class provides a simple interface to setup and create a new thread, with
  * normal or real-time characteristics.
  */
-class Thread
-{
-public:
+class Thread {
+ public:
   /**
    * @brief Default constructor.
    *
@@ -358,11 +355,11 @@ public:
   /**
    * @brief Set thread _emergency exit_ function.
    *
-   * The _emergency exit_ function is called once after the end of main loop, iff the real time
-   * deadline is missed and right before thread is closed.
+   * The _emergency exit_ function is called once after the end of main loop, iff the real
+   * time deadline is missed and right before thread is closed.
    * @param fun_ptr Pointer to function to be called before thread is closed.
-   * @param args Pointer to optional arguments to the emergency exit function. Set it to @c NULL if
-   * not needed.
+   * @param args Pointer to optional arguments to the emergency exit function. Set it to
+   * @c NULL if not needed.
    * @see SetLoopFunc() SetInitFunc() SetEndFunc()
    */
   void SetEmergencyExitFunc(void (*fun_ptr)(void*), void* args);
@@ -468,7 +465,7 @@ public:
    * closed).
    * @see Unpause()
    */
-  void Pause() { run_ = false; }
+  void Pause();
   /**
    * @brief Unpauses a previously paused thread. This operation resets the cycle clock.
    * @see Pause()
@@ -532,32 +529,32 @@ public:
    */
   [[noreturn]] void HandleErrorEnWrapper(const int en, const char* msg) const;
 
-private:
+ private:
   static constexpr uint32_t kStackSize = 10 * 1024 * 1024; /**< 10 Mb */
   static constexpr uint32_t kPreAllocationSize =
-    100 * 1024 * 1024;  /**< 100MB pagefault free buffer */
+    100 * 1024 * 1024; /**< 100MB pagefault free buffer */
 
   pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;
-  pthread_t thread_id_ = 0;
+  pthread_t thread_id_   = 0;
   pthread_attr_t attr_;
   std::string name_;
   long tid_ = -1;
   struct sched_param sched_param_;
   cpu_set_t cpu_set_;
-  uint64_t cycle_time_nsec_ = 1000000LL;  // = 1ms
+  uint64_t cycle_time_nsec_ = 1000000LL; // = 1ms
 
-  void (*init_fun_ptr_)(void*) = NULL;
-  void (*loop_fun_ptr_)(void*) = NULL;
-  void (*end_fun_ptr_)(void*) = NULL;
+  void (*init_fun_ptr_)(void*)           = NULL;
+  void (*loop_fun_ptr_)(void*)           = NULL;
+  void (*end_fun_ptr_)(void*)            = NULL;
   void (*emergency_exit_fun_ptr_)(void*) = NULL;
-  void* init_fun_args_ptr_ = NULL;
-  void* loop_fun_args_ptr_ = NULL;
-  void* end_fun_args_ptr_ = NULL;
-  void* emergency_exit_fun_args_ptr_ = NULL;
+  void* init_fun_args_ptr_               = NULL;
+  void* loop_fun_args_ptr_               = NULL;
+  void* end_fun_args_ptr_                = NULL;
+  void* emergency_exit_fun_args_ptr_     = NULL;
 
-  bool run_ = false;
-  bool active_ = false;
-  bool stop_cmd_recv_ = false;
+  bool run_                = false;
+  bool active_             = false;
+  bool stop_cmd_recv_      = false;
   bool rt_deadline_missed_ = false;
 
   /**

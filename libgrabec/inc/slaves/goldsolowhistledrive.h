@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 25 Gen 2019
+ * @date 05 Feb 2019
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -14,14 +14,13 @@
 
 #include <QObject>
 
-#include "grabcommon.h"
 #include "StateMachine.h"
+#include "grabcommon.h"
 
 #include "ethercatslave.h"
 #include "types.h"
 
-namespace grabec
-{
+namespace grabec {
 /**
  * @brief Gold Solo Whistle Drive _states_ as in physical drive documentation.
  *
@@ -50,16 +49,16 @@ enum GoldSoloWhistleDriveStates : BYTE
  */
 enum GoldSoloWhistleOperationModes : int8_t
 {
-  NONE = -1,
-  PROFILE_POSITION = 1,
-  VELOCITY_MODE = 2,
-  PROFILE_VELOCITY = 3,
-  TORQUE_PROFILE = 4,
-  HOMING = 6,
+  NONE                  = -1,
+  PROFILE_POSITION      = 1,
+  VELOCITY_MODE         = 2,
+  PROFILE_VELOCITY      = 3,
+  TORQUE_PROFILE        = 4,
+  HOMING                = 6,
   INTERPOLATED_POSITION = 7,
-  CYCLIC_POSITION = 8,
-  CYCLIC_VELOCITY = 9,
-  CYCLIC_TORQUE = 10,
+  CYCLIC_POSITION       = 8,
+  CYCLIC_VELOCITY       = 9,
+  CYCLIC_TORQUE         = 10,
 };
 
 /**
@@ -93,9 +92,8 @@ struct GSWDriveInPdos
  * For further details about state machine, click <a
  * href="https://www.codeproject.com/Articles/1087619/State-Machine-Design-in-Cplusplus">here</a>.
  */
-class GoldSoloWhistleDriveData : public EventData
-{
-public:
+class GoldSoloWhistleDriveData: public EventData {
+ public:
   /**
    * @brief Full constructor.
    * @param[in] _op_mode The desired operation mode of the drive. See
@@ -117,7 +115,7 @@ public:
                            const bool verbose = false);
 
   int8_t op_mode = NONE; /**< The desired operation mode of the drive. */
-  int32_t value = 0;     /**< The target set point for the desired operation mode. */
+  int32_t value  = 0;    /**< The target set point for the desired operation mode. */
 };
 
 /**
@@ -126,8 +124,8 @@ public:
  * This class provides an interface to the physical drive threated here as an ethercat
  * slave. As its physical component, this class includes a state machine, which represents
  * the status of the physical drive itself. The user can trigger a state transition by
- * means of @ref ExternalEvents. The basic ones resemble the external
- * events taken by the physical drive and can be found <a
+ * means of @ref ExternalEvents. The basic ones resemble the external events taken by the
+ * physical drive and can be found <a
  * href="https://www.elmomc.com/members/NetHelp1/Elmo.htm#!object0x6040controlw.htm">here</a>.
  * On top of those, setpoint changing events can be used to modify the target position,
  * velocity or torque in OPERATION_ENABLED mode.
@@ -140,13 +138,12 @@ public:
  * - fast stop during operation
  * - reaction to a specific fault
  */
-class GoldSoloWhistleDrive : public QObject,
-                             public virtual EthercatSlave,
-                             public StateMachine
-{
+class GoldSoloWhistleDrive: public QObject,
+                            public virtual EthercatSlave,
+                            public StateMachine {
   Q_OBJECT
 
-public:
+ public:
   /**
    * @brief Constructor.
    * @param[in] slave_position Slave position in ethercat chain.
@@ -207,9 +204,17 @@ public:
    * href="https://www.elmomc.com/members/NetHelp1/Elmo.htm#!object0x6040controlw.htm">here</a>.
    * @{
    */
-  ////////////////////////////////////////////////////////////////////////////////////////////////////
-  //// External events resembling the ones internal to physical drive
-  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  //------- External events resembling the ones internal to physical drive -----------//
+  /**
+   * @brief Disable Voltage external event.
+   *
+   * Triggers following transitions:
+   * - READY TO SWITCH ON --> SWITCH ON DISABLED
+   * - OPERATION ENABLED --> SWITCH ON DISABLED
+   * - SWITCHED ON --> SWITCH ON DISABLED
+   * - QUICK STOP ACTIVE --> SWITCH ON DISABLED
+   */
+  void DisableVoltage();
   /**
    * @brief _Shutdown_ external event.
    *
@@ -242,16 +247,6 @@ public:
    */
   void DisableOperation();
   /**
-   * @brief Disable Voltage external event.
-   *
-   * Triggers following transitions:
-   * - READY TO SWITCH ON --> SWITCH ON DISABLED
-   * - OPERATION ENABLED --> SWITCH ON DISABLED
-   * - SWITCHED ON --> SWITCH ON DISABLED
-   * - QUICK STOP ACTIVE --> SWITCH ON DISABLED
-   */
-  void DisableVoltage();
-  /**
    * @brief Quick Stop external event.
    *
    * Triggers following transitions:
@@ -268,10 +263,7 @@ public:
    */
   void FaultReset();
 
-  //////////////////////////////////////////////////////////////////////////////////////////
-  //// Additional external events taken by this state machine
-  ///  when it's operational
-  //////////////////////////////////////////////////////////////////////////////////////////
+  //-- Additional external events taken by this state machine when it's operational --//
   /**
    * @brief Change Position external event.
    *
@@ -328,6 +320,7 @@ public:
   void SetTargetDefaults();
   /** @} */
 
+  //------- Methods called within the real-time cycle --------------------------------//
   /**
    * @brief ReadInputs
    */
@@ -336,14 +329,22 @@ public:
    * @brief WriteOutputs
    */
   void WriteOutputs() override final;
+  /**
+   * @brief SafeExit
+   */
+  void SafeExit() override final;
+  /**
+   * @brief IsReadyToShutDown
+   * @return
+   */
+  bool IsReadyToShutDown() const override final;
 
-signals:
+ signals:
   void driveFaulted() const;
   void logMessage(const QString&) const;
   void printMessage(const QString&) const;
 
-protected:
-  id_t id_;
+ protected:
   GSWDriveInPdos input_pdos_; /**< input_pdos_ */
 
   /**
@@ -365,42 +366,42 @@ protected:
    */
   void InitFun() override { ExternalEvent(ST_START); }
 
-private:
-  static constexpr uint8_t kDomainInputs = 7;
-  static constexpr uint8_t kDomainOutputs = 5;
-  static constexpr uint8_t kDomainEntries = kDomainInputs + kDomainOutputs;
-  static constexpr uint8_t kAlias = 0;
-  static constexpr uint32_t kVendorID = 0x0000009a;
-  static constexpr uint32_t kProductCode = 0x00030924;
-  static constexpr uint16_t kControlWordIdx = 0x6040;
-  static constexpr uint8_t kControlWordSubIdx = 0x00;
-  static constexpr uint16_t kHomingMethodIdx = 0x6098;
-  static constexpr uint8_t kHomingMethodSubIdx = 0x00;
-  static constexpr uint16_t kOpModeIdx = 0x6060;
-  static constexpr uint8_t kOpModeSubIdx = 0x00;
-  static constexpr uint16_t kTargetTorqueIdx = 0x6071;
-  static constexpr uint8_t kTargetTorqueSubIdx = 0x00;
-  static constexpr uint16_t kTargetPosIdx = 0x607a;
-  static constexpr uint8_t kTargetPosSubIdx = 0x00;
-  static constexpr uint16_t kTargetVelIdx = 0x60FF;
-  static constexpr uint8_t kTargetVelSubIdx = 0x00;
-  static constexpr uint16_t kStatusWordIdx = 0x6041;
-  static constexpr uint8_t kStatusWordSubIdx = 0x00;
-  static constexpr uint16_t kDisplayOpModeIdx = 0x6061;
-  static constexpr uint8_t kDisplayOpModeSubIdx = 0x00;
-  static constexpr uint16_t kPosActualValueIdx = 0x6064;
-  static constexpr uint8_t kPosActualValueSubIdx = 0x00;
-  static constexpr uint16_t kVelActualValueIdx = 0x606C;
-  static constexpr uint8_t kVelActualValueSubIdx = 0x00;
-  static constexpr uint16_t kTorqueActualValueIdx = 0x6077;
+ private:
+  static constexpr uint8_t kDomainInputs            = 7;
+  static constexpr uint8_t kDomainOutputs           = 5;
+  static constexpr uint8_t kDomainEntries           = kDomainInputs + kDomainOutputs;
+  static constexpr uint8_t kAlias                   = 0;
+  static constexpr uint32_t kVendorID               = 0x0000009a;
+  static constexpr uint32_t kProductCode            = 0x00030924;
+  static constexpr uint16_t kControlWordIdx         = 0x6040;
+  static constexpr uint8_t kControlWordSubIdx       = 0x00;
+  static constexpr uint16_t kHomingMethodIdx        = 0x6098;
+  static constexpr uint8_t kHomingMethodSubIdx      = 0x00;
+  static constexpr uint16_t kOpModeIdx              = 0x6060;
+  static constexpr uint8_t kOpModeSubIdx            = 0x00;
+  static constexpr uint16_t kTargetTorqueIdx        = 0x6071;
+  static constexpr uint8_t kTargetTorqueSubIdx      = 0x00;
+  static constexpr uint16_t kTargetPosIdx           = 0x607a;
+  static constexpr uint8_t kTargetPosSubIdx         = 0x00;
+  static constexpr uint16_t kTargetVelIdx           = 0x60FF;
+  static constexpr uint8_t kTargetVelSubIdx         = 0x00;
+  static constexpr uint16_t kStatusWordIdx          = 0x6041;
+  static constexpr uint8_t kStatusWordSubIdx        = 0x00;
+  static constexpr uint16_t kDisplayOpModeIdx       = 0x6061;
+  static constexpr uint8_t kDisplayOpModeSubIdx     = 0x00;
+  static constexpr uint16_t kPosActualValueIdx      = 0x6064;
+  static constexpr uint8_t kPosActualValueSubIdx    = 0x00;
+  static constexpr uint16_t kVelActualValueIdx      = 0x606C;
+  static constexpr uint8_t kVelActualValueSubIdx    = 0x00;
+  static constexpr uint16_t kTorqueActualValueIdx   = 0x6077;
   static constexpr uint8_t kTorqueActualValueSubIdx = 0x00;
-  static constexpr uint16_t kDigInIndex = 0x60FD;
-  static constexpr uint8_t kDigInSubIndex = 0x00;
-  static constexpr uint16_t kAuxPosActualValueIdx = 0x20A0;
+  static constexpr uint16_t kDigInIndex             = 0x60FD;
+  static constexpr uint8_t kDigInSubIndex           = 0x00;
+  static constexpr uint16_t kAuxPosActualValueIdx   = 0x20A0;
   static constexpr uint8_t kAuxPosActualValueSubIdx = 0x00;
-  static constexpr uint8_t kHomingOnPosMethod = 35;
-  static constexpr uint8_t kNumSupportedOperations = 3;
-  static constexpr uint8_t kOperationOffset = 8;
+  static constexpr uint8_t kHomingOnPosMethod       = 35;
+  static constexpr uint8_t kNumSupportedOperations  = 3;
+  static constexpr uint8_t kOperationOffset         = 8;
 
   // ethercat utilities, can be retrieved in the xml config file provided by the vendor
   static constexpr ec_pdo_entry_info_t kPdoEntries_[kDomainEntries] = {
@@ -455,18 +456,18 @@ private:
   // clang-format off
   ENUM_CLASS(StatusBit,
              READY_TO_SWITCH_ON = 0,
-             SWITCHED_ON = 1,
-             OPERATION_ENABLED = 2,
-             FAULT = 3,
-             QUICK_STOP = 5,
+             SWITCHED_ON        = 1,
+             OPERATION_ENABLED  = 2,
+             FAULT              = 3,
+             QUICK_STOP         = 5,
              SWITCH_ON_DISABLED = 6)
 
   ENUM_CLASS(ControlBit,
-             SWITCH_ON = 0,
-             ENABLE_VOLTAGE = 1,
-             QUICK_STOP = 2,
+             SWITCH_ON        = 0,
+             ENABLE_VOLTAGE   = 1,
+             QUICK_STOP       = 2,
              ENABLE_OPERATION = 3,
-             FAULT = 7)
+             FAULT            = 7)
   // clang-format on
 
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries]; // ethercat utilities
@@ -479,8 +480,8 @@ private:
 
   void EcPrintCb(const std::string& msg, const char color = 'w') const override;
 
-private:
-  //--------- State machine --------------------------------------------------//
+ private:
+  //--------- State machine ----------------------------------------------------------//
 
   // clang-format off
   static constexpr char* kStatesStr_[] = {

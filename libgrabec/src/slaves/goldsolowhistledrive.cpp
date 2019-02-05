@@ -1,24 +1,22 @@
 /**
  * @file goldsolowhistledrive.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 22 Gen 2019
+ * @date 05 Feb 2019
  * @brief File containing class implementation declared in goldsolowhistledrive.h.
  */
 
 #include "slaves/goldsolowhistledrive.h"
 
-namespace grabec
-{
+namespace grabec {
 
-////////////////////////////////////////////////////////////////////////////
-//// GoldSoloWhistleDriveData
-////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------------//
+// GoldSoloWhistleDriveData
+//------------------------------------------------------------------------------------//
 
 GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
                                                    const int32_t _value /*= 0*/)
   : op_mode(_op_mode), value(_value)
-{
-}
+{}
 
 GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
                                                    const GSWDriveInPdos& input_pdos,
@@ -50,9 +48,9 @@ GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
   }
 }
 
-////////////////////////////////////////////////////////////////////////////
-//// GoldSoloWhistleDrive
-////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------------//
+// GoldSoloWhistleDrive
+//------------------------------------------------------------------------------------//
 
 // Must provide redundant definition of the static member as well as the declaration.
 constexpr ec_pdo_entry_info_t GoldSoloWhistleDrive::kPdoEntries_[];
@@ -62,50 +60,113 @@ constexpr char* GoldSoloWhistleDrive::kStatesStr_[];
 
 GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position,
                                            QObject* parent /*= NULL*/)
-  : QObject(parent), StateMachine(ST_MAX_STATES), id_(id)
+  : QObject(parent), StateMachine(ST_MAX_STATES)
 {
-  alias_ = kAlias;
-  position_ = slave_position;
-  vendor_id_ = kVendorID;
-  product_code_ = kProductCode;
+  alias_              = kAlias;
+  position_           = slave_position;
+  vendor_id_          = kVendorID;
+  product_code_       = kProductCode;
   num_domain_entries_ = kDomainEntries;
+  id_                 = id;
 
-  domain_registers_[0] = {alias_, position_, vendor_id_, product_code_, kControlWordIdx,
-                          kControlWordSubIdx, &offset_out_.control_word, NULL};
-  domain_registers_[1] = {alias_, position_, vendor_id_, product_code_, kOpModeIdx,
-                          kOpModeSubIdx, &offset_out_.op_mode, NULL};
-  domain_registers_[2] = {alias_, position_, vendor_id_, product_code_, kTargetTorqueIdx,
-                          kTargetTorqueSubIdx, &offset_out_.target_torque, NULL};
-  domain_registers_[3] = {alias_, position_, vendor_id_, product_code_, kTargetPosIdx,
-                          kTargetPosSubIdx, &offset_out_.target_position, NULL};
-  domain_registers_[4] = {alias_, position_, vendor_id_, product_code_, kTargetVelIdx,
-                          kTargetVelSubIdx, &offset_out_.target_velocity, NULL};
-  domain_registers_[5] = {alias_, position_, vendor_id_, product_code_, kStatusWordIdx,
-                          kStatusWordSubIdx, &offset_in_.status_word, NULL};
-  domain_registers_[6] = {alias_, position_, vendor_id_, product_code_, kDisplayOpModeIdx,
-                          kDisplayOpModeSubIdx, &offset_in_.display_op_mode, NULL};
-  domain_registers_[7] = {alias_, position_, vendor_id_, product_code_,
-                          kPosActualValueIdx, kPosActualValueSubIdx,
-                          &offset_in_.position_actual_value, NULL};
-  domain_registers_[8] = {alias_, position_, vendor_id_, product_code_,
-                          kVelActualValueIdx, kVelActualValueSubIdx,
-                          &offset_in_.velocity_actual_value, NULL};
-  domain_registers_[9] = {alias_, position_, vendor_id_, product_code_,
-                          kTorqueActualValueIdx, kTorqueActualValueSubIdx,
-                          &offset_in_.torque_actual_value, NULL};
-  domain_registers_[10] = {alias_, position_, vendor_id_, product_code_, kDigInIndex,
-                           kDigInSubIndex, &offset_in_.digital_inputs, NULL};
-  domain_registers_[11] = {alias_, position_, vendor_id_, product_code_,
-                           kAuxPosActualValueIdx, kAuxPosActualValueSubIdx,
-                           &offset_in_.aux_pos_actual_value, NULL};
+  domain_registers_[0]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kControlWordIdx,
+                          kControlWordSubIdx,
+                          &offset_out_.control_word,
+                          NULL};
+  domain_registers_[1]  = {alias_,     position_,     vendor_id_,           product_code_,
+                          kOpModeIdx, kOpModeSubIdx, &offset_out_.op_mode, NULL};
+  domain_registers_[2]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kTargetTorqueIdx,
+                          kTargetTorqueSubIdx,
+                          &offset_out_.target_torque,
+                          NULL};
+  domain_registers_[3]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kTargetPosIdx,
+                          kTargetPosSubIdx,
+                          &offset_out_.target_position,
+                          NULL};
+  domain_registers_[4]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kTargetVelIdx,
+                          kTargetVelSubIdx,
+                          &offset_out_.target_velocity,
+                          NULL};
+  domain_registers_[5]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kStatusWordIdx,
+                          kStatusWordSubIdx,
+                          &offset_in_.status_word,
+                          NULL};
+  domain_registers_[6]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kDisplayOpModeIdx,
+                          kDisplayOpModeSubIdx,
+                          &offset_in_.display_op_mode,
+                          NULL};
+  domain_registers_[7]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kPosActualValueIdx,
+                          kPosActualValueSubIdx,
+                          &offset_in_.position_actual_value,
+                          NULL};
+  domain_registers_[8]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kVelActualValueIdx,
+                          kVelActualValueSubIdx,
+                          &offset_in_.velocity_actual_value,
+                          NULL};
+  domain_registers_[9]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kTorqueActualValueIdx,
+                          kTorqueActualValueSubIdx,
+                          &offset_in_.torque_actual_value,
+                          NULL};
+  domain_registers_[10] = {alias_,
+                           position_,
+                           vendor_id_,
+                           product_code_,
+                           kDigInIndex,
+                           kDigInSubIndex,
+                           &offset_in_.digital_inputs,
+                           NULL};
+  domain_registers_[11] = {alias_,
+                           position_,
+                           vendor_id_,
+                           product_code_,
+                           kAuxPosActualValueIdx,
+                           kAuxPosActualValueSubIdx,
+                           &offset_in_.aux_pos_actual_value,
+                           NULL};
 
-  domain_registers_ptr_ = domain_registers_;
+  domain_registers_ptr_  = domain_registers_;
   slave_pdo_entries_ptr_ = const_cast<ec_pdo_entry_info_t*>(kPdoEntries_);
-  slave_pdos_ptr_ = const_cast<ec_pdo_info_t*>(kPDOs_);
-  slave_sync_ptr_ = const_cast<ec_sync_info_t*>(kSyncs_);
+  slave_pdos_ptr_        = const_cast<ec_pdo_info_t*>(kPDOs_);
+  slave_sync_ptr_        = const_cast<ec_sync_info_t*>(kSyncs_);
 
   drive_state_ = ST_START;
-  prev_state_ = static_cast<GoldSoloWhistleDriveStates>(GetCurrentState());
+  prev_state_  = static_cast<GoldSoloWhistleDriveStates>(GetCurrentState());
 }
 
 GoldSoloWhistleDriveStates
@@ -145,9 +206,7 @@ std::string GoldSoloWhistleDrive::GetDriveStateStr(const Bitfield16& status_word
   return kStatesStr_[GetDriveState(status_word)];
 }
 
-////////////////////////////////////////////////////////////////////////////
-//// Overwritten virtual functions from base class
-////////////////////////////////////////////////////////////////////////////
+//----- Overwritten virtual functions from base class --------------------------------//
 
 RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
 {
@@ -240,6 +299,26 @@ void GoldSoloWhistleDrive::WriteOutputs()
   }
 }
 
+void GoldSoloWhistleDrive::SafeExit()
+{
+  switch (prev_state_)
+  {
+  case ST_SWITCH_ON_DISABLED:
+    break;
+  case ST_FAULT:
+    FaultReset(); // clear fault and disable drive completely
+    break;
+  default:
+    DisableVoltage(); // disable drive completely
+    break;
+  }
+}
+
+bool GoldSoloWhistleDrive::IsReadyToShutDown() const
+{
+  return prev_state_ == ST_SWITCH_ON_DISABLED;
+}
+
 void GoldSoloWhistleDrive::EcPrintCb(const std::string& msg,
                                      const char color /* = 'w' */) const
 {
@@ -250,9 +329,7 @@ void GoldSoloWhistleDrive::EcPrintCb(const std::string& msg,
     emit logMessage(msg.c_str());
 }
 
-////////////////////////////////////////////////////////////////////////////
-//// External events taken by this state machine
-////////////////////////////////////////////////////////////////////////////
+//----- External events taken by this state machine ----------------------------------//
 
 void GoldSoloWhistleDrive::Shutdown()
 {
@@ -273,7 +350,7 @@ void GoldSoloWhistleDrive::SwitchOn()
   output_pdos_.control_word.Clear(ControlBit::ENABLE_OPERATION);
   output_pdos_.control_word.Clear(ControlBit::FAULT);
   // Setup default operational mode before enabling the drive
-  output_pdos_.op_mode = CYCLIC_POSITION;
+  output_pdos_.op_mode         = CYCLIC_POSITION;
   output_pdos_.target_position = input_pdos_.pos_actual_value;
 }
 
@@ -405,16 +482,15 @@ void GoldSoloWhistleDrive::SetTargetDefaults()
   SetChange(data);
 }
 
-void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData* data)
-{
+void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData* data) {
   // clang-format off
-  BEGIN_TRANSITION_MAP                                               // - Current State -
+  BEGIN_TRANSITION_MAP                               // - Current State -
     TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)              // ST_START
     TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)              // ST_NOT_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)               // ST_SWITCH_ON_DISABLED
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)               // ST_READY_TO_SWITCH_ON
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)               // ST_SWITCHED_ON
-    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED) // ST_OPERATION_ENABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_SWITCH_ON_DISABLED
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_SWITCHED_ON
+    TRANSITION_MAP_ENTRY(ST_OPERATION_ENABLED)       // ST_OPERATION_ENABLED
     TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_QUICK_STOP_ACTIVE
     TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_FAULT_REACTION_ACTIVE
     TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_FAULT
@@ -422,9 +498,7 @@ void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData* data)
   // clang-format on
 }
 
-////////////////////////////////////////////////////////////////////////////
-//// States actions
-////////////////////////////////////////////////////////////////////////////
+//----- States actions ---------------------------------------------------------------//
 
 STATE_DEFINE(GoldSoloWhistleDrive, Start, NoEventData)
 {
@@ -507,9 +581,7 @@ STATE_DEFINE(GoldSoloWhistleDrive, Fault, NoEventData)
   emit driveFaulted();
 }
 
-////////////////////////////////////////////////////////////////////////////
-//// Miscellaneous
-////////////////////////////////////////////////////////////////////////////
+//----- Miscellaneous ----------------------------------------------------------------//
 
 inline void GoldSoloWhistleDrive::PrintCommand(const char* cmd) const
 {

@@ -1,7 +1,7 @@
 /**
  * @file threads.cpp
  * @author Simone Comari
- * @date 24 Gen 2019
+ * @date 05 Feb 2019
  * @brief File containing definitions of functions and class declared in threads.h.
  */
 
@@ -164,9 +164,9 @@ void DisplayThreadSchedAttr(const pthread_t thread_id /*= pthread_self()*/)
   DisplaySchedAttr(policy, param);
 }
 
-//------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------//
 //  Thread CLASS
-//------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------//
 
 Thread::Thread(const cpu_set_t& cpu_set, const std::string& thread_name /*= "Thread"*/)
 {
@@ -375,10 +375,21 @@ int Thread::GetReady(const uint64_t cycle_time_nsec /*= 1000000LL*/)
   return 0;
 }
 
+void Thread::Pause()
+{
+  pthread_mutex_lock(&mutex_);
+  run_ = false;
+  pthread_mutex_unlock(&mutex_);
+}
+
 void Thread::Unpause()
 {
   if (IsActive())
-    run_ = true;
+  {
+    pthread_mutex_lock(&mutex_);
+    run_ = false;
+    pthread_mutex_unlock(&mutex_);
+  }
 }
 
 void Thread::Stop()
@@ -516,11 +527,13 @@ void Thread::TargetFun()
   while (!(stop_cmd_recv_ || rt_deadline_missed_))
   {
     clock.Reset();
-    while (run_ & !rt_deadline_missed_)
+    while (!rt_deadline_missed_)
     {
       max_wait_time = clock.GetNextTime();
       if (pthread_mutex_timedlock(&mutex_, &max_wait_time) == 0)
       {
+        if (!run_)
+          break;
         loop_fun_ptr_(loop_fun_args_ptr_);
         pthread_mutex_unlock(&mutex_);
       }

@@ -1,14 +1,13 @@
 /**
  * @file ethercatslave.cpp
  * @author Simone Comari
- * @date 25 Gen 2019
+ * @date 05 Feb 2019
  * @brief File containing definitions of functions and class declared in ethercatslave.h.
  */
 
 #include "ethercatslave.h"
 
-namespace grabec
-{
+namespace grabec {
 
 EthercatSlave::~EthercatSlave() {} // necessary for pure abstract destructor
 
@@ -47,7 +46,7 @@ ec_pdo_entry_reg_t EthercatSlave::GetDomainRegister(uint8_t index) const
   return domain_registers_ptr_[index];
 }
 
-//--------- Protected virtual functions --------------------------------------------------------//
+//--------- Protected virtual functions ----------------------------------------------//
 
 RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)
 {

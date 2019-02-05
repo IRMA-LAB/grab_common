@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.h
  * @author Edoardo Idà, Simone Comari
- * @date 24 Gen 2019
+ * @date 05 Feb 2019
  * @brief This file includes an abstract class to setup an ethercat master-slave
  * communication.
  */
@@ -112,7 +112,7 @@ class EthercatMaster {
   pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER; /**< RT thread mutex. */
 
   RtThreadsParams threads_params_; /**< Threads scheduler parameters. */
-  grabrt::Thread thread_rt_;       /** Reatl-time thread. */
+  grabrt::Thread thread_rt_;       /** Real-time thread. */
 
   /** @defgroup EthercatUtilities EtherCAT Utilities
    * This group collects all EtherCAT-specific elements in a generic master-slave
@@ -134,8 +134,9 @@ class EthercatMaster {
   /** @} */                     // end of EthercatUtilities group
 
   std::vector<EthercatSlave*> slaves_ptrs_; /**< Vector of pointers to slaves. */
-  size_t num_slaves_;               /**< Number of slaves on the ethercat network */
-  uint8_t num_domain_elements_ = 0; /**< Number of elements in ethercat domain. */
+  size_t num_slaves_;                     /**< Number of slaves on the ethercat network */
+  uint8_t num_domain_elements_       = 0; /**< Number of elements in ethercat domain. */
+  double max_shutdown_wait_time_sec_ = 1; /**< Maximum waiting time to shutdown slaves */
 
   /**
    * @brief EcStartUpFun

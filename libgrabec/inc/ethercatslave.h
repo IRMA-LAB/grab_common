@@ -1,7 +1,7 @@
 /**
  * @file ethercatslave.h
  * @author Edoardo Idà, Simone Comari
- * @date 14 Gen 2019
+ * @date 05 Feb 2019
  * @brief File containing EtherCAT slaves to be included in the GRAB EtherCAT library.
  */
 
@@ -11,8 +11,7 @@
 #include "ecrt.h"
 #include "types.h"
 
-namespace grabec
-{
+namespace grabec {
 
 /**
  * @brief EtherCAT slave pure abstract class interface.
@@ -21,9 +20,8 @@ namespace grabec
  * the design of our specific slave, reminding that the ethercat slave interface requires
  * to overload some functions. These functions are the ones marked as virtual.
  */
-class EthercatSlave
-{
-public:
+class EthercatSlave {
+ public:
   /**
    * @brief EthercatSlave
    */
@@ -50,11 +48,11 @@ public:
   /**
    * @brief ReadInputs
    */
-  virtual void ReadInputs() = 0;   // pure virtual
+  virtual void ReadInputs() = 0; // pure virtual
   /**
    * @brief WriteOutputs
    */
-  virtual void WriteOutputs() = 0;   // pure virtual
+  virtual void WriteOutputs() = 0; // pure virtual
   /**
    * @brief SafeExit
    */
@@ -78,7 +76,7 @@ public:
    */
   uint8_t GetDomainEntriesNum() const { return num_domain_entries_; }
 
-protected:
+ protected:
   /**
    * @addtogroup EthercatUtilities
    * @{
@@ -88,7 +86,7 @@ protected:
   uint16_t position_;          /**< Position of slave wrt master's. */
   uint32_t vendor_id_;         /**< Vendor unique identifier. */
   uint32_t product_code_;      /**< Product code (unique). */
-  uint8_t id_;                 /**< ID(?) */
+  id_t id_;                    /**< Slave unique identifier. */
 
   uint8_t* domain_data_ptr_;                 /**< Pointer to ethercat domain data. */
   ec_pdo_entry_reg_t* domain_registers_ptr_; /**< Pointer to ethercat domain registers. */
@@ -116,7 +114,7 @@ protected:
    */
   virtual void EcPrintCb(const std::string& msg, const char color = 'w') const;
 
-private:
+ private:
   void SetDomainDataPtr(uint8_t* domain_data_ptr);
 };
 
