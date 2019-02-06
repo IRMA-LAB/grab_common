@@ -364,7 +364,7 @@ class GoldSoloWhistleDrive: public QObject,
   /**
    * @brief InitFun
    */
-  void InitFun() override { ExternalEvent(ST_START); }
+  void InitFun() override;
 
  private:
   static constexpr uint8_t kDomainInputs            = 7;

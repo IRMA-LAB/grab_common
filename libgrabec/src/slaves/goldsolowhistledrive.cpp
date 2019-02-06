@@ -26,25 +26,25 @@ GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
   // Set target value to current one
   switch (op_mode)
   {
-  case CYCLIC_POSITION:
-    value = input_pdos.pos_actual_value;
-    if (verbose)
-      printf("\tTarget operational mode: CYCLIC_POSITION @ %d\n", value);
-    break;
-  case CYCLIC_VELOCITY:
-    value = input_pdos.vel_actual_value;
-    if (verbose)
-      printf("\tTarget operational mode: CYCLIC_VELOCITY @ %d\n", value);
-    break;
-  case CYCLIC_TORQUE:
-    value = input_pdos.torque_actual_value;
-    if (verbose)
-      printf("\tTarget operational mode: CYCLIC_TORQUE @ %d\n", value);
-    break;
-  default:
-    if (verbose)
-      printf("\tTarget operational mode: NO_MODE\n");
-    break;
+    case CYCLIC_POSITION:
+      value = input_pdos.pos_actual_value;
+      if (verbose)
+        printf("\tTarget operational mode: CYCLIC_POSITION @ %d\n", value);
+      break;
+    case CYCLIC_VELOCITY:
+      value = input_pdos.vel_actual_value;
+      if (verbose)
+        printf("\tTarget operational mode: CYCLIC_VELOCITY @ %d\n", value);
+      break;
+    case CYCLIC_TORQUE:
+      value = input_pdos.torque_actual_value;
+      if (verbose)
+        printf("\tTarget operational mode: CYCLIC_TORQUE @ %d\n", value);
+      break;
+    default:
+      if (verbose)
+        printf("\tTarget operational mode: NO_MODE\n");
+      break;
   }
 }
 
@@ -303,18 +303,18 @@ void GoldSoloWhistleDrive::SafeExit()
 {
   switch (prev_state_)
   {
-  case ST_START:
-    break;
-  case ST_NOT_READY_TO_SWITCH_ON:
-    break;
-  case ST_SWITCH_ON_DISABLED:
-    break;
-  case ST_FAULT:
-    FaultReset(); // clear fault and disable drive completely
-    break;
-  default:
-    DisableVoltage(); // disable drive completely
-    break;
+    case ST_START:
+      break;
+    case ST_NOT_READY_TO_SWITCH_ON:
+      break;
+    case ST_SWITCH_ON_DISABLED:
+      break;
+    case ST_FAULT:
+      FaultReset(); // clear fault and disable drive completely
+      break;
+    default:
+      DisableVoltage(); // disable drive completely
+      break;
   }
 }
 
@@ -486,7 +486,8 @@ void GoldSoloWhistleDrive::SetTargetDefaults()
   SetChange(data);
 }
 
-void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData* data) {
+void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData* data)
+{
   // clang-format off
   BEGIN_TRANSITION_MAP                               // - Current State -
     TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)              // ST_START
@@ -499,6 +500,25 @@ void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData* data) {
     TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_FAULT_REACTION_ACTIVE
     TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_FAULT
   END_TRANSITION_MAP(data)
+  // clang-format on
+}
+
+//----- Protected functions ----------------------------------------------------------//
+
+void GoldSoloWhistleDrive::InitFun()
+{
+  // clang-format off
+  BEGIN_TRANSITION_MAP			          // - Current State -
+    TRANSITION_MAP_ENTRY (ST_START)               // ST_START
+    TRANSITION_MAP_ENTRY (CANNOT_HAPPEN)          // ST_NOT_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY (EVENT_IGNORED)          // ST_SWITCH_ON_DISABLED
+    TRANSITION_MAP_ENTRY (EVENT_IGNORED)          // ST_READY_TO_SWITCH_ON
+    TRANSITION_MAP_ENTRY (EVENT_IGNORED)          // ST_SWITCHED_ON
+    TRANSITION_MAP_ENTRY (EVENT_IGNORED)          // ST_OPERATION_ENABLED
+    TRANSITION_MAP_ENTRY (EVENT_IGNORED)          // ST_QUICK_STOP_ACTIVE
+    TRANSITION_MAP_ENTRY (EVENT_IGNORED)          // ST_FAULT_REACTION_ACTIVE
+    TRANSITION_MAP_ENTRY (EVENT_IGNORED)          // ST_FAULT
+  END_TRANSITION_MAP(NULL)
   // clang-format on
 }
 
@@ -549,17 +569,17 @@ STATE_DEFINE(GoldSoloWhistleDrive, OperationEnabled, GoldSoloWhistleDriveData)
   output_pdos_.op_mode = data->op_mode;
   switch (data->op_mode)
   {
-  case CYCLIC_POSITION:
-    output_pdos_.target_position = data->value;
-    break;
-  case CYCLIC_VELOCITY:
-    output_pdos_.target_velocity = data->value;
-    break;
-  case CYCLIC_TORQUE:
-    output_pdos_.target_torque = static_cast<int16_t>(data->value);
-    break;
-  default:
-    break;
+    case CYCLIC_POSITION:
+      output_pdos_.target_position = data->value;
+      break;
+    case CYCLIC_VELOCITY:
+      output_pdos_.target_velocity = data->value;
+      break;
+    case CYCLIC_TORQUE:
+      output_pdos_.target_torque = static_cast<int16_t>(data->value);
+      break;
+    default:
+      break;
   }
 
   prev_state_ = ST_OPERATION_ENABLED;

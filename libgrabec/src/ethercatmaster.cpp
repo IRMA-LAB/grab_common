@@ -33,22 +33,22 @@ void EthercatMaster::Start()
   thread_rt_.SetLoopFunc(&LoopFunWrapper, this);
   thread_rt_.SetEndFunc(&EndFunWrapper, this);
   thread_rt_.SetEmergencyExitFunc(&EmergencyExitFunWrapper, this);
-  // Setup EtherCAT communication
-  EcPrintCb("Initializing EtherCAT network...");
-  uint8_t ret = InitProtocol();
-  if (ret)
-  {
-    EcPrintCb("Initialization EtherCAT network " + GetRetValStr(FAIL), 'r');
-    EcStateChangedCb(check_state_flags_);
-    if (master_ptr_ != NULL)
-      ReleaseMaster();
-    return;
-  }
-  EcPrintCb("Initialization EtherCAT network COMPLETE");
   mutex_ = thread_rt_.Mutex();
   // Adjust this thread
   grabrt::SetThreadCPUs(grabrt::BuildCPUSet(threads_params_.gui_cpu_id));
   grabrt::SetThreadSchedAttr(SCHED_RR, threads_params_.gui_priority);
+  // Initialization is the same as reset
+  Reset();
+}
+
+void EthercatMaster::Reset()
+{
+  if (thread_rt_.IsActive())
+    thread_rt_.Stop();
+
+  // Setup EtherCAT communication
+  if (!SetupEcNtw())
+    return;
   // Start the new rt-thread
   if (~thread_rt_.GetReady(threads_params_.cycle_time_nsec))
   {
@@ -220,6 +220,22 @@ uint8_t EthercatMaster::InitProtocol()
     slaves_ptrs_[i]->Init(domain_data_ptr_);
 
   return OK;
+}
+
+bool EthercatMaster::SetupEcNtw()
+{
+  EcPrintCb("Initializing EtherCAT network...");
+  uint8_t ret = InitProtocol();
+  if (ret)
+  {
+    EcPrintCb("Initialization EtherCAT network " + GetRetValStr(FAIL), 'r');
+    EcStateChangedCb(check_state_flags_);
+    if (master_ptr_ != NULL)
+      ReleaseMaster();
+    return false;
+  }
+  EcPrintCb("Initialization EtherCAT network COMPLETE");
+  return true;
 }
 
 void EthercatMaster::CheckConfigState()

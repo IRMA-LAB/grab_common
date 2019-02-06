@@ -51,7 +51,7 @@ namespace grabrt {
   if (ret != 0)                                                                          \
     t.HandleErrorEnWrapper(ret, "pthread_create ");                                      \
   else                                                                                   \
-    printf("Thread START with ID: %ld\n", t.GetTID());
+    printf("[Thread] Thread START with ID: %ld\n", t.GetTID());
 #endif
 
 /**
@@ -178,7 +178,8 @@ void DisplayThreadSchedAttr(const pthread_t thread_id = pthread_self());
  * @brief This class provides a simple interface to setup and create a new thread, with
  * normal or real-time characteristics.
  */
-class Thread {
+class Thread
+{
  public:
   /**
    * @brief Default constructor.

@@ -20,7 +20,8 @@ namespace grabec {
  * the design of our specific slave, reminding that the ethercat slave interface requires
  * to overload some functions. These functions are the ones marked as virtual.
  */
-class EthercatSlave {
+class EthercatSlave
+{
  public:
   /**
    * @brief EthercatSlave

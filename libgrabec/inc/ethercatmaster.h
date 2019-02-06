@@ -64,6 +64,11 @@ class EthercatMaster {
   void Start();
 
   /**
+   * @brief Reset the master on a fresh new real-time thread.
+   */
+  void Reset();
+
+  /**
    * @brief Mutex
    * @return
    */
@@ -156,7 +161,6 @@ class EthercatMaster {
  private:
   //------- Thread related --------------------------------//
 
-
   static void StartUpFunWrapper(void* obj);
   static void LoopFunWrapper(void* obj);
   static void EndFunWrapper(void* obj);
@@ -168,6 +172,7 @@ class EthercatMaster {
 
  private:
   uint8_t InitProtocol();
+  bool SetupEcNtw();
 
   void CheckDomainState();
   void CheckMasterState();
