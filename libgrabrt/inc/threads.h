@@ -1,7 +1,7 @@
 /**
  * @file threads.h
  * @author Simone Comari
- * @date 05 Feb 2019
+ * @date 06 Feb 2019
  * @brief This file collects utilities to create a new thread in a user-friendly way,
  * hiding most of the complexity linked to multi-threading. It also allows the setup of a
  * real-time thread.
@@ -198,10 +198,7 @@ class Thread
    * and all physical cores in the CPU set.
    * @param[in] thread_name (Optional) Instance name.
    */
-  Thread(const std::string& thread_name = "Thread") : name_(thread_name)
-  {
-    InitDefault();
-  }
+  Thread(const std::string& thread_name = "Thread");
   /**
    * @brief Constructor with attributes.
    *
@@ -209,11 +206,7 @@ class Thread
    * @param[in] attr Desired thread attributes.
    * @param[in] thread_name (Optional) Instance name.
    */
-  Thread(pthread_attr_t& attr, const std::string& thread_name = "Thread")
-    : name_(thread_name)
-  {
-    SetAttr(attr);
-  }
+  Thread(pthread_attr_t& attr, const std::string& thread_name = "Thread");
   /**
    * @brief Constructor with CPU set.
    *

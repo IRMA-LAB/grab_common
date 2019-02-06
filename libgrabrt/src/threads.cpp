@@ -1,7 +1,7 @@
 /**
  * @file threads.cpp
  * @author Simone Comari
- * @date 05 Feb 2019
+ * @date 06 Feb 2019
  * @brief File containing definitions of functions and class declared in threads.h.
  */
 
@@ -29,8 +29,7 @@ void ReserveProcessMemory(const uint32_t size)
   for (uint32_t i = 0; i < size; i += sysconf(_SC_PAGESIZE))
     // Each write to this buffer will generate a pagefault.
     // Once the pagefault is handled a page will be locked in memory and never given back
-    // to
-    // the system.
+    // to the system.
     buffer[i] = 0;
 
   // buffer will now be released. As Glibc is configured such that it never gives back
@@ -52,16 +51,16 @@ cpu_set_t BuildCPUSet(const int cpu_core /*= ALL_CORES*/)
     HandleErrorEn(EINVAL, "BuildCPUSet ");
   switch (cpu_core)
   {
-  case ALL_CORES: // set all cores
-    for (size_t i = 0; i < static_cast<size_t>(CPU_CORES_NUM); i++)
-      CPU_SET(i, &cpu_set);
-    break;
-  case END_CORE:                                               // set affine single core
-    CPU_SET(static_cast<size_t>(CPU_CORES_NUM) - 1, &cpu_set); // last core
-    break;
-  default: // set affine single core
-    CPU_SET(static_cast<size_t>(cpu_core), &cpu_set);
-    break;
+    case ALL_CORES: // set all cores
+      for (size_t i = 0; i < static_cast<size_t>(CPU_CORES_NUM); i++)
+        CPU_SET(i, &cpu_set);
+      break;
+    case END_CORE:                                               // set affine single core
+      CPU_SET(static_cast<size_t>(CPU_CORES_NUM) - 1, &cpu_set); // last core
+      break;
+    default: // set affine single core
+      CPU_SET(static_cast<size_t>(cpu_core), &cpu_set);
+      break;
   }
   return cpu_set;
 }
@@ -167,6 +166,17 @@ void DisplayThreadSchedAttr(const pthread_t thread_id /*= pthread_self()*/)
 //------------------------------------------------------------------------------------//
 //  Thread CLASS
 //------------------------------------------------------------------------------------//
+
+Thread::Thread(const std::string& thread_name /*= "Thread"*/) : name_(thread_name)
+{
+  InitDefault();
+}
+
+Thread::Thread(pthread_attr_t& attr, const std::string& thread_name /*= "Thread"*/)
+  : name_(thread_name)
+{
+  SetAttr(attr);
+}
 
 Thread::Thread(const cpu_set_t& cpu_set, const std::string& thread_name /*= "Thread"*/)
 {

@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.cpp
  * @author Simone Comari
- * @date 05 Feb 2019
+ * @date 06 Feb 2019
  * @brief File containing definitions of functions and class declared in ethercatmaster.h.
  */
 
@@ -37,15 +37,6 @@ void EthercatMaster::Start()
   // Adjust this thread
   grabrt::SetThreadCPUs(grabrt::BuildCPUSet(threads_params_.gui_cpu_id));
   grabrt::SetThreadSchedAttr(SCHED_RR, threads_params_.gui_priority);
-  // Initialization is the same as reset
-  Reset();
-}
-
-void EthercatMaster::Reset()
-{
-  if (thread_rt_.IsActive())
-    thread_rt_.Stop();
-
   // Setup EtherCAT communication
   if (!SetupEcNtw())
     return;
@@ -55,6 +46,15 @@ void EthercatMaster::Reset()
     THREAD_RUN(thread_rt_);
   }
   EcRtThreadStatusChanged(thread_rt_.IsActive());
+}
+
+void EthercatMaster::Reset()
+{
+  if (thread_rt_.IsActive())
+    thread_rt_.Stop();
+  // We must create a fresh new thread once the previous is stopped.
+  thread_rt_ = grabrt::Thread();
+  Start();
 }
 
 //--------- Protected functions --------------------------------------------------------//
