@@ -41,7 +41,7 @@ void ReserveProcessMemory(const uint32_t size)
   free(buffer);
 }
 
-cpu_set_t BuildCPUSet(const int cpu_core /*= ALL_CORES*/)
+cpu_set_t BuildCPUSet(const int8_t cpu_core /*= ALL_CORES*/)
 {
   // init
   cpu_set_t cpu_set;
@@ -56,7 +56,7 @@ cpu_set_t BuildCPUSet(const int cpu_core /*= ALL_CORES*/)
         CPU_SET(i, &cpu_set);
       break;
     case END_CORE:                                               // set affine single core
-      CPU_SET(static_cast<size_t>(CPU_CORES_NUM) - 1, &cpu_set); // last core
+      CPU_SET(CPU_CORES_NUM - 1, &cpu_set); // last core
       break;
     default: // set affine single core
       CPU_SET(static_cast<size_t>(cpu_core), &cpu_set);
@@ -65,7 +65,7 @@ cpu_set_t BuildCPUSet(const int cpu_core /*= ALL_CORES*/)
   return cpu_set;
 }
 
-cpu_set_t BuildCPUSet(const std::vector<size_t>& cpu_cores)
+cpu_set_t BuildCPUSet(const std::vector<int8_t>& cpu_cores)
 {
   // init
   cpu_set_t cpu_set;
@@ -77,11 +77,11 @@ cpu_set_t BuildCPUSet(const std::vector<size_t>& cpu_cores)
   for (auto const& core : cpu_cores)
   {
     // validity check on single core
-    if (core >= static_cast<size_t>(CPU_CORES_NUM))
+    if (core >= CPU_CORES_NUM)
       HandleErrorEn(EINVAL, "BuildCPUSet ");
 
-    if (core == static_cast<size_t>(END_CORE))
-      CPU_SET(static_cast<size_t>(CPU_CORES_NUM) - 1, &cpu_set); // last core
+    if (core == END_CORE)
+      CPU_SET(CPU_CORES_NUM - 1, &cpu_set); // last core
     else
       CPU_SET(core, &cpu_set);
   }
@@ -237,7 +237,7 @@ void Thread::SetCPUs(const cpu_set_t& cpu_set)
   pthread_mutex_unlock(&mutex_);
 }
 
-void Thread::SetCPUs(const int cpu_core /*= ALL_CORES*/)
+void Thread::SetCPUs(const int8_t cpu_core /*= ALL_CORES*/)
 {
   pthread_mutex_lock(&mutex_);
   cpu_set_ = BuildCPUSet(cpu_core);
@@ -246,7 +246,7 @@ void Thread::SetCPUs(const int cpu_core /*= ALL_CORES*/)
   pthread_mutex_unlock(&mutex_);
 }
 
-void Thread::SetCPUs(const std::vector<size_t>& cpu_cores)
+void Thread::SetCPUs(const std::vector<int8_t>& cpu_cores)
 {
   pthread_mutex_lock(&mutex_);
   cpu_set_ = BuildCPUSet(cpu_cores);

@@ -33,7 +33,7 @@ namespace grabec
 struct RtThreadsParams
 {
   int8_t gui_cpu_id = 0;               /**< CPU ID for GUI (parent) thread */
-  int8_t rt_cpu_id = grabrt::END_CORE; /**< CPU ID for RT (child) master thread */
+  std::vector<int8_t> rt_cpu_id {2, grabrt::END_CORE}; /**< CPU ID for RT (child) master thread */
   uint8_t gui_priority = 60;           /**< scheduler priority of GUI (parent) thread */
   uint8_t rt_priority = 98; /**< scheduler priority of RT (child) master thread */
   uint32_t cycle_time_nsec = 1000000; /**< RT master thread cycle time */

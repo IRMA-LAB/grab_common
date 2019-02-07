@@ -58,7 +58,7 @@ namespace grabrt {
  * @brief Enum to collect particular core entries as argument to BuildCPUSet().
  * @see BuildCPUSet()
  */
-enum CpuCores
+enum CpuCores : int8_t
 {
   END_CORE  = -1, /**< select end physical core on the machine (#CPU_CORES_NUM - 1). */
   ALL_CORES = -2  /**< select all physical cores on the machine. */
@@ -91,7 +91,7 @@ void ReserveProcessMemory(const uint32_t size = 0xa00000); // Memory locks
  * @note For further details about the implementation, click
  * <a href="https://www.systutorials.com/docs/linux/man/3-CPU_SET/">here</a>.
  */
-cpu_set_t BuildCPUSet(const int cpu_core = ALL_CORES);
+cpu_set_t BuildCPUSet(const int8_t cpu_core = ALL_CORES);
 
 /**
  * @brief Build a valid CPU set with an arbitrary, yet valid, number of cores.
@@ -102,7 +102,7 @@ cpu_set_t BuildCPUSet(const int cpu_core = ALL_CORES);
  * @return A CPU set.
  * @see CpuCores BuildCPUSet()
  */
-cpu_set_t BuildCPUSet(const std::vector<size_t>& cpu_cores);
+cpu_set_t BuildCPUSet(const std::vector<int8_t>& cpu_cores);
 
 /**
  * @brief Set a given CPU set for a specific thread.
@@ -286,7 +286,7 @@ class Thread
    * ones.
    * @see CpuCores BuildCPUSet()
    */
-  void SetCPUs(const int cpu_core = ALL_CORES);
+  void SetCPUs(const int8_t cpu_core = ALL_CORES);
   /**
    * @brief Build a valid CPU set with an arbitrary, yet valid, number of cores and assign
    * it to the thread.
@@ -296,7 +296,7 @@ class Thread
    * - #END_CORE
    * @see CpuCores BuildCPUSet()
    */
-  void SetCPUs(const std::vector<size_t>& cpu_cores);
+  void SetCPUs(const std::vector<int8_t>& cpu_cores);
   /**
    * @brief Set thread scheduling attributes.
    * @param[in] policy A scheduling policy. Valid options are @b SCHED_FIFO or @b SCHED_RR
