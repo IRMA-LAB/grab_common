@@ -1,5 +1,5 @@
-#ifndef _GRABCOMMON_PID_H_
-#define _GRABCOMMON_PID_H_
+#ifndef GRABCOMMON_PID_H
+#define GRABCOMMON_PID_H
 
 #include <limits>
 
@@ -21,6 +21,11 @@ class PID
    * @return The manipulated variable given a setpoint and current process value
    */
   double Calculate(const double& setpoint, const double& current_value);
+
+  /**
+   * @brief Reset the controller's priors.
+   */
+  void Reset();
 
  private:
   double Ts_;
@@ -45,4 +50,4 @@ class PID
   void ComputeConstants();
 };
 
-#endif
+#endif // GRABCOMMON_PID_H

@@ -28,6 +28,8 @@ PID::PID(const double& Ts, const double& Kp, const double& Kd, const double& Ki,
   ComputeConstants();
 }
 
+//--------- Public functions ---------------------------------------------------------//
+
 double PID::Calculate(const double& setpoint, const double& current_value)
 {
   // Calculate error
@@ -51,6 +53,16 @@ double PID::Calculate(const double& setpoint, const double& current_value)
 
   return output;
 }
+
+void PID::Reset()
+{
+  pre_error_      = 0.0;
+  pre_pre_error_  = 0.0;
+  pre_output_     = 0.0;
+  pre_pre_output_ = 0.0;
+}
+
+//--------- Private functions --------------------------------------------------------//
 
 void PID::ComputeConstants()
 {
