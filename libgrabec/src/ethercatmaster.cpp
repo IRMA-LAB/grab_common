@@ -36,7 +36,7 @@ void EthercatMaster::Start()
   mutex_ = thread_rt_.Mutex();
   // Adjust this thread
   grabrt::SetThreadCPUs(grabrt::BuildCPUSet(threads_params_.gui_cpu_id));
-  grabrt::SetThreadSchedAttr(SCHED_RR, threads_params_.gui_priority);
+  grabrt::SetThreadSchedAttr(SCHED_OTHER, threads_params_.gui_priority);
   // Setup EtherCAT communication
   if (!SetupEcNtw())
     return;
