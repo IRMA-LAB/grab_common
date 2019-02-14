@@ -15,6 +15,17 @@ class PID
       const double& Tf, const double& max, const double& min);
 
   /**
+   * @brief GetError
+   * @return
+   */
+  double GetError() const { return pre_error_; }
+  /**
+   * @brief GetPrevError
+   * @return
+   */
+  double GetPrevError() const { return pre_pre_error_; }
+
+  /**
    * @brief Returns the manipulated variable given a setpoint and current process value.
    * @param setpoint
    * @param current_value
