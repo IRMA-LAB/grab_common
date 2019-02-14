@@ -71,6 +71,24 @@
   GET_MACRO(__VA_ARGS__, FE_9, FE_8, FE_7, FE_6, FE_5, FE_4, FE_3, FE_2, FE_1)(action,         \
                                                                          __VA_ARGS__)
 
+/*---------------------- Generic enums ------------------------*/
+
+/**
+ *@brief The RetVal enum
+ */
+enum RetVal : uint8_t
+{
+  OK,       /**< success */
+  ECONFIG,  /**< configuration error */
+  EREG,     /**< registration error */
+  EACTIVE,  /**< activation error */
+  EINIT,    /**< initialization error */
+  EINV,     /**< invalid error */
+  EINT,     /**< interrupt error */
+  ETIMEOUT, /**< time-out errro */
+  EFAIL     /**< generic error */
+};
+
 /*---------------------- Generic functions ------------------------*/
 
 /**
@@ -83,13 +101,38 @@
  */
 [[noreturn]] void HandleErrorEn(const int en, const char* msg);
 
+/**
+ * @brief PrintColor
+ * @param color
+ * @param text
+ */
 void PrintColor(const char color, const char* text, ...);
+/**
+ * @brief PrintColor
+ * @param color
+ * @param text
+ * @param args
+ */
 void PrintColor(const char color, const char* text, va_list args);
 
 template <typename T> T sign(const T& value)
 {
   return value >= 0 ? static_cast<T>(1) : static_cast<T>(-1);
 }
+
+/**
+ * @brief DispRetVal
+ * @param err
+ * @param msg
+ */
+void DispRetVal(const int err, const char* msg, ...);
+
+/**
+ * @brief GetRetValStr
+ * @param err
+ * @return
+ */
+std::string GetRetValStr(const int err);
 
 /*---------------------- Generic classes ------------------------*/
 

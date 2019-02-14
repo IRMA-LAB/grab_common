@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.cpp
  * @author Simone Comari
- * @date 06 Feb 2019
+ * @date 14 Feb 2019
  * @brief File containing definitions of functions and class declared in ethercatmaster.h.
  */
 
@@ -228,7 +228,7 @@ bool EthercatMaster::SetupEcNtw()
   uint8_t ret = InitProtocol();
   if (ret)
   {
-    EcPrintCb("Initialization EtherCAT network " + GetRetValStr(FAIL), 'r');
+    EcPrintCb("Initialization EtherCAT network " + GetRetValStr(EFAIL), 'r');
     EcStateChangedCb(check_state_flags_);
     if (master_ptr_ != NULL)
       ReleaseMaster();
