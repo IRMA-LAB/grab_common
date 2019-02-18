@@ -35,8 +35,8 @@ void EthercatMaster::Start()
   thread_rt_.SetEmergencyExitFunc(&EmergencyExitFunWrapper, this);
   mutex_ = thread_rt_.Mutex();
   // Adjust this thread
-  grabrt::SetThreadCPUs(grabrt::BuildCPUSet(threads_params_.gui_cpu_id));
-  grabrt::SetThreadSchedAttr(SCHED_OTHER, threads_params_.gui_priority);
+  grabrt::SetThreadCPUs(grabrt::BuildCPUSet(threads_params_.main_cpu_id));
+  grabrt::SetThreadSchedAttr(SCHED_OTHER);
   // Setup EtherCAT communication
   if (!SetupEcNtw())
     return;
