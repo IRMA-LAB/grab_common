@@ -3,6 +3,23 @@
 
 #include <limits>
 
+
+struct ParamsPID
+{
+  ParamsPID(const double& _Kp, const double& _Ki, const double& _Kd, const double& _Tf,
+            const double& _max, const double& _min)
+    : Kp(_Kp), Ki(_Ki), Kd(_Kd), Tf(_Tf), max(_max), min(_min)
+  {}
+
+  double Kp  = 0.0;
+  double Ki  = 0.0;
+  double Kd  = 0.0;
+  double Tf  = 0.0;
+  double max = std::numeric_limits<double>::infinity();
+  double min = -std::numeric_limits<double>::infinity();
+};
+
+
 class PID
 {
  public:
@@ -13,6 +30,7 @@ class PID
       const double& Tf);
   PID(const double& Ts, const double& Kp, const double& Kd, const double& Ki,
       const double& Tf, const double& max, const double& min);
+  PID(const double& Ts, const ParamsPID& params);
 
   /**
    * @brief GetError

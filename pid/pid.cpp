@@ -28,6 +28,11 @@ PID::PID(const double& Ts, const double& Kp, const double& Kd, const double& Ki,
   ComputeConstants();
 }
 
+PID::PID(const double& Ts, const ParamsPID& params)
+  : Ts_(Ts), Kp_(params.Kp), Kd_(params.Kd), Ki_(params.Ki), Tf_(params.Tf),
+    max_(params.max), min_(params.min)
+{}
+
 //--------- Public functions ---------------------------------------------------------//
 
 double PID::Calculate(const double& setpoint, const double& current_value)
@@ -71,7 +76,7 @@ void PID::ComputeConstants()
   double C = Kp_ * Tf_ + Kd_;
   double D = Tf_ + Ts_;
 
-  a_ = 1. + Tf_/ D;
+  a_ = 1. + Tf_ / D;
   b_ = -Tf_ / D;
   c_ = A / D;
   d_ = B / D;
