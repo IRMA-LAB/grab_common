@@ -5,16 +5,16 @@
 
 #include <QString>
 
-#include "libcdpr/inc/types.h"
-#include "json.hpp"
 #include "grabcommon.h"
+#include "json.hpp"
+#include "libcdpr/inc/types.h"
 
-// Aliases -----------------------------------------------------------
+// Aliases -----------------------------------------
 using json = nlohmann::json; // JSON library support
 
 class RobotConfigJsonParser
 {
-public:
+ public:
   RobotConfigJsonParser();
 
   bool ParseFile(const std::string& filename, const bool verbose = false);
@@ -32,7 +32,7 @@ public:
 
   void PrintConfig() const;
 
-private:
+ private:
   grabcdpr::Params config_params_;
   bool file_parsed_ = false;
 

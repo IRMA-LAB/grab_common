@@ -7,7 +7,7 @@ RobotConfigJsonParser::RobotConfigJsonParser()
   config_params_.platform = new grabcdpr::PlatformParams;
 }
 
-bool RobotConfigJsonParser::ParseFile(const std::string &filename,
+bool RobotConfigJsonParser::ParseFile(const std::string& filename,
                                       const bool verbose /* = false*/)
 {
   std::cout << "Parsing file '" << filename << "'...\n";
@@ -44,20 +44,20 @@ bool RobotConfigJsonParser::ParseFile(const std::string &filename,
   return file_parsed_;
 }
 
-bool RobotConfigJsonParser::ParseFile(const char *filename,
+bool RobotConfigJsonParser::ParseFile(const char* filename,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(std::string(filename), verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const QString &filename,
+bool RobotConfigJsonParser::ParseFile(const QString& filename,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(filename.toStdString(), verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const std::string &filename,
-                                      grabcdpr::Params *params,
+bool RobotConfigJsonParser::ParseFile(const std::string& filename,
+                                      grabcdpr::Params* params,
                                       const bool verbose /*= false*/)
 {
   if (ParseFile(filename, verbose))
@@ -68,13 +68,13 @@ bool RobotConfigJsonParser::ParseFile(const std::string &filename,
   return false;
 }
 
-bool RobotConfigJsonParser::ParseFile(const char *filename, grabcdpr::Params *params,
+bool RobotConfigJsonParser::ParseFile(const char* filename, grabcdpr::Params* params,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(std::string(filename), params, verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const QString &filename, grabcdpr::Params *params,
+bool RobotConfigJsonParser::ParseFile(const QString& filename, grabcdpr::Params* params,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(filename.toStdString(), params, verbose);
@@ -122,7 +122,7 @@ void RobotConfigJsonParser::PrintConfig() const
 
 //--------- Private Functions --------------------------------------------------//
 
-bool RobotConfigJsonParser::ExtractConfig(const json &raw_data)
+bool RobotConfigJsonParser::ExtractConfig(const json& raw_data)
 {
   if (!ExtractPlatform(raw_data))
     return false;
@@ -131,7 +131,7 @@ bool RobotConfigJsonParser::ExtractConfig(const json &raw_data)
   return ExtractActuators(raw_data);
 }
 
-bool RobotConfigJsonParser::ExtractPlatform(const json &raw_data)
+bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
 {
   if (raw_data.count("platform") != 1)
   {
@@ -142,17 +142,17 @@ bool RobotConfigJsonParser::ExtractPlatform(const json &raw_data)
   std::string field;
   try
   {
-    field = "mass";
+    field                         = "mass";
     config_params_.platform->mass = platform[field];
     for (uint8_t i = 0; i < 3; i++)
     {
-      field = "ext_force_loc";
-      config_params_.platform->ext_force_loc(i + 1) = platform[field].at(i).at(0);
-      field = "ext_torque_loc";
+      field                                          = "ext_force_loc";
+      config_params_.platform->ext_force_loc(i + 1)  = platform[field].at(i).at(0);
+      field                                          = "ext_torque_loc";
       config_params_.platform->ext_torque_loc(i + 1) = platform[field].at(i).at(0);
-      field = "pos_PG_loc";
-      config_params_.platform->pos_PG_loc(i + 1) = platform[field].at(i).at(0);
-      field = "inertia_mat_G_loc";
+      field                                          = "pos_PG_loc";
+      config_params_.platform->pos_PG_loc(i + 1)     = platform[field].at(i).at(0);
+      field                                          = "inertia_mat_G_loc";
       config_params_.platform->inertia_mat_G_loc.SetRow(
         i + 1, platform[field].at(i).get<std::vector<double>>());
     }
@@ -166,7 +166,7 @@ bool RobotConfigJsonParser::ExtractPlatform(const json &raw_data)
   return ArePlatformParamsValid();
 }
 
-bool RobotConfigJsonParser::ExtractActuators(const json &raw_data)
+bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
 {
   if (raw_data.count("actuator") != 1)
   {
@@ -175,47 +175,47 @@ bool RobotConfigJsonParser::ExtractActuators(const json &raw_data)
   }
   json actuators = raw_data["actuator"];
   std::string field, subfield;
-  for (auto &actuator : actuators)
+  for (auto& actuator : actuators)
   {
     grabcdpr::ActuatorParams temp;
     try
     {
-      field = "active";
-      subfield = "";
-      temp.active = actuator[field];
-      field = "winch";
-      subfield = "drum_pitch";
-      temp.winch.drum_pitch = actuator[field][subfield];
-      subfield = "drum_diameter";
-      temp.winch.drum_diameter = actuator[field][subfield];
-      subfield = "gear_ratio";
-      temp.winch.gear_ratio = actuator[field][subfield];
-      subfield = "l0";
-      temp.winch.l0 = actuator[field][subfield];
-      subfield = "motor_encoder_res";
+      field                        = "active";
+      subfield                     = "";
+      temp.active                  = actuator[field];
+      field                        = "winch";
+      subfield                     = "drum_pitch";
+      temp.winch.drum_pitch        = actuator[field][subfield];
+      subfield                     = "drum_diameter";
+      temp.winch.drum_diameter     = actuator[field][subfield];
+      subfield                     = "gear_ratio";
+      temp.winch.gear_ratio        = actuator[field][subfield];
+      subfield                     = "l0";
+      temp.winch.l0                = actuator[field][subfield];
+      subfield                     = "motor_encoder_res";
       temp.winch.motor_encoder_res = actuator[field][subfield];
 
       for (uint8_t i = 0; i < 3; i++)
       {
-        field = "winch";
-        subfield = "pos_PA_loc";
+        field                        = "winch";
+        subfield                     = "pos_PA_loc";
         temp.winch.pos_PA_loc(i + 1) = actuator[field][subfield].at(i).at(0);
 
-        field = "pulley";
-        subfield = "pos_OD_glob";
+        field                          = "pulley";
+        subfield                       = "pos_OD_glob";
         temp.pulley.pos_OD_glob(i + 1) = actuator[field][subfield].at(i).at(0);
-        subfield = "vers_i";
-        temp.pulley.vers_i(i + 1) = actuator[field][subfield].at(i).at(0);
-        subfield = "vers_j";
-        temp.pulley.vers_j(i + 1) = actuator[field][subfield].at(i).at(0);
-        subfield = "vers_k";
-        temp.pulley.vers_k(i + 1) = actuator[field][subfield].at(i).at(0);
+        subfield                       = "vers_i";
+        temp.pulley.vers_i(i + 1)      = actuator[field][subfield].at(i).at(0);
+        subfield                       = "vers_j";
+        temp.pulley.vers_j(i + 1)      = actuator[field][subfield].at(i).at(0);
+        subfield                       = "vers_k";
+        temp.pulley.vers_k(i + 1)      = actuator[field][subfield].at(i).at(0);
       }
 
-      subfield = "encoder_res";
+      subfield                = "encoder_res";
       temp.pulley.encoder_res = actuator[field][subfield];
-      subfield = "radius";
-      temp.pulley.radius = actuator[field][subfield];
+      subfield                = "radius";
+      temp.pulley.radius      = actuator[field][subfield];
     }
     catch (json::type_error)
     {
@@ -252,7 +252,7 @@ bool RobotConfigJsonParser::ArePlatformParamsValid() const
 }
 
 bool RobotConfigJsonParser::AreCableParamsValid(
-  const grabcdpr::ActuatorParams &params) const
+  const grabcdpr::ActuatorParams& params) const
 {
   bool ret = true;
 
