@@ -1,42 +1,77 @@
 #include "pid/pid.h"
 
-
-PID::PID(const double& Ts, const double& Kp) : Ts_(Ts), Kp_(Kp) { ComputeConstants(); }
-
-PID::PID(const double& Ts, const double& Kp, const double& Kd) : Ts_(Ts), Kp_(Kp), Kd_(Kd)
+PID::PID(const double& Ts) : Ts_(Ts)
 {
+  assert(Ts > 0);
   ComputeConstants();
 }
 
-PID::PID(const double& Ts, const double& Kp, const double& Kd, const double& Ki)
-  : Ts_(Ts), Kp_(Kp), Kd_(Kd), Ki_(Ki)
+PID::PID(const double& Ts, const double& Kp) : Ts_(Ts), Kp_(Kp)
 {
+  assert(Ts > 0);
   ComputeConstants();
 }
 
-PID::PID(const double& Ts, const double& Kp, const double& Kd, const double& Ki,
+PID::PID(const double& Ts, const double& Kp, const double& Ki) : Ts_(Ts), Kp_(Kp), Ki_(Ki)
+{
+  assert(Ts > 0);
+  ComputeConstants();
+}
+
+PID::PID(const double& Ts, const double& Kp, const double& Ki, const double& Kd)
+  : Ts_(Ts), Kp_(Kp), Ki_(Ki), Kd_(Kd)
+{
+  assert(Ts > 0);
+  ComputeConstants();
+}
+
+PID::PID(const double& Ts, const double& Kp, const double& Ki, const double& Kd,
          const double& Tf)
-  : Ts_(Ts), Kp_(Kp), Kd_(Kd), Ki_(Ki), Tf_(Tf)
+  : Ts_(Ts), Kp_(Kp), Ki_(Ki), Kd_(Kd), Tf_(Tf)
 {
+  assert(Ts > 0);
   ComputeConstants();
 }
 
-PID::PID(const double& Ts, const double& Kp, const double& Kd, const double& Ki,
+PID::PID(const double& Ts, const double& Kp, const double& Ki, const double& Kd,
          const double& Tf, const double& max, const double& min)
-  : Ts_(Ts), Kp_(Kp), Kd_(Kd), Ki_(Ki), Tf_(Tf), max_(max), min_(min)
+  : Ts_(Ts), Kp_(Kp), Ki_(Ki), Kd_(Kd), Tf_(Tf), max_(max), min_(min)
 {
+  assert(Ts > 0);
   ComputeConstants();
 }
 
-PID::PID(const double& Ts, const ParamsPID& params)
-  : Ts_(Ts), Kp_(params.Kp), Kd_(params.Kd), Ki_(params.Ki), Tf_(params.Tf),
-    max_(params.max), min_(params.min)
-{}
+PID::PID(const double& Ts, const ParamsPID& params) : Ts_(Ts)
+{
+  assert(Ts > 0);
+  SetParams(params);
+}
 
 //--------- Public functions ---------------------------------------------------------//
 
+void PID::SetParams(const ParamsPID& params)
+{
+  Kp_  = params.Kp;
+  Ki_  = params.Ki;
+  Kd_  = params.Kd;
+  Tf_  = params.Tf;
+  max_ = params.max;
+  min_ = params.min;
+
+  ComputeConstants();
+  Reset();
+}
+
 double PID::Calculate(const double& setpoint, const double& current_value)
 {
+  // Initialize previous outputs if not done already
+  if (!initialized_)
+  {
+    pre_pre_output_ = current_value;
+    pre_output_     = current_value;
+    initialized_    = true;
+  }
+
   // Calculate error
   double error = setpoint - current_value;
 
@@ -65,6 +100,16 @@ void PID::Reset()
   pre_pre_error_  = 0.0;
   pre_output_     = 0.0;
   pre_pre_output_ = 0.0;
+  initialized_    = false;
+}
+
+void PID::Reset(const double& init_val)
+{
+  pre_error_      = 0.0;
+  pre_pre_error_  = 0.0;
+  pre_output_     = init_val;
+  pre_pre_output_ = init_val;
+  initialized_    = true;
 }
 
 //--------- Private functions --------------------------------------------------------//

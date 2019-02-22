@@ -2,7 +2,7 @@
 #define GRABCOMMON_PID_H
 
 #include <limits>
-
+#include <assert.h>
 
 struct ParamsPID
 {
@@ -23,14 +23,21 @@ struct ParamsPID
 class PID
 {
  public:
+  PID(const double& Ts);
   PID(const double& Ts, const double& Kp);
-  PID(const double& Ts, const double& Kp, const double& Kd);
-  PID(const double& Ts, const double& Kp, const double& Kd, const double& Ki);
-  PID(const double& Ts, const double& Kp, const double& Kd, const double& Ki,
+  PID(const double& Ts, const double& Kp, const double& Ki);
+  PID(const double& Ts, const double& Kp, const double& Ki, const double& Kd);
+  PID(const double& Ts, const double& Kp, const double& Ki, const double& Kd,
       const double& Tf);
-  PID(const double& Ts, const double& Kp, const double& Kd, const double& Ki,
+  PID(const double& Ts, const double& Kp, const double& Ki, const double& Kd,
       const double& Tf, const double& max, const double& min);
   PID(const double& Ts, const ParamsPID& params);
+
+  /**
+   * @brief SetParams
+   * @param params
+   */
+  void SetParams(const ParamsPID& params);
 
   /**
    * @brief GetError
@@ -55,16 +62,22 @@ class PID
    * @brief Reset the controller's priors.
    */
   void Reset();
+  /**
+   * @brief Reset the controller's priors and initialize previous outputs.
+   * @param init_val
+   */
+  void Reset(const double& init_val);
 
  private:
   double Ts_;
   double Kp_  = 0.0;
-  double Kd_  = 0.0;
   double Ki_  = 0.0;
+  double Kd_  = 0.0;
   double Tf_  = 0.0;
   double max_ = std::numeric_limits<double>::infinity();
   double min_ = -std::numeric_limits<double>::infinity();
 
+  bool initialized_      = false;
   double pre_error_      = 0.0;
   double pre_pre_error_  = 0.0;
   double pre_output_     = 0.0;
