@@ -15,15 +15,15 @@ void PrintColor(const char color, const char* text, ...)
   std::string full_text;
   switch (color)
   {
-  case 'y':
-    full_text = ANSI_COLOR_YELLOW + (text_str + ANSI_COLOR_RESET + "\n");
-    break;
-  case 'r':
-    full_text = ANSI_COLOR_RED + (text_str + ANSI_COLOR_RESET + "\n");
-    break;
-  default:
-    full_text = text_str + "\n";
-    break;
+    case 'y':
+      full_text = ANSI_COLOR_YELLOW + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    case 'r':
+      full_text = ANSI_COLOR_RED + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    default:
+      full_text = text_str + "\n";
+      break;
   }
   vprintf(full_text.c_str(), args);
   va_end(args);
@@ -35,20 +35,20 @@ void PrintColor(const char color, const char* text, va_list args)
   std::string full_text;
   switch (color)
   {
-  case 'y':
-    full_text = ANSI_COLOR_YELLOW + (text_str + ANSI_COLOR_RESET + "\n");
-    break;
-  case 'r':
-    full_text = ANSI_COLOR_RED + (text_str + ANSI_COLOR_RESET + "\n");
-    break;
-  default:
-    full_text = text_str + "\n";
-    break;
+    case 'y':
+      full_text = ANSI_COLOR_YELLOW + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    case 'r':
+      full_text = ANSI_COLOR_RED + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    default:
+      full_text = text_str + "\n";
+      break;
   }
   vprintf(full_text.c_str(), args);
 }
 
-void DispRetVal(const int err, const char * msg, ...)
+void DispRetVal(const int err, const char* msg, ...)
 {
   va_list args;
   va_start(args, msg);
@@ -85,4 +85,16 @@ std::string GetRetValStr(const int err)
       break;
   }
   return description;
+}
+
+void RunMatlabScript(const std::string& script_location, const bool display /*= false*/)
+{
+  std::string cmd;
+  if (display)
+    cmd = "matlab -nosplash -nodesktop -r \"try, run('" + script_location +
+          "'), catch, exit, end, exit\"";
+  else
+    cmd = "matlab -nodisplay -nosplash -nodesktop -r \"try, run('" + script_location +
+          "'), catch, exit, end, exit\"";
+  system(cmd.c_str());
 }

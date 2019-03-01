@@ -10,10 +10,10 @@
 #define GRABCOMMON_H
 
 #include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <stdarg.h>
 
 #include "bitfield.h"
 
@@ -25,7 +25,7 @@
 #define ANSI_COLOR_BLUE "\x1b[34m"   /**< ANSI _blue_ codex for colorful printings. */
 #define ANSI_COLOR_MAGENTA                                                               \
   "\x1b[35m"                       /**< ANSI _magenta_ codex for colorful printings.     \
-                                      */
+                                    */
 #define ANSI_COLOR_CYAN "\x1b[36m" /**< ANSI _cyan_ codex for colorful printings. */
 #define ANSI_COLOR_RESET                                                                 \
   "\x1b[0m" /**< ANSI color reset codex after colorful printings. */
@@ -68,8 +68,8 @@
 //... repeat as needed
 #define GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, NAME, ...) NAME
 #define FOR_EACH(action, ...)                                                            \
-  GET_MACRO(__VA_ARGS__, FE_9, FE_8, FE_7, FE_6, FE_5, FE_4, FE_3, FE_2, FE_1)(action,         \
-                                                                         __VA_ARGS__)
+  GET_MACRO(__VA_ARGS__, FE_9, FE_8, FE_7, FE_6, FE_5, FE_4, FE_3, FE_2, FE_1)           \
+  (action, __VA_ARGS__)
 
 /*---------------------- Generic enums ------------------------*/
 
@@ -134,6 +134,12 @@ void DispRetVal(const int err, const char* msg, ...);
  */
 std::string GetRetValStr(const int err);
 
+/**
+ * @brief RunMatlabScript
+ * @param script_location
+ */
+void RunMatlabScript(const std::string& script_location, const bool display = false);
+
 /*---------------------- Generic classes ------------------------*/
 
 /**
@@ -141,7 +147,7 @@ std::string GetRetValStr(const int err);
  */
 template <typename T> class RingBuffer
 {
-public:
+ public:
   RingBuffer(const size_t buffer_size) { buffer_.resize(buffer_size); }
   RingBuffer(const size_t buffer_size, const T& element)
   {
@@ -235,7 +241,7 @@ public:
    */
   void Add(const T& element)
   {
-    ring_idx_ = linear_idx_ % buffer_.size();
+    ring_idx_          = linear_idx_ % buffer_.size();
     buffer_[ring_idx_] = element;
     linear_idx_++;
   }
@@ -246,14 +252,14 @@ public:
   void Clear()
   {
     linear_idx_ = 0UL;
-    ring_idx_ = 0UL;
+    ring_idx_   = 0UL;
     buffer_.clear();
   }
 
-private:
+ private:
   std::vector<T> buffer_;
   uint64_t linear_idx_ = 0UL;
-  uint64_t ring_idx_ = 0UL;
+  uint64_t ring_idx_   = 0UL;
 };
 
 using RingBufferD = RingBuffer<double>;
