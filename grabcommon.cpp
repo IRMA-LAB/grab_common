@@ -89,12 +89,21 @@ std::string GetRetValStr(const int err)
 
 void RunMatlabScript(const std::string& script_location, const bool display /*= false*/)
 {
-  std::string cmd;
-  if (display)
-    cmd = "matlab -nosplash -nodesktop -r \"try, run('" + script_location +
-          "'), catch, exit, end, exit\"";
-  else
-    cmd = "matlab -nodisplay -nosplash -nodesktop -r \"try, run('" + script_location +
-          "'), catch, exit, end, exit\"";
-  system(cmd.c_str());
+  std::string cmd = "try,run('" + script_location + "'),catch,exit,end,exit";
+
+  char* args[7];
+  args[0] = (char*)("matlab");
+  args[1] = (char*)("-nosplash");
+  args[2] = (char*)(display ? "" : "-nodisplay");
+  args[3] = (char*)("-nodesktop");
+  args[4] = (char*)("-r");
+  args[5] = (char*)cmd.c_str();
+  args[6] = NULL;
+
+  pid_t pid = vfork();
+  if (pid == 0)
+    if (execvp(args[0], args) == -1) // child
+      perror("exec");
+  if (pid > 0)
+    wait(0); // parent
 }

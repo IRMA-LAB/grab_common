@@ -55,7 +55,7 @@ cpu_set_t BuildCPUSet(const int8_t cpu_core /*= ALL_CORES*/)
       for (size_t i = 0; i < static_cast<size_t>(CPU_CORES_NUM); i++)
         CPU_SET(i, &cpu_set);
       break;
-    case END_CORE:                                               // set affine single core
+    case END_CORE:                          // set affine single core
       CPU_SET(CPU_CORES_NUM - 1, &cpu_set); // last core
       break;
     default: // set affine single core
@@ -558,9 +558,12 @@ void Thread::TargetFun()
   {
     PrintColor('r', "[%s] RT deadline missed. Thread will close automatically.",
                name_.c_str());
-    pthread_mutex_lock(&mutex_);
-    emergency_exit_fun_ptr_(emergency_exit_fun_args_ptr_);
-    pthread_mutex_unlock(&mutex_);
+    if (emergency_exit_fun_args_ptr_ != NULL)
+    {
+      pthread_mutex_lock(&mutex_);
+      emergency_exit_fun_ptr_(emergency_exit_fun_args_ptr_);
+      pthread_mutex_unlock(&mutex_);
+    }
     run_    = false;
     active_ = false;
     return;
