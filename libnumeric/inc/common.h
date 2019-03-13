@@ -1,26 +1,27 @@
 /**
  * @file common.h
  * @author Simone Comari
- * @date 06 Dec 2018
+ * @date 13 Mar 2019
  * @brief File containing common basic utilities to be included in the GRAB numeric
  * library.
  */
+
 #ifndef GRABCOMMON_LIBNUMERIC_COMMON_H
 #define GRABCOMMON_LIBNUMERIC_COMMON_H
 
-#include <vector>
-#include <stdlib.h>
 #include <cmath>
+#include <stdlib.h>
+#include <vector>
 
 #ifndef SQUARE
 #define SQUARE(x) ((x) * (x)) /**< returns the square of an element. */
 #endif
 
-namespace grabnum
-{
+namespace grabnum {
 
 static constexpr double EPSILON = 1e-7; /**< tolerance for floating point comparison */
 
+template <typename T>
 /**
  * @brief Check whether two floating numbers are close within a certain tolerance.
  *
@@ -33,19 +34,18 @@ static constexpr double EPSILON = 1e-7; /**< tolerance for floating point compar
  * return _True_ if their absolute difference is within the threshold.
  * @see EPSILON
  */
-template <typename T>
 inline bool IsClose(const T a, const T b, const double tol = EPSILON)
 {
   return fabs(a - b) <= tol;
 }
 
+template <typename T>
 /**
- * Mean value of a standard vector.
- *
- * @param[in] vvect A m-dimensional standard vector.
+ * @brief Mean value of a standard vector.
+ * @param[in] vect A m-dimensional standard vector.
  * @return A scalar value.
  */
-template <typename T> double Mean(const std::vector<T>& vect)
+double Mean(const std::vector<T>& vect)
 {
   T sum = 0;
   for (size_t i = 0; i < vect.size(); ++i)
@@ -53,16 +53,16 @@ template <typename T> double Mean(const std::vector<T>& vect)
   return static_cast<double>(sum) / static_cast<double>(vect.size());
 }
 
+template <typename T>
 /**
- * Standard deviation of a standard vector.
- *
- * @param[in] vvect A m-dimensional standard vector.
+ * @brief Standard deviation of a standard vector.
+ * @param[in] vect A m-dimensional standard vector.
  * @return A scalar value.
  */
-template <typename T> double Std(const std::vector<T>& vect)
+double Std(const std::vector<T>& vect)
 {
   double mean = Mean(vect);
-  double sum = 0;
+  double sum  = 0;
   for (size_t i = 0; i < vect.size(); ++i)
     sum += SQUARE(vect[i] - mean);
   return sqrt(static_cast<double>(sum) / static_cast<double>(vect.size()));

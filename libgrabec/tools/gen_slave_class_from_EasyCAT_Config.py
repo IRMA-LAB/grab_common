@@ -68,43 +68,47 @@ public:
    */
   void WriteOutputs() override final;
   /**
-   * @brief SafeExit
+   * @brief Function called before shutting down the slave safely.
    */
   void SafeExit() override;
   /**
-   * @brief IsReadyToShutDown
-   * @return
+   * @brief Check if slave is ready to be shut down safely.
+   * @return _True_ if slave is ready, _false_ otherwise.
    */
   bool IsReadyToShutDown() const override;
 """ % tuple([config_params['DeviceName'][0].upper() +
              config_params['DeviceName'][1:]] * 5))
     if outputs_present:
         f.write("""
-  // Output buffer, i.e. data received from master (read)
+  /**
+   * @brief Output buffer union, i.e. data received from master (read).
+   */
   union CustBufferOut
   {
-    uint8_t Byte[%d];
+    uint8_t Byte[%d]; /**< Raw output buffer content. */
     struct
     {
 """ % (4 * np.ceil(len(config_params['Outputs']['Entries']) / 4.)))
         for entry in config_params['Outputs']['Entries']:
             f.write('      %s %s;\n' % (entry.DataType, entry.Name))
-        f.write("""    } Cust;
-  } BufferOut;
+        f.write("""    } Cust; /**< Custom structure resembling output entries as defined in the config. */
+  } BufferOut; /**< Output buffer, i.e. data received from master (read). */
 """)
     if inputs_present:
         f.write("""
-  // Input buffer, i.e. data sent to master (write)
+  /**
+   * @brief Input buffer union, i.e. data sent to master (write).
+   */
   union CustBufferIn
   {
-    uint8_t Byte[%d];
+    uint8_t Byte[%d]; /**< Raw input buffer content. */
     struct
     {
 """ % (4 * np.ceil(len(config_params['Inputs']['Entries']) / 4.)))
         for entry in config_params['Inputs']['Entries']:
             f.write('      %s %s;\n' % (entry.DataType, entry.Name))
-        f.write("""    } Cust;
-  } BufferIn;
+        f.write("""    } Cust; /**< Custom structure resembling input entries as defined in the config. */
+  } BufferIn; /**< Input buffer, i.e. data sent to master (write). */
 """)
     f.write("""
 protected:
@@ -115,11 +119,11 @@ private:
 """)
     f.write('  static constexpr uint8_t kDomainEntries_ = %s;\n' %
             config_params['DomainEntriesNum'])
-    f.write('  static constexpr uint8_t kAlias_ = %s;\n' %
+    f.write('  static constexpr uint8_t kAlias_         = %s;\n' %
             config_params['Alias'])
-    f.write('  static constexpr uint32_t kVendorID_ = %s;\n' %
+    f.write('  static constexpr uint32_t kVendorID_     = %s;\n' %
             config_params['VendorId'])
-    f.write('  static constexpr uint32_t kProductCode_ = %s;\n' %
+    f.write('  static constexpr uint32_t kProductCode_  = %s;\n' %
             config_params['ProductCode'])
     f.write("""
   // Ethercat utilities, describing index, subindex and bit length of each

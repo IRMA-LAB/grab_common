@@ -1,7 +1,7 @@
 /**
  * @file clocks.h
  * @author Simone Comari
- * @date 25 Gen 2019
+ * @date 13 Mar 2019
  * @brief This file includes time related utilities such as time conversion and clock
  * classes.
  */
@@ -9,50 +9,49 @@
 #ifndef GRABCOMMON_LIBGRABRT_CLOCKS_H
 #define GRABCOMMON_LIBGRABRT_CLOCKS_H
 
-#include <iostream>
 #include "grabcommon.h"
+#include <iostream>
 
 /**
- * @brief operator +
- * @param time1
- * @param time2
- * @return
+ * @brief operator + between two time structures.
+ * @param[in] time1 Time expressed in time structure.
+ * @param[in] time2 Time expressed in time structure.
+ * @return The resulting addition in time structure format.
  */
 struct timespec operator+(const struct timespec& time1, const struct timespec& time2);
 /**
- * @brief operator +
- * @param time1
- * @param time_sec
- * @return
+ * @brief operator + between two different time representations.
+ * @param[in] time1 Time expressed in time structure.
+ * @param[in] time_sec Time in seconds.
+ * @return The resulting addition in time structure format.
  */
 struct timespec operator+(const struct timespec& time1, const double& time_sec);
 /**
- * @brief operator +
- * @param time1
- * @param time_nsec
- * @return
+ * @brief operator + between two different time representations.
+ * @param[in] time1 Time expressed in time structure.
+ * @param[in] time_nsec Time in nanoseconds.
+ * @return The resulting addition in time structure format.
  */
 struct timespec operator+(const struct timespec& time1, const int64_t& time_nsec);
 /**
- * @brief operator +
- * @param time1
- * @param time_nsec
- * @return
+ * @brief operator + between two different time representations.
+ * @param[in] time1 Time expressed in time structure.
+ * @param[in] time_nsec Time in nanoseconds.
+ * @return The resulting addition in time structure format.
  */
 struct timespec operator+(const struct timespec& time1, const uint64_t& time_nsec);
 
-namespace grabrt
-{
+namespace grabrt {
 
 /**
-*@brief Converts seconds in nanoseconds.
-*@param seconds Time in seconds.
-*@return Time in nanoseconds.
-*/
+ *@brief Converts seconds in nanoseconds.
+ *@param[in] seconds Time in seconds.
+ *@return Time in nanoseconds.
+ */
 uint64_t Sec2NanoSec(const double seconds);
 /**
  * @brief Converts nanoseconds in seconds.
- * @param nanoseconds Time in nanoseconds.
+ * @param[in] nanoseconds Time in nanoseconds.
  * @return Time in seconds.
  */
 double NanoSec2Sec(const long nanoseconds);
@@ -62,10 +61,10 @@ double NanoSec2Sec(const long nanoseconds);
  */
 class Clock
 {
-public:
+ public:
   /**
-   * @brief Clock
-   * @param clk_name
+   * @brief Clock constructor.
+   * @param[in] clk_name Object name.
    */
   Clock(const std::string& clk_name = "ThreadClock");
   virtual ~Clock() {}
@@ -114,37 +113,38 @@ public:
    */
   virtual void DispCurrentTime() const;
 
-protected:
+ protected:
   std::string name_;     /**< .. */
   struct timespec time_; /**< .. */
 
   /**
-    */
+   * @brief Handle errno by printing a description of it and closing the application.
+   * @param[in] en errno.
+   * @param[in] msg Message to be print before closing the application.
+   */
   [[noreturn]] void HandleErrorEnWrapper(const int en, const char* msg) const;
 
-private:
+ private:
   struct timespec start_time_;
 };
 
 /**
  * @brief This simple class can be used to keep track of time to perform cyclic tasks such
- * as
- * in real-time thread loops.
+ * as in real-time thread loops.
  * @todo usage example.
  */
-class ThreadClock : public Clock
+class ThreadClock: public Clock
 {
-public:
+ public:
   /**
    * @brief Constructor.
    * @param[in] cycle_time_nsec (Optional) Cycle period in nanoseconds.
    * @param[in] clk_name (Optional) Instance name.
    */
   ThreadClock(const uint64_t cycle_time_nsec = 1000000LL,
-              const std::string& clk_name = "ThreadClock")
+              const std::string& clk_name    = "ThreadClock")
     : Clock(clk_name), period_nsec_(cycle_time_nsec)
-  {
-  }
+  {}
 
   /**
    * @brief Set cycle time.
@@ -160,8 +160,7 @@ public:
    * @brief Sets internal time to current value + _cycle period_ and sleep until that
    * time.
    * @note If request is less than or equal to the current value of the clock, then
-   * returns
-   * immediately without suspending the calling thread.
+   * returns immediately without suspending the calling thread.
    * @note For further details, click
    * <a href="http://man7.org/linux/man-pages/man2/clock_nanosleep.2.html">here</a>.
    */
@@ -195,12 +194,11 @@ public:
   void DispCurrentTime() const override;
   /**
    * @brief Sets internal time to current value + _cycle period_ and displays current
-   * internal
-   * time in a pretty format.
+   * internal time in a pretty format.
    */
   void DispNextTime();
 
-private:
+ private:
   uint64_t period_nsec_;
 };
 

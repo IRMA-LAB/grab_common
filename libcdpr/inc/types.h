@@ -1,7 +1,7 @@
 /**
- * @file types.h
+ * @file libcdpr/inc/types.h
  * @author Edoardo Idà, Simone Comari
- * @date 23 Oct 2018
+ * @date 13 Mar 2019
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -10,7 +10,7 @@
  * <caption id="legend">Legend</caption>
  * <tr><th>Name     <th>Symbol     <th>Expression  <th>Description
  * <tr><td> _Global frame_  <td>@f$\mathcal{O}@f$ <td> -<td> World frame, centered on
- *point
+ * point
  * @f$O@f$ and vertically aligned with gravitational axis.
  * <tr><td> _Local frame_  <td>@f$\mathcal{P}@f$ <td> -<td> Body-fixed frame centered
  * on an arbitrary point @f$P@f$ belonging to the platform and arbitrarly oriented.
@@ -22,18 +22,17 @@
  * <tr><td> _Local origin_  <td>@f$P@f$ <td> -<td> An arbitrary point rigidly fixed to the
  * platform, taken as the origin of _local frame_ @f$\mathcal{P}@f$.
  * <tr><td> _CoG_  <td>@f$G@f$ <td> - <td> The center of gravity (or baricenter) of the
- *platform.
+ * platform.
  * <tr><td> _Swivel pulley frame origin_  <td> @f$D_i@f$ <td> - <td> A fixed point around
  * which the _i-th_ swivel pulley swivels. It also coincides with the entry point on the
- *pulley
+ * pulley
  * of the cable unwinding from the _i-th_ winch. It is taken as origin of a fixed frame
- *used to
- * parametrize the position of the pulley wrt global frame.
+ * used to parametrize the position of the pulley wrt global frame.
  * <tr><td> _Swivel pulley exit point_  <td>@f$B_i@f$ <td> - <td> The exit point of the
  * cable from the _i-th_ swivel pulley, going to the platform. At this point the cable is
- *assumed
+ * assumed
  * to be tangent to the pulley and belonging to the pulley plane (always true in static
- *conditions).
+ * conditions).
  * <tr><td> _Platform attach point_  <td>@f$A_i@f$ <td> - <td> The attaching point of the
  * _i-th_ cable to the platform. This point is fixed wrt the local frame.
  * <tr><td> _Pulley center_  <td>@f$C_i@f$ <td> - <td> The revolving center of the _i-th_
@@ -48,24 +47,22 @@
  * <td> Local position of the platform's CoG @f$G@f$ expressed in local frame coordinates.
  * <tr><td> -  <td>@f$\mathbf{a}_i@f$ <td> @f$^\mathcal{O}(A_i - O)@f$ <td> Global
  * position of the attaching point of the _i-th_ cable to the platform expressed in global
- *frame
- * coordinates.
+ * frame coordinates.
  * <tr><td> -  <td>@f$\mathbf{a}'_i@f$ <td> @f$^\mathcal{O}(A_i - P)@f$ <td> Local
  * position of the attaching point of the _i-th_ cable to the platform expressed in global
- *frame
+ * frame
  * coordinates.
  * <tr><td> -  <td>@f$^\mathcal{P}\mathbf{a}'_i@f$ <td> @f$^\mathcal{P}(A_i - P)@f$
  * <td> Local position of the attaching point of the _i-th_ cable to the platform
- *expressed in
- * local frame coordinates.
+ * expressed in local frame coordinates.
  * <tr><td> -  <td>@f$\mathbf{d}_i@f$ <td> @f$^\mathcal{O}(D_i - O)@f$ <td> Global
  * position of point @f$D_i@f$ expressed in global frame coordinates. This is a fixed
- *vector.
+ * vector.
  * <tr><td> -  <td>@f$\mathbf{f}_i@f$ <td> @f$^\mathcal{O}(A_i - D_i)@f$ <td>
  * Time-variant vector expressed in global frame coordinates.
  * <tr><td> -  <td>@f$\mathbf{n}_i@f$ <td> @f$^\mathcal{O}(B_i - C_i)@f$ <td>
  * Time-variant vector expressed in global frame coordinates. Used to define tangent
- *angle.
+ * angle.
  * <tr><td> _Cable vector_  <td>@f$\boldsymbol{\rho}_i@f$ <td>
  * @f$^\mathcal{O}(A_i - B_i)@f$ <td> Cable vector expressed in global frame coordinates.
  * <tr><td> _Cable length_  <td>@f$l_i@f$ <td> @f$\|A_i - B_i\| +
@@ -104,8 +101,7 @@
  * @f$\hat{\mathbf{u}}_i \perp \hat{\mathbf{w}}_i \perp \hat{\mathbf{k}}_i@f$ <td>
  * @f$x@f$-axis versor of a time-variant body-fixed frame to the _i-th_ swivel pulley. In
  * particular, @f$\hat{\mathbf{u}}_i@f$ belongs to the pulley plane and it is
- *perpendicular to
- * @f$\hat{\mathbf{k}}_i@f$.
+ * perpendicular to @f$\hat{\mathbf{k}}_i@f$.
  * <tr><td> - <td>@f$\hat{\mathbf{w}}_i@f$ <td>
  * @f$\hat{\mathbf{u}}_i \perp \hat{\mathbf{w}}_i \perp \hat{\mathbf{k}}_i@f$ <td>
  * @f$y@f$-axis versor of a time-variant body-fixed frame to the _i-th_ swivel pulley. In
@@ -133,37 +129,32 @@
 #ifndef GRABCOMMON_LIBCDPR_TYPES_H
 #define GRABCOMMON_LIBCDPR_TYPES_H
 
-#include "rotations.h"
-#include "quaternions.h"
 #include "matrix_utilities.h"
+#include "quaternions.h"
+#include "rotations.h"
 
 /**
  * @brief namespace for CDPR-related utilities, such as kinematics and dynamics.
  */
-namespace grabcdpr
-{
+namespace grabcdpr {
 
-///////////////////////////////////////////////////////////////////////////////
-/// Enums
-///////////////////////////////////////////////////////////////////////////////
+//------ Enums -----------------------------------------------------------------------//
 
 /**
-* @brief Rotation parametrization enum.
-*
-* Defines the way a rotation matrix is determined according to the convention used.
-*/
+ * @brief Rotation parametrization enum.
+ *
+ * Defines the way a rotation matrix is determined according to the convention used.
+ */
 enum RotParametrization
 {
   EULER_ZYZ,    /**< _Euler_ angles convention with @f$Z_1Y_2Z_3@f$ order. */
   TAIT_BRYAN,   /**< _Tait-Bryan_ angles convention and @f$X_1Y_2Z_3@f$. */
   RPY,          /**< _Roll, Pitch, Yaw_ angles convention (from aviation). */
   TILT_TORSION, /**< _Tilt-and-torsion_ angles, a variation of _Euler_ angles convention.
-                   */
+                 */
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// Structs
-///////////////////////////////////////////////////////////////////////////////
+//------ Structs ---------------------------------------------------------------------//
 
 /**
  * @brief Structure collecting all common variables related to a generic 6DoF platform.
@@ -212,7 +203,7 @@ struct PlatformVarsBase
  * @see PlatformQuatVarsStruct
  * @note See @ref legend for symbols reference.
  */
-struct PlatformVars : PlatformVarsBase
+struct PlatformVars: PlatformVarsBase
 {
   RotParametrization angles_type = TILT_TORSION; /**< rotation parametrization used. */
 
@@ -290,27 +281,27 @@ struct PlatformVars : PlatformVarsBase
   void UpdatePose(const grabnum::Vector3d& _position,
                   const grabnum::Vector3d& _orientation)
   {
-    position = _position;
+    position    = _position;
     orientation = _orientation;
     for (uint8_t i = 1; i <= 3; ++i)
     {
-      pose(i) = position(i);
+      pose(i)     = position(i);
       pose(2 * i) = orientation(i);
     }
     switch (angles_type)
     {
-    case EULER_ZYZ:
-      rot_mat = grabgeom::EulerZYZ2Rot(orientation);
-      break;
-    case TAIT_BRYAN:
-      rot_mat = grabgeom::EulerXYZ2Rot(orientation);
-      break;
-    case RPY:
-      rot_mat = grabgeom::RPY2Rot(orientation);
-      break;
-    case TILT_TORSION:
-      rot_mat = grabgeom::TiltTorsion2Rot(orientation);
-      break;
+      case EULER_ZYZ:
+        rot_mat = grabgeom::EulerZYZ2Rot(orientation);
+        break;
+      case TAIT_BRYAN:
+        rot_mat = grabgeom::EulerXYZ2Rot(orientation);
+        break;
+      case RPY:
+        rot_mat = grabgeom::RPY2Rot(orientation);
+        break;
+      case TILT_TORSION:
+        rot_mat = grabgeom::TiltTorsion2Rot(orientation);
+        break;
     }
   }
 
@@ -328,22 +319,22 @@ struct PlatformVars : PlatformVarsBase
                  const grabnum::Vector3d& _orientation_dot,
                  const grabnum::Vector3d& _orientation)
   {
-    velocity = _velocity;
+    velocity        = _velocity;
     orientation_dot = _orientation_dot;
     switch (angles_type)
     {
-    case EULER_ZYZ:
-      h_mat = grabgeom::HtfZYZ(_orientation);
-      break;
-    case TAIT_BRYAN:
-      h_mat = grabgeom::HtfXYZ(_orientation);
-      break;
-    case TILT_TORSION:
-      h_mat = grabgeom::HtfRPY(_orientation);
-      break;
-    case RPY:
-      h_mat = grabgeom::HtfTiltTorsion(_orientation);
-      break;
+      case EULER_ZYZ:
+        h_mat = grabgeom::HtfZYZ(_orientation);
+        break;
+      case TAIT_BRYAN:
+        h_mat = grabgeom::HtfXYZ(_orientation);
+        break;
+      case TILT_TORSION:
+        h_mat = grabgeom::HtfRPY(_orientation);
+        break;
+      case RPY:
+        h_mat = grabgeom::HtfTiltTorsion(_orientation);
+        break;
     }
     angular_vel = h_mat * orientation_dot;
   }
@@ -383,22 +374,22 @@ struct PlatformVars : PlatformVarsBase
                  const grabnum::Vector3d& _orientation_dot,
                  const grabnum::Vector3d& _orientation, const grabnum::Matrix3d& _h_mat)
   {
-    acceleration = _acceleration;
+    acceleration     = _acceleration;
     orientation_ddot = _orientation_ddot;
     switch (angles_type)
     {
-    case TAIT_BRYAN:
-      dh_mat = grabgeom::DHtfXYZ(_orientation, _orientation_dot);
-      break;
-    case TILT_TORSION:
-      dh_mat = grabgeom::DHtfTiltTorsion(_orientation, _orientation_dot);
-      break;
-    case RPY:
-      dh_mat = grabgeom::DHtfRPY(_orientation, _orientation_dot);
-      break;
-    case EULER_ZYZ:
-      dh_mat = grabgeom::DHtfZYZ(_orientation, _orientation_dot);
-      break;
+      case TAIT_BRYAN:
+        dh_mat = grabgeom::DHtfXYZ(_orientation, _orientation_dot);
+        break;
+      case TILT_TORSION:
+        dh_mat = grabgeom::DHtfTiltTorsion(_orientation, _orientation_dot);
+        break;
+      case RPY:
+        dh_mat = grabgeom::DHtfRPY(_orientation, _orientation_dot);
+        break;
+      case EULER_ZYZ:
+        dh_mat = grabgeom::DHtfZYZ(_orientation, _orientation_dot);
+        break;
     }
     angular_acc = dh_mat * _orientation_dot + _h_mat * orientation_ddot;
   }
@@ -456,7 +447,7 @@ struct PlatformVars : PlatformVarsBase
  * @see PlatformVarsQuatStruct
  * @note See @ref legend for symbols reference.
  */
-struct PlatformQuatVars : PlatformVarsBase
+struct PlatformQuatVars: PlatformVarsBase
 {
   /** @addtogroup ZeroOrderKinematics
    * @{
@@ -522,11 +513,11 @@ struct PlatformQuatVars : PlatformVarsBase
   void UpdatePose(const grabnum::Vector3d& _position,
                   const grabgeom::Quaternion& _orientation)
   {
-    position = _position;
+    position    = _position;
     orientation = _orientation.q();
     for (uint8_t i = 1; i <= 3; ++i)
     {
-      pose(i) = position(i);
+      pose(i)     = position(i);
       pose(2 * i) = orientation(i);
     }
     pose(7) = orientation(4);
@@ -548,10 +539,10 @@ struct PlatformQuatVars : PlatformVarsBase
                  const grabgeom::Quaternion& _orientation_dot,
                  const grabgeom::Quaternion& _orientation)
   {
-    velocity = _velocity;
+    velocity        = _velocity;
     orientation_dot = _orientation_dot.q();
-    h_mat = grabgeom::HtfQuat(_orientation);
-    angular_vel = h_mat * orientation_dot;
+    h_mat           = grabgeom::HtfQuat(_orientation);
+    angular_vel     = h_mat * orientation_dot;
   }
   /**
    * @brief Update platform velocities with linear velocity and angles speed.
@@ -587,10 +578,10 @@ struct PlatformQuatVars : PlatformVarsBase
                  const grabgeom::Quaternion& _orientation_dot,
                  const grabnum::MatrixXd<3, 4>& _h_mat)
   {
-    acceleration = _acceleration;
+    acceleration     = _acceleration;
     orientation_ddot = _orientation_ddot.q();
-    dh_mat = grabgeom::DHtfQuat(_orientation_dot);
-    angular_acc = dh_mat * _orientation_dot.q() + _h_mat * orientation_ddot;
+    dh_mat           = grabgeom::DHtfQuat(_orientation_dot);
+    angular_acc      = dh_mat * _orientation_dot.q() + _h_mat * orientation_ddot;
   }
   /**
    * @brief Update platform accelerations with linear and quaternion acceleration.
@@ -732,8 +723,8 @@ struct PlatformParams
     ext_torque_loc; /**< [Nm] external torque vector expressed in the local frame. */
   grabnum::Vector3d
     ext_force_loc; /**< [N] external force vector expressed in the local frame. */
-  grabnum::Vector3d pos_PG_loc;        /**< [m] vector @f$^\mathcal{P}\mathbf{r}'@f$. */
-  double mass = 0.0; /**< [Kg] platform mass (@f$m@f$). */
+  grabnum::Vector3d pos_PG_loc; /**< [m] vector @f$^\mathcal{P}\mathbf{r}'@f$. */
+  double mass = 0.0;            /**< [Kg] platform mass (@f$m@f$). */
 };
 
 /**
@@ -748,9 +739,9 @@ struct PulleyParams
                                expressed in global frame. */
   grabnum::Vector3d vers_k; /**< versor @f$\hat{\mathbf{k}}_i@f$ of _i-th_ swivel pulley
                                expressed in global frame. */
-  double radius = 0.0; /**< [m] _i-th_ swivel pulley radius length @f$r_i@f$ */
+  double radius = 0.0;      /**< [m] _i-th_ swivel pulley radius length @f$r_i@f$ */
   uint32_t encoder_res =
-    0;                 /**< _i-th_ pulley encoder resolution in counts per revolution. */
+    0; /**< _i-th_ pulley encoder resolution in counts per revolution. */
 
   /**
    * @brief PulleyAngleFactorRad
@@ -772,9 +763,9 @@ struct WinchParams
   grabnum::Vector3d pos_PA_loc; /**< vector @f$\mathbf{a}_i'@f$. */
   double l0 = 0.0; /**< [m] length between @f$D_i@f$ and the exit point of the _i-th_
                       cable from the corresponding winch. */
-  double drum_pitch = 0.007;  /**< [m] todo..*/
-  double drum_diameter = 0.1; /**< [m] todo..*/
-  double gear_ratio = 5.0;    /**< [m] todo..*/
+  double drum_pitch    = 0.007; /**< [m] todo..*/
+  double drum_diameter = 0.1;   /**< [m] todo..*/
+  double gear_ratio    = 5.0;   /**< [m] todo..*/
   uint32_t motor_encoder_res =
     0; /**< motor encoder resolution in counts per revolution. */
 
@@ -798,7 +789,7 @@ struct WinchParams
  */
 struct ActuatorParams
 {
-  bool active = false;
+  bool active = false; /**< configuration of actuators. */
   PulleyParams pulley; /**< swivel pulley parameters set */
   WinchParams winch;   /**< winch parameters set */
 };

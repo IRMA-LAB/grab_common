@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.h
  * @author Edoardo Idà, Simone Comari
- * @date 05 Feb 2019
+ * @date 13 Mar 2019
  * @brief This file includes an abstract class to setup an ethercat master-slave
  * communication.
  */
@@ -44,7 +44,8 @@ namespace grabec {
  * that the ethercat master interface requires to overload some functions, which are
  * actually called every loop. This functions are the ones marked as @c virtual.
  */
-class EthercatMaster {
+class EthercatMaster
+{
  public:
   /**
    * @brief Default constructor.
@@ -69,36 +70,60 @@ class EthercatMaster {
   void Reset();
 
   /**
-   * @brief Mutex
-   * @return
+   * @brief Get a reference to real-time thread mutex.
+   * @return A reference to real-time thread mutex.
    */
   pthread_mutex_t& Mutex() { return mutex_; }
   /**
-   * @brief Mutex
-   * @return
+   * @brief Get a constant reference to real-time thread mutex.
+   * @return A constant reference to real-time thread mutex.
    */
   const pthread_mutex_t& Mutex() const { return mutex_; }
   /**
-   * @brief GetRtCycleTimeNsec
-   * @return
+   * @brief Get real-time thread cycle time in nanoseconds.
+   * @return Real-time thread cycle time in nanoseconds.
    */
   uint32_t GetRtCycleTimeNsec() const { return threads_params_.cycle_time_nsec; }
 
  protected:
   //------- Workaround to generate pseudo-qt-signals ------------------//
 
+  /**
+   * @brief EtherCAT network state changed pseudo-signal.
+   *
+   * This function emulates a signal emit, and it can be overridden to perform the actual
+   * signal emition in a Qt context, i.e. in a QObject which inherits from this class.
+   * @warning This function lives in the real-time thread, so keep it short if overridden.
+   */
   virtual void EcStateChangedCb(const Bitfield8& /*new_state*/) {}
+  /**
+   * @brief EtherCAT information print pseudo-signal.
+   *
+   * This function emulates a signal emit, and it can be overridden to perform the actual
+   * signal emition in a Qt context, i.e. in a QObject which inherits from this class.
+   * @param msg Message to be printed.
+   * @param color Color of the message. It can be 'w'(white) for standard messages
+   * (default), 'y' (yellow) for warnings, 'r' (red) for errors.
+   * @warning This function lives in the real-time thread, so keep it short if overridden.
+   */
   virtual void EcPrintCb(const std::string& msg, const char color = 'w') const;
+  /**
+   * @brief EtherCAT real-time thread state changed pseudo-signal.
+   *
+   * This function is called when the real-time deadline is missed.
+   * This function emulates a signal emit, and it can be overridden to perform the actual
+   * signal emition in a Qt context, i.e. in a QObject which inherits from this class.
+   * @warning This function lives in the real-time thread, so keep it short if overridden.
+   */
   virtual void EcRtThreadStatusChanged(const bool /*active*/) {}
 
  protected:
   /**
-   *@brief Ethercat state check flags bit position enum.
+   * @brief Ethercat state check flags bit position enum.
    *
    * The check_state_flags_ is a bitfield object where every bit represents the state of
-   *an
-   * element. 1 means element is _operational_, 0 that it is not. This enum helps grabbing
-   * the right element without remembering its position index.
+   * an element. 1 means element is _operational_, 0 that it is not. This enum helps
+   * grabbing the right element without remembering its position index.
    *
    * For instance, to check if master is operational:
    * @code{.cpp}
@@ -117,7 +142,7 @@ class EthercatMaster {
   pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER; /**< RT thread mutex. */
 
   RtThreadsParams threads_params_; /**< Threads scheduler parameters. */
-  grabrt::Thread thread_rt_;       /** Real-time thread. */
+  grabrt::Thread thread_rt_;       /**< Real-time thread. */
 
   /** @defgroup EthercatUtilities EtherCAT Utilities
    * This group collects all EtherCAT-specific elements in a generic master-slave
@@ -144,19 +169,19 @@ class EthercatMaster {
   double max_shutdown_wait_time_sec_ = 1; /**< Maximum waiting time to shutdown slaves */
 
   /**
-   * @brief EcStartUpFun
+   * @brief EtherCAT start up function, called once before the cycle begins.
    */
-  virtual void EcStartUpFun() {} // called before the cycle begins
+  virtual void EcStartUpFun() {}
 
   /**
-   * @brief EcWorkFun
+   * @brief EtherCAT main working/loop function, called at every cycle.
    */
-  virtual void EcWorkFun() = 0; // called at every cycle
+  virtual void EcWorkFun() = 0;
 
   /**
-   * @brief EcEmergencyFun
+   * @brief EtherCAT emergency exit function, called once on real-time deadline missed.
    */
-  virtual void EcEmergencyFun() {} // called at emergency exit (on rt deadline missed)
+  virtual void EcEmergencyFun() {}
 
  private:
   //------- Thread related --------------------------------//

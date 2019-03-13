@@ -1,7 +1,7 @@
 /**
  * @file ethercatslave.h
  * @author Edoardo Idà, Simone Comari
- * @date 05 Feb 2019
+ * @date 13 Mar 2019
  * @brief File containing EtherCAT slaves to be included in the GRAB EtherCAT library.
  */
 
@@ -24,56 +24,58 @@ class EthercatSlave
 {
  public:
   /**
-   * @brief EthercatSlave
+   * @brief EthercatSlave constructor.
    */
   EthercatSlave() {}
   virtual ~EthercatSlave() = 0; // pure virtual
 
   /**
    * @brief Initial function called before the cyclical task begins.
-   * @param _domain_data_ptr
+   * @param[in] domain_data_ptr EtherCAT domain data pointer.
    */
   void Init(uint8_t* domain_data_ptr);
 
   /**
-   * @brief Configure
-   * @param[in] master_ptr
-   * @param[out] config_ptr
+   * @brief Configure EtherCAT slave.
+   * @param[in] master_ptr Pointer to EtherCAT master.
+   * @param[out] config_ptr Pointer to EtherCAT configuration.
+   * @return 0 if configuration was successful, a strictly positive number otherwise.
    */
   RetVal Configure(ec_master_t* master_ptr, ec_slave_config_t** config_ptr);
 
   /**
-   * @brief DoWork
+   * @brief The main working function called at every cycle, after reading input and
+   * before writing outputs to the network.
    */
   virtual void DoWork() {}
   /**
-   * @brief ReadInputs
+   * @brief Read input PDOs.
    */
   virtual void ReadInputs() = 0; // pure virtual
   /**
-   * @brief WriteOutputs
+   * @brief Write output PDOs.
    */
   virtual void WriteOutputs() = 0; // pure virtual
   /**
-   * @brief SafeExit
+   * @brief Function called before shutting down the slave.
    */
   virtual void SafeExit() {}
   /**
-   * @brief IsReadyToShutDown
-   * @return
+   * @brief Check if slave is ready to be shut down safely.
+   * @return _True_ if slave is ready, _false_ otherwise.
    */
   virtual bool IsReadyToShutDown() const { return true; }
 
   /**
-   * @brief GetDomainRegister
-   * @param index
-   * @return
+   * @brief Get EtherCAT domain register.
+   * @param[in] index Index of inquired domain register.
+   * @return EtherCAT domain register.
    */
-  ec_pdo_entry_reg_t GetDomainRegister(uint8_t index) const;
+  ec_pdo_entry_reg_t GetDomainRegister(const uint8_t index) const;
 
   /**
-   * @brief GetDomainEntriesNum
-   * @return
+   * @brief Get total number of domain entries.
+   * @return Total number of domain entries.
    */
   uint8_t GetDomainEntriesNum() const { return num_domain_entries_; }
 
@@ -93,25 +95,30 @@ class EthercatSlave
   ec_pdo_entry_reg_t* domain_registers_ptr_; /**< Pointer to ethercat domain registers. */
   ec_pdo_entry_info_t* slave_pdo_entries_ptr_; /**< Pointer to ethercat PDOs entries. */
   ec_pdo_info_t* slave_pdos_ptr_;              /**< Pointer to ethercat PDOs. */
-  ec_sync_info_t* slave_sync_ptr_;             /**< Pointer to ethercat sunc(?) */
+  ec_sync_info_t* slave_sync_ptr_;             /**< Pointer to ethercat sync(?) */
   /** @} */                                    // end of EthercatUtilities group
 
   /**
    * @brief SdoRequests
-   * @param config_ptr
+   * @param[in] config_ptr
    * @return
    * @note This is protected despite being virtual because we may want to use base
    * definition in derived class.
    */
   virtual RetVal SdoRequests(ec_slave_config_t* config_ptr);
   /**
-   * @brief InitFun
+   * @brief Initialization function, called on object instantiation.
    */
   virtual void InitFun() {}
   /**
-   * @brief EcPrintCb
-   * @param msg
-   * @param color
+   * @brief EtherCAT information print pseudo-signal.
+   *
+   * This function emulates a signal emit, and it can be overridden to perform the actual
+   * signal emition in a Qt context, i.e. in a QObject which inherits from this class.
+   * @param[in] msg Message to be printed.
+   * @param[in] color Color of the message. It can be 'w'(white) for standard messages
+   * (default), 'y' (yellow) for warnings, 'r' (red) for errors.
+   * @warning This function lives in the real-time thread, so keep it short if overridden.
    */
   virtual void EcPrintCb(const std::string& msg, const char color = 'w') const;
 

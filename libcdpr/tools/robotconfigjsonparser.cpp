@@ -1,6 +1,13 @@
+/**
+ * @file robotconfigjsonparser.cpp
+ * @author Simone Comari
+ * @date 13 Mar 2019
+ * @brief This file includes definitions of class declared in robotconfigjsonparser.h.
+ */
+
 #include "robotconfigjsonparser.h"
 
-//--------- Public Functions --------------------------------------------------//
+//--------- Public Functions ---------------------------------------------------------//
 
 RobotConfigJsonParser::RobotConfigJsonParser()
 {
@@ -120,7 +127,7 @@ void RobotConfigJsonParser::PrintConfig() const
   }
 }
 
-//--------- Private Functions --------------------------------------------------//
+//--------- Private Functions --------------------------------------------------------//
 
 bool RobotConfigJsonParser::ExtractConfig(const json& raw_data)
 {

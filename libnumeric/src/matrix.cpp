@@ -1,7 +1,7 @@
 /**
  * @file matrix.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 23 Oct 2018
+ * @date 13 Mar 2019
  * @brief File containing definitions and implementation of matrix class.
  */
 
@@ -14,12 +14,9 @@
   (sizeof((x)) / sizeof((x)[0])) /**< returns the size of a standard array*/
 #endif
 
-namespace grabnum
-{
+namespace grabnum {
 
-///////////////////////////////////////////////////////////////////////////////
-//// Constructors
-///////////////////////////////////////////////////////////////////////////////
+//----- Constructors -----------------------------------------------------------------//
 
 template <typename T, uint8_t rows, uint8_t cols> Matrix<T, rows, cols>::Matrix()
 {
@@ -55,9 +52,7 @@ Matrix<T, rows, cols>::Matrix(const Matrix<T2, rows, cols>& other)
       elements_[row][col] = static_cast<T>(other(row + 1, col + 1));
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//// Operator Overloadings
-///////////////////////////////////////////////////////////////////////////////
+//----- Operator Overloadings --------------------------------------------------------//
 
 template <typename T, uint8_t rows, uint8_t cols>
 template <typename NewT>
@@ -156,9 +151,7 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::operator/=(const T& scalar)
   return *this;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//// Setters
-///////////////////////////////////////////////////////////////////////////////
+//----- Setters ----------------------------------------------------------------------//
 
 template <typename T, uint8_t rows, uint8_t cols>
 template <uint8_t block_rows, uint8_t block_cols>
@@ -214,8 +207,9 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetCol(const uint8_t cl,
 
 template <typename T, uint8_t rows, uint8_t cols>
 template <uint8_t _rows, uint8_t _cols>
-Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetFromBlock(
-  const uint8_t start_row, const uint8_t start_col, const Matrix<T, _rows, _cols>& other)
+Matrix<T, rows, cols>&
+Matrix<T, rows, cols>::SetFromBlock(const uint8_t start_row, const uint8_t start_col,
+                                    const Matrix<T, _rows, _cols>& other)
 {
   assert(start_row + rows - 1 <= _rows);
   assert(start_col + cols - 1 <= _cols);
@@ -315,9 +309,7 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::Fill(const std::vector<T>& values)
   return *this;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//// Matrix manipulation
-///////////////////////////////////////////////////////////////////////////////
+//----- Matrix manipulation ----------------------------------------------------------//
 
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, cols, rows> Matrix<T, rows, cols>::Transpose() const
@@ -336,7 +328,7 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::SwapRow(const uint8_t row1,
   T temp;
   for (uint8_t i = 0; i < cols; ++i)
   {
-    temp = elements_[row1 - 1][i];
+    temp                   = elements_[row1 - 1][i];
     elements_[row1 - 1][i] = elements_[row2 - 1][i];
     elements_[row2 - 1][i] = temp;
   }
@@ -350,16 +342,14 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::SwapCol(const uint8_t col1,
   T temp;
   for (uint8_t i = 0; i < rows; ++i)
   {
-    temp = elements_[i][col1 - 1];
+    temp                   = elements_[i][col1 - 1];
     elements_[i][col1 - 1] = elements_[i][col2 - 1];
     elements_[i][col2 - 1] = temp;
   }
   return *this;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//// Getters
-///////////////////////////////////////////////////////////////////////////////
+//----- Getters ----------------------------------------------------------------------//
 
 template <typename T, uint8_t rows, uint8_t cols>
 Matrix<T, 1, cols> Matrix<T, rows, cols>::GetRow(const uint8_t row) const
@@ -389,9 +379,7 @@ Matrix<T, rows, cols>::GetBlock(const uint8_t start_row, const uint8_t start_col
   return block;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//// Check functions
-///////////////////////////////////////////////////////////////////////////////
+//----- Check functions --------------------------------------------------------------//
 
 template <typename T, uint8_t rows, uint8_t cols>
 bool Matrix<T, rows, cols>::IsSquare() const
@@ -436,9 +424,7 @@ bool Matrix<T, rows, cols>::IsApprox(const Matrix<T, rows, cols>& other,
   return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//// Matrix internal utilities
-///////////////////////////////////////////////////////////////////////////////
+//----- Matrix internal utilities ----------------------------------------------------//
 
 template <typename T, uint8_t rows, uint8_t cols>
 uint16_t Matrix<T, rows, cols>::MaxIdx() const
@@ -446,13 +432,13 @@ uint16_t Matrix<T, rows, cols>::MaxIdx() const
   uint16_t index;
   uint8_t i_max = 0;
   uint8_t j_max = 0;
-  T max = elements_[0][0];
+  T max         = elements_[0][0];
   for (uint8_t row = 0; row < rows; ++row)
     for (uint8_t col = 0; col < cols; ++col)
     {
       if (elements_[row][col] > max)
       {
-        max = elements_[row][col];
+        max   = elements_[row][col];
         i_max = row;
         j_max = col;
       }
@@ -467,13 +453,13 @@ uint16_t Matrix<T, rows, cols>::MinIdx() const
   uint16_t index;
   uint8_t i_min = 0;
   uint8_t j_min = 0;
-  T min = elements_[0][0];
+  T min         = elements_[0][0];
   for (uint8_t row = 0; row < rows; ++row)
     for (uint8_t col = 0; col < cols; ++col)
     {
       if (elements_[row][col] < min)
       {
-        min = elements_[row][col];
+        min   = elements_[row][col];
         i_min = row;
         j_min = col;
       }

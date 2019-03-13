@@ -1,3 +1,11 @@
+/**
+ * @file grabcommon.cpp
+ * @author Simone Comari
+ * @date 12 Mar 2019
+ * @brief This file includes definitions of functions and classes declared in
+ * grabcommon.h.
+ */
+
 #include "grabcommon.h"
 
 void HandleErrorEn(const int en, const char* msg)
@@ -21,6 +29,18 @@ void PrintColor(const char color, const char* text, ...)
     case 'r':
       full_text = ANSI_COLOR_RED + (text_str + ANSI_COLOR_RESET + "\n");
       break;
+    case 'g':
+      full_text = ANSI_COLOR_GREEN + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    case 'm':
+      full_text = ANSI_COLOR_MAGENTA + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    case 'c':
+      full_text = ANSI_COLOR_CYAN + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    case 'b':
+      full_text = ANSI_COLOR_BLUE + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
     default:
       full_text = text_str + "\n";
       break;
@@ -40,6 +60,18 @@ void PrintColor(const char color, const char* text, va_list args)
       break;
     case 'r':
       full_text = ANSI_COLOR_RED + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    case 'g':
+      full_text = ANSI_COLOR_GREEN + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    case 'm':
+      full_text = ANSI_COLOR_MAGENTA + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    case 'c':
+      full_text = ANSI_COLOR_CYAN + (text_str + ANSI_COLOR_RESET + "\n");
+      break;
+    case 'b':
+      full_text = ANSI_COLOR_BLUE + (text_str + ANSI_COLOR_RESET + "\n");
       break;
     default:
       full_text = text_str + "\n";

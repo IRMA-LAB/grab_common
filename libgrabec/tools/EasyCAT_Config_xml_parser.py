@@ -7,7 +7,9 @@ import copy
 
 
 class DomainEntry():
+"""Domain entry element."""
     def __init__(self, element):
+        """Constructor."""
         self.Index = '0' + element.find('Index').text[1:].lower()
         self.SubIndex = '0x' + element.find('SubIndex').text.lower()
         self.BitLen = element.find('BitLen').text
@@ -15,6 +17,7 @@ class DomainEntry():
         self.DataType = self._convert2Ctype(element.find('DataType').text)
 
     def print_fields(self):
+        """Print fields in a pretty format."""
         print("Index =", self.Index)
         print("SubIndex =", self.SubIndex)
         print("BitLen =", self.BitLen)
@@ -22,7 +25,7 @@ class DomainEntry():
         print("DataType =", self.DataType)
 
     def _convert2Ctype(self, text):
-        "Convert from IEC 61131-3 to C-types."
+        """Convert from IEC 61131-3 to C-types."""
         # Floating point
         if text == 'REAL':
             return 'float'
@@ -46,6 +49,7 @@ class DomainEntry():
 
 
 class EasyCatXmlParser(object):
+"""EasyCAT XML configuration file parser."""
     def __init__(self, filepath=None):
         """Constructor."""
         # Init

@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 05 Feb 2019
+ * @date 11 Mar 2019
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -92,7 +92,8 @@ struct GSWDriveInPdos
  * For further details about state machine, click <a
  * href="https://www.codeproject.com/Articles/1087619/State-Machine-Design-in-Cplusplus">here</a>.
  */
-class GoldSoloWhistleDriveData: public EventData {
+class GoldSoloWhistleDriveData: public EventData
+{
  public:
   /**
    * @brief Full constructor.
@@ -108,8 +109,9 @@ class GoldSoloWhistleDriveData: public EventData {
    * @brief Constructor from drive current status (for safe switch).
    * @param[in] _op_mode The desired operation mode of the drive. See
    * GoldSoloWhistleOperationModes for valid accounted entries.
-   * @param input_pdos The current set of PDOs, from which to extract the value to be set
-   * according to the desired operation mode.
+   * @param[in] input_pdos The current set of PDOs, from which to extract the value to be
+   * set according to the desired operation mode.
+   * @param[in] verbose If _true_ display the data content.
    */
   GoldSoloWhistleDriveData(const int8_t _op_mode, const GSWDriveInPdos& input_pdos,
                            const bool verbose = false);
@@ -140,24 +142,29 @@ class GoldSoloWhistleDriveData: public EventData {
  */
 class GoldSoloWhistleDrive: public QObject,
                             public virtual EthercatSlave,
-                            public StateMachine {
+                            public StateMachine
+{
   Q_OBJECT
 
  public:
   /**
    * @brief Constructor.
+   * @param[in] id Drive ID.
    * @param[in] slave_position Slave position in ethercat chain.
+   * @param[in] parent The Qt parent, in this case the actuator it belongs to.
    */
   GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position,
                        QObject* parent = NULL);
 
   /**
    * @brief Get latest known physical drive state.
+   * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
   static GoldSoloWhistleDriveStates GetDriveState(const Bitfield16& status_word);
   /**
    * @brief Get latest known physical drive state.
+   * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
   static std::string GetDriveStateStr(const Bitfield16& status_word);
@@ -274,7 +281,7 @@ class GoldSoloWhistleDrive: public QObject,
   void ChangePosition(const int32_t target_position);
   /**
    * @brief ChangeDeltaPosition
-   * @param delta_position
+   * @param[in] delta_position
    */
   void ChangeDeltaPosition(const int32_t delta_position);
   /**
@@ -287,7 +294,7 @@ class GoldSoloWhistleDrive: public QObject,
   void ChangeVelocity(const int32_t target_velocity);
   /**
    * @brief ChangeDeltaVelocity
-   * @param delta_velocity
+   * @param[in] delta_velocity
    */
   void ChangeDeltaVelocity(const int32_t delta_velocity);
   /**
@@ -300,7 +307,7 @@ class GoldSoloWhistleDrive: public QObject,
   void ChangeTorque(const int16_t target_torque);
   /**
    * @brief ChangeDeltaTorque
-   * @param delta_torque
+   * @param[in] delta_torque
    */
   void ChangeDeltaTorque(const int16_t delta_torque);
   /**
@@ -322,26 +329,35 @@ class GoldSoloWhistleDrive: public QObject,
 
   //------- Methods called within the real-time cycle --------------------------------//
   /**
-   * @brief ReadInputs
+   * @brief Read input PDOs.
    */
   void ReadInputs() override final;
   /**
-   * @brief WriteOutputs
+   * @brief Write output PDOs.
    */
   void WriteOutputs() override final;
   /**
-   * @brief SafeExit
+   * @brief Function called before shutting down the slave.
    */
   void SafeExit() override final;
   /**
-   * @brief IsReadyToShutDown
-   * @return
+   * @brief Check if slave is ready to be shut down safely.
+   * @return _True_ if slave is ready, _false_ otherwise.
    */
   bool IsReadyToShutDown() const override final;
 
  signals:
+  /**
+   * @brief Drive faulted notice.
+   */
   void driveFaulted() const;
+  /**
+   * @brief Emit a message to be logged.
+   */
   void logMessage(const QString&) const;
+  /**
+   * @brief Emit a message to be printed.
+   */
   void printMessage(const QString&) const;
 
  protected:

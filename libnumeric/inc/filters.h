@@ -1,29 +1,77 @@
+/**
+ * @file filters.h
+ * @author Simone Comari
+ * @date 13 Mar 2019
+ * @brief This file include filters implementations.
+ */
+
 #ifndef GRABCOMMON_LIBNUMERIC_FILTERS_H
 #define GRABCOMMON_LIBNUMERIC_FILTERS_H
 
-namespace grabnum
-{
+namespace grabnum {
 
+/**
+ * @brief A low-pass filter implementation.
+ */
 class LowPassFilter
 {
-public:
-  LowPassFilter(const double& cutoff_freq, const double& delta_time_sec);
-  LowPassFilter(const double& cutoff_freq, const double& delta_time_sec,
+ public:
+  /**
+   * @brief LowPassFilter constructor.
+   * @param cutoff_freq [Hz] Cutoff frequency of low-pass filter.
+   * @param sampling_time_sec Sampling time in seconds.
+   */
+  LowPassFilter(const double& cutoff_freq, const double& sampling_time_sec);
+  /**
+   * @brief LowPassFilter full constructor.
+   * @param cutoff_freq [Hz] Cutoff frequency of low-pass filter.
+   * @param sampling_time_sec Sampling time in seconds.
+   * @param init_value Initial value of the signal to be filtered.
+   */
+  LowPassFilter(const double& cutoff_freq, const double& sampling_time_sec,
                 const double& init_value);
 
+  /**
+   * @brief Set cutoff frequency.
+   * @param cutoff_freq [Hz] Cutoff frequency of low-pass filter.
+   */
   void SetCutoffFreq(const double& cutoff_freq) { cutoff_freq_ = cutoff_freq; }
-  void SetDeltaTime(const double& delta_time_sec) { delta_time_ = delta_time_sec; }
+  /**
+   * @brief Set sampling time.
+   * @param sampling_time_sec Sampling time in seconds.
+   */
+  void SetDeltaTime(const double& sampling_time_sec) { Ts_ = sampling_time_sec; }
 
+  /**
+   * @brief Get cutoff frequency.
+   * @return [Hz] Cutoff frequency of low-pass filter.
+   */
   double GetCutoffFreq() const { return cutoff_freq_; }
-  double GetDeltaTime() const { return delta_time_; }
+  /**
+   * @brief Get sampling time.
+   * @return Sampling time in seconds.
+   */
+  double GetDeltaTime() const { return Ts_; }
+  /**
+   * @brief Get latest filtered value.
+   * @return Latest filtered value.
+   */
   double GetLatestFilteredValue() const { return filtered_value_; }
 
+  /**
+   * @brief Filter a new value of a signal.
+   * @param raw_value New signal value.
+   * @return Filtered value.
+   */
   double Filter(const double& raw_value);
+  /**
+   * @brief Reset filter, clearing its history.
+   */
   void Reset() { initialized_ = false; }
 
-private:
+ private:
   double cutoff_freq_; // [Hz]
-  double delta_time_;  // [sec]
+  double Ts_;          // [sec]
   double alpha_;
 
   bool initialized_;

@@ -1,7 +1,7 @@
 /**
  * @file ethercatslave.cpp
- * @author Simone Comari
- * @date 05 Feb 2019
+ * @author Simone Comari, Edoardo Idà
+ * @date 13 Mar 2019
  * @brief File containing definitions of functions and class declared in ethercatslave.h.
  */
 
@@ -41,7 +41,7 @@ RetVal EthercatSlave::Configure(ec_master_t* master_ptr, ec_slave_config_t** con
   return ret;
 }
 
-ec_pdo_entry_reg_t EthercatSlave::GetDomainRegister(uint8_t index) const
+ec_pdo_entry_reg_t EthercatSlave::GetDomainRegister(const uint8_t index) const
 {
   return domain_registers_ptr_[index];
 }

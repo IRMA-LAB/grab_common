@@ -1,3 +1,10 @@
+/**
+ * @file pid.cpp
+ * @author Simone Comari
+ * @date 12 Mar 2019
+ * @brief This file includes definitions of class declared in pid.h.
+ */
+
 #include "pid/pid.h"
 
 PID::PID(const double& Ts) : Ts_(Ts)
