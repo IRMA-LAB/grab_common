@@ -13,7 +13,7 @@ Please note this library is a work in progress, and is not yet meant to be compl
 ## Compilation
 
 This library is stand-alone and the user can freely decide how to import it and integrate it in his/her project.
-We provide here two Qt project files for compiling this package as a static library ([numeric.pro](./numeric.pro)) or for unit testing ([libnumeric_test.pro](libnumeric_test.pro)). We suggest to build it in a new local folder inside the _libnumeric_ directory, such as "_~/libnumeric/lib/_".
+We provide here two Qt project files for compiling this package as a static library ([numeric.pro](./numeric.pro)) or for unit testing ([libnumeric_test.pro](libnumeric_test.pro)). For the former one, we suggest to build it in a new local folder inside the _libnumeric_ directory, such as "_~/libnumeric/lib/_".
 
 ## Usage
 
@@ -23,6 +23,8 @@ To use this library include the following headers according to the functionaliti
 - `"matrix_utilities.h"` for the matrix class and utilities;
 - `"filters.h"` for the signal filters;
 - `"solvers.h"` for the numerical solvers.
+
+Please refer to code documentation below to obtain more detailed information about usage of single functions and classes contained in this library.
 
 ## Documentation
 
