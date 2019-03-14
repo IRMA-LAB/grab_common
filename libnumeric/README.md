@@ -17,7 +17,7 @@ We provide here two Qt project files for compiling this package as a static libr
 
 ## Usage
 
-If you compiled the library as static as suggested, from the project explorer tab you can right click on your Qt project, select "_Add a new library..._" and follow instructions for static libraries. You also need to manually add the include folder of this library to your `INCLUDEPATH` in your project file (_.pro_), otherwise there will be troubles in file localization when builing the code and including the headers.
+If you compiled the library as static as suggested, from the project explorer tab you can right click on your Qt project, select "_Add Library..._" and follow instructions for external libraries. You also need to manually add the include folder of this library (i.e. _~/libnumeric/inc/_) to the `INCLUDEPATH` in your project file (_.pro_), otherwise there will be troubles in file localization when builing the code and including the headers.
 
 To use this library include the following headers according to the functionalities you need:
 - `"matrix_utilities.h"` for the matrix class and utilities;
