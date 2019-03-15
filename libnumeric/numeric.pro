@@ -1,16 +1,16 @@
 
 HEADERS += \
     $$PWD/inc/matrix.h \
+    $$PWD/inc/matrix_utilities.h \
     $$PWD/inc/solvers.h \
-    $$PWD/inc/common.h \
-    inc/matrix_utilities.h \
-    inc/filters.h
+    $$PWD/inc/filters.h \
+    $$PWD/inc/common.h
 
 SOURCES += \
     $$PWD/src/matrix.cpp \
+    $$PWD/src/matrix_utilities.tcc \
     $$PWD/src/solvers.cpp \
-    src/matrix_utilities.tcc \
-    inc/filters.cpp
+    $$PWD/src/filters.cpp
 
 INCLUDEPATH += $$PWD/inc
 
