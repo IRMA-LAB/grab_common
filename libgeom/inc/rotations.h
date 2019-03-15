@@ -1,7 +1,7 @@
 /**
  * @file rotations.h
  * @author Edoardo Idà, Simone Comari
- * @date 23 Oct 2018
+ * @date 15 Mar 2019
  * @brief File containing rotation parametrizations to be included in the GRAB geometric
  * library.
  *
@@ -56,8 +56,10 @@
 
 #include "matrix_utilities.h"
 
-namespace grabgeom
-{
+/**
+ * @brief Namespace for GRAB geometric library.
+ */
+namespace grabgeom {
 
 /**
  * @brief Elementary rotation around @f$X@f$-axis.
@@ -304,7 +306,7 @@ inline grabnum::Matrix3d EulerZYZ2Rot(const grabnum::Vector3d& angles)
  * @see RotZYZ()
  */
 grabnum::Matrix3d TiltTorsion2Rot(const double tilt_azimuth, const double tilt,
-                                 const double torsion);
+                                  const double torsion);
 /**
  * @brief Rotation matrix based on _tilt-and-torsion_ angle system.
  *
@@ -356,8 +358,8 @@ grabnum::Vector3d Rot2RPY(const grabnum::Matrix3d& rot_mat);
 grabnum::Vector3d Rot2EulerZYZ(const grabnum::Matrix3d& rot_mat);
 
 /**
- * @brief Obtain _tilt-and-torsion_ angles (Euler variant with @f$Z_1Y_2Z_3@f$ order) out of
- * a rotation matrix.
+ * @brief Obtain _tilt-and-torsion_ angles (Euler variant with @f$Z_1Y_2Z_3@f$ order) out
+ * of a rotation matrix.
  * @param[in] rot_mat An orthogonal rotation matrix (double).
  * @return A 3D vector with _tilt-and-torsion_ angles @f$(\phi,\theta,\tau)@f$ in radians.
  * @see TiltTorsion2Rot()
@@ -487,7 +489,7 @@ grabnum::Matrix3d DHtfXYZ(const double alpha, const double beta, const double al
  * @see HtfXYZ()
  */
 inline grabnum::Matrix3d DHtfXYZ(const grabnum::Vector3d& angles,
-                          const grabnum::Vector3d& angles_dot)
+                                 const grabnum::Vector3d& angles_dot)
 {
   return DHtfXYZ(angles(1), angles(2), angles_dot(1), angles_dot(2));
 }
@@ -526,7 +528,7 @@ grabnum::Matrix3d DHtfRPY(const double roll, const double pitch, const double ro
  * @see HtfRPY()
  */
 inline grabnum::Matrix3d DHtfRPY(const grabnum::Vector3d& rpy,
-                          const grabnum::Vector3d& rpy_dot)
+                                 const grabnum::Vector3d& rpy_dot)
 {
   return DHtfRPY(rpy(1), rpy(2), rpy_dot(1), rpy_dot(2));
 }
@@ -544,7 +546,8 @@ inline grabnum::Matrix3d DHtfRPY(const grabnum::Vector3d& rpy,
  * @param[in] beta [rad] Rotation angle about @f$y_1@f$-axis.
  * @param[in] alpha_dot [rad/s] Time derivative of rotation angle _alpha_ about
  *@f$z_0@f$-axis.
- * @param[in] beta_dot [rad/s] Time derivative of rotation angle _beta_ about @f$y_1@f$-axis.
+ * @param[in] beta_dot [rad/s] Time derivative of rotation angle _beta_ about
+ *@f$y_1@f$-axis.
  * @return A 3x3 matrix (double).
  * @see HtfXYZ()
  */
@@ -566,7 +569,7 @@ grabnum::Matrix3d DHtfZYZ(const double alpha, const double beta, const double al
  * @see HtfXYZ()
  */
 inline grabnum::Matrix3d DHtfZYZ(const grabnum::Vector3d& angles,
-                          const grabnum::Vector3d& angles_dot)
+                                 const grabnum::Vector3d& angles_dot)
 {
   return DHtfZYZ(angles(1), angles(2), angles_dot(1), angles_dot(2));
 }
@@ -608,7 +611,7 @@ grabnum::Matrix3d DHtfTiltTorsion(const double tilt_azimuth, const double tilt,
  * @see HtfTiltTorsion()
  */
 inline grabnum::Matrix3d DHtfTiltTorsion(const grabnum::Vector3d& angles,
-                                  const grabnum::Vector3d& angles_dot)
+                                         const grabnum::Vector3d& angles_dot)
 {
   return DHtfTiltTorsion(angles(1), angles(2), angles_dot(1), angles_dot(2));
 }

@@ -1,7 +1,7 @@
 /**
  * @file ethercatslave.h
  * @author Edoardo Idà, Simone Comari
- * @date 13 Mar 2019
+ * @date 15 Mar 2019
  * @brief File containing EtherCAT slaves to be included in the GRAB EtherCAT library.
  */
 
@@ -11,6 +11,9 @@
 #include "ecrt.h"
 #include "types.h"
 
+/**
+ * @brief Namespace for GRAB EtherCAT library.
+ */
 namespace grabec {
 
 /**

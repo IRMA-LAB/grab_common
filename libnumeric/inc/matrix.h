@@ -1,7 +1,7 @@
 /**
  * @file matrix.h
  * @author Edoardo Idà, Simone Comari
- * @date 06 Dec 2018
+ * @date 15 Mar 2019
  * @brief File containing matrix class and utilities to be included in the GRAB numeric
  * library.
  *
@@ -31,7 +31,7 @@
 #endif
 
 /**
- * Namespace for GRAB numeric library.
+ * @brief Namespace for GRAB numeric library.
  */
 namespace grabnum
 {

@@ -1,7 +1,7 @@
 /**
  * @file libcdpr/inc/types.h
  * @author Edoardo Idà, Simone Comari
- * @date 13 Mar 2019
+ * @date 15 Mar 2019
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -134,7 +134,7 @@
 #include "rotations.h"
 
 /**
- * @brief namespace for CDPR-related utilities, such as kinematics and dynamics.
+ * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
  */
 namespace grabcdpr {
 

@@ -1,7 +1,7 @@
 /**
  * @file libgrabec/inc/types.h
  * @author Edoardo Idà, Simone Comari
- * @date 14 Feb 2019
+ * @date 15 Mar 2019
  * @brief This file includes common types and struct of libgrabec.
  */
 
@@ -17,7 +17,11 @@
 
 #include "threads.h"
 
+/**
+ * @brief Namespace for GRAB EtherCAT library.
+ */
 namespace grabec {
+
 // clang-format off
 /** Working Counter state's corresponding meaning. */
 constexpr char* WcStateStr[] = {

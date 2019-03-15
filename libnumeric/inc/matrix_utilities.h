@@ -1,7 +1,7 @@
 /**
  * @file matrix_utilities.h
  * @author Edoardo Idà, Simone Comari
- * @date 23 Oct 2018
+ * @date 15 Mar 2019
  * @brief File containing matrix utilities to be included in the GRAB numeric library.
  *
  * In this file there are some external independent functions which provide extra
@@ -14,8 +14,11 @@
 
 #include "matrix.h"
 
-namespace grabnum
-{
+/**
+ * @brief Namespace for GRAB numeric library.
+ */
+namespace grabnum {
+
 #if (MCU_TARGET == 0)
 /**
  * Print function for matrix.

@@ -1,7 +1,7 @@
 /**
  * @file quaternions.h
  * @author Edoardo Idà, Simone Comari
- * @date 23 Oct 2018
+ * @date 15 Mar 2019
  * @brief File containing quaternions utilities to be included in the GRAB geometric
  * library.
  * @todo documentation of external operators.
@@ -13,22 +13,25 @@
 #include "matrix_utilities.h"
 #include "rotations.h"
 
-namespace grabgeom
-{
+/**
+ * @brief Namespace for GRAB geometric library.
+ */
+namespace grabgeom {
 
 /**
-*@brief A minimal implementation of a quaternion structure.
-*
-* In this implementation we represent a quaternion as a 4-vector
-* @f$\mathbf{q} \in \mathbb{R}^4@f$, defined as
-* @f[
-* \mathbf{q} := ( q_w, \mathbf{q}_v^T)^T = (q_w, q_x, q_y, q_z)^T
-* @f]
-* For the sake of simpicity, we use here the subscripts directly to refer to its components:
-* @f[
-* \mathbf{q} := ( w, \mathbf{v}^T)^T = (w, x, y, z)^T
-* @f]
-*/
+ *@brief A minimal implementation of a quaternion structure.
+ *
+ * In this implementation we represent a quaternion as a 4-vector
+ * @f$\mathbf{q} \in \mathbb{R}^4@f$, defined as
+ * @f[
+ * \mathbf{q} := ( q_w, \mathbf{q}_v^T)^T = (q_w, q_x, q_y, q_z)^T
+ * @f]
+ * For the sake of simpicity, we use here the subscripts directly to refer to its
+ *components:
+ * @f[
+ * \mathbf{q} := ( w, \mathbf{v}^T)^T = (w, x, y, z)^T
+ * @f]
+ */
 struct Quaternion
 {
   double w; /**< _w_ component */
@@ -154,7 +157,8 @@ struct Quaternion
 
   /**
    * @brief Replaces @c *this by @c *this - the scalar value _scalar_.
-   * @param[in] scalar The scalar value to be subtracted to each element of the quaternion.
+   * @param[in] scalar The scalar value to be subtracted to each element of the
+   * quaternion.
    * @return A reference to @c *this.
    */
   Quaternion& operator-=(const double scalar)
@@ -167,7 +171,8 @@ struct Quaternion
   }
 
   /**
-   * @brief Replaces @c *this by the quaternion product of @c *this and the _other_ quaternion.
+   * @brief Replaces @c *this by the quaternion product of @c *this and the _other_
+   * quaternion.
    *
    * Quaternions product is defined as:
    * @f[
@@ -184,7 +189,7 @@ struct Quaternion
    */
   Quaternion& operator*=(const Quaternion& other)
   {
-    grabnum::Vector3d old_v = v();
+    grabnum::Vector3d old_v   = v();
     grabnum::Vector3d other_v = other.v();
     grabnum::Vector3d new_v =
       w * other_v + other.w * old_v + grabnum::Cross(old_v, other_v);
@@ -197,7 +202,8 @@ struct Quaternion
 
   /**
    * @brief Replaces @c *this by @c *this times the scalar value _scalar_.
-   * @param[in] scalar The scalar value to be multiplied by to each element of the quaternion.
+   * @param[in] scalar The scalar value to be multiplied by to each element of the
+   * quaternion.
    * @return A reference to @c *this.
    */
   Quaternion& operator*=(const double scalar)
@@ -313,12 +319,12 @@ struct Quaternion
   /**
    * @brief Normalize @c *this.
    *
-   * Normalizing a quaternion is done by diving all its elements by its norm. The result is a
-   * unitary quaternion.
+   * Normalizing a quaternion is done by diving all its elements by its norm. The result
+   * is a unitary quaternion.
    * @return A reference to @c *this.
    * @see Normalized() Norm()
-   * @note This function replaces @c *this with its normalized version. If you do not want to
-   * change the original quaternion, please use Normalized() instead.
+   * @note This function replaces @c *this with its normalized version. If you do not want
+   * to change the original quaternion, please use Normalized() instead.
    */
   Quaternion& Normalize()
   {
@@ -329,8 +335,8 @@ struct Quaternion
   /**
    * @brief Returns the normalized version of @c *this.
    *
-   * Normalizing a quaternion is done by diving all its elements by its norm. The result is a
-   * unitary quaternion.
+   * Normalizing a quaternion is done by diving all its elements by its norm. The result
+   * is a unitary quaternion.
    * @return The normalized quaternion.
    * @see Normalize() Norm()
    */
@@ -343,13 +349,16 @@ struct Quaternion
   bool IsUnitary() const { return grabnum::IsClose(Norm(), 1.); }
 
   /**
-   * @brief Check whether 2 quaternions are approximately equal, within a certain threshold.
+   * @brief Check whether 2 quaternions are approximately equal, within a certain
+   * threshold.
    * @param other The other quaternion to be compared against.
    * @param[in] tol (Optional) The tolerance for element-wise comparison for being equal.
    * @return _True_ if they are approximately the same.
    */
   bool IsApprox(const Quaternion& other, const double tol = grabnum::EPSILON)
-  { return v().IsApprox(other.v(), tol); }
+  {
+    return v().IsApprox(other.v(), tol);
+  }
 };
 
 /**
@@ -451,7 +460,8 @@ inline Quaternion QuatConjugate(const Quaternion& quat) { return quat.Conj(); }
  * \mathbf{q} \otimes \mathbf{q}^{-1} = \mathbf{q}^{-1} \otimes \mathbf{q} =
  *    \mathbf{q}_1
  * @f]
- * being @f$\mathbf{q}_1@f$ the quaternion identity, and therefore it can be computed with:
+ * being @f$\mathbf{q}_1@f$ the quaternion identity, and therefore it can be computed
+ * with:
  * @f[
  * \mathbf{q}^{-1} = \mathbf{q}^* / \|\mathbf{q}\|^2
  * @f]
@@ -475,8 +485,8 @@ inline double QuatNorm(const Quaternion& quat) { return quat.Norm(); }
 /**
  * @brief Returns the normalized version of a quaternion.
  *
- * Normalizing a quaternion is done by dividing all its elements by its norm. The result is a
- * unit quaternion.
+ * Normalizing a quaternion is done by dividing all its elements by its norm. The result
+ * is a unit quaternion.
  * @param[in] quat A quaternion.
  * @return The normalized quaternion.
  * @see QuatNorm()
@@ -503,7 +513,9 @@ grabnum::Matrix3d Quat2Rot(const Quaternion& quaternion);
  * @todo Do this conversion in a smarter way.
  */
 inline grabnum::Vector3d Quat2EulerXYZ(const Quaternion& quaternion)
-{ return Rot2EulerXYZ(Quat2Rot(quaternion)); }
+{
+  return Rot2EulerXYZ(Quat2Rot(quaternion));
+}
 
 /**
  * @brief Obtain _Roll, Pitch, Yaw_ angles out of a unit quaternion.
@@ -514,7 +526,9 @@ inline grabnum::Vector3d Quat2EulerXYZ(const Quaternion& quaternion)
  * @todo Do this conversion in a smarter way.
  */
 inline grabnum::Vector3d Quat2RPY(const Quaternion& quaternion)
-{ return Rot2RPY(Quat2Rot(quaternion)); }
+{
+  return Rot2RPY(Quat2Rot(quaternion));
+}
 
 /**
  * @brief Obtain _Euler_ angles (Euler with @f$Z_1Y_2Z_3@f$ order) out of a unit
@@ -526,11 +540,13 @@ inline grabnum::Vector3d Quat2RPY(const Quaternion& quaternion)
  * @todo Do this conversion in a smarter way.
  */
 inline grabnum::Vector3d Quat2EulerZYZ(const Quaternion& quaternion)
-{ return Rot2EulerZYZ(Quat2Rot(quaternion)); }
+{
+  return Rot2EulerZYZ(Quat2Rot(quaternion));
+}
 
 /**
- * @brief Obtain _tilt-and-torsion_ angles (Euler variant with @f$Z_1Y_2Z_3@f$ order) out of
- * a unit quaternion.
+ * @brief Obtain _tilt-and-torsion_ angles (Euler variant with @f$Z_1Y_2Z_3@f$ order) out
+ * of a unit quaternion.
  * @param[in] quaternion The orientation expressed by a unit quaternion
  * @f$(q_w, q_x, q_y, q_z)@f$.
  * @return A 3D vector with _tilt-and-torsion_ angles @f$(\phi,\theta,\tau)@f$ in radians.
@@ -538,7 +554,9 @@ inline grabnum::Vector3d Quat2EulerZYZ(const Quaternion& quaternion)
  * @todo Do this conversion in a smarter way.
  */
 inline grabnum::Vector3d Quat2TiltTorsion(const Quaternion& quaternion)
-{ return Rot2TiltTorsion(Quat2Rot(quaternion)); }
+{
+  return Rot2TiltTorsion(Quat2Rot(quaternion));
+}
 
 /**
  * @brief Determines the unit quaternion corresponding to a given rotation matrix.
@@ -558,7 +576,9 @@ Quaternion Rot2Quat(const grabnum::Matrix3d& rot_mat);
  * @see EulerXYZ2Rot() Quat2EulerXYZ()
  */
 inline Quaternion EulerXYZ2Quat(const double alpha, const double beta, const double gamma)
-{ return Rot2Quat(EulerXYZ2Rot(alpha, beta, gamma)); }
+{
+  return Rot2Quat(EulerXYZ2Rot(alpha, beta, gamma));
+}
 /**
  * @brief Determines the unit quaternion corresponding to a given rotation based on
  * _Tait-Bryan_ angles convention and @f$X_1Y_2Z_3@f$ order.
@@ -583,7 +603,9 @@ inline Quaternion EulerXYZ2Quat(const grabnum::Vector3d& angles)
  * @see RPY2Rot() Quat2RPY()
  */
 inline Quaternion RPY2Quat(const double roll, const double pitch, const double yaw)
-{ return Rot2Quat(RPY2Rot(roll, pitch, yaw)); }
+{
+  return Rot2Quat(RPY2Rot(roll, pitch, yaw));
+}
 /**
  * @brief Determines the unit quaternion corresponding to a given rotation based on
  * _Roll, Pitch, Yaw_ angles convention (from aviation).
@@ -598,8 +620,8 @@ inline Quaternion RPY2Quat(const grabnum::Vector3d& rpy)
 }
 
 /**
- * @brief Determines the unit quaternion corresponding to a given rotation based on _Euler_
- * angles convention and @f$Z_1Y_2Z_3@f$ order.
+ * @brief Determines the unit quaternion corresponding to a given rotation based on
+ * _Euler_ angles convention and @f$Z_1Y_2Z_3@f$ order.
  *
  * @param[in] alpha [rad] Rotation angle about @f$z_0@f$-axis.
  * @param[in] beta [rad] Rotation angle about @f$y_1@f$-axis.
@@ -608,10 +630,12 @@ inline Quaternion RPY2Quat(const grabnum::Vector3d& rpy)
  * @see EulerZYZ2Rot() Quat2EulerZYZ()
  */
 inline Quaternion EulerZYZ2Quat(const double alpha, const double beta, const double gamma)
-{ return Rot2Quat(EulerZYZ2Rot(alpha, beta, gamma)); }
+{
+  return Rot2Quat(EulerZYZ2Rot(alpha, beta, gamma));
+}
 /**
- * @brief Determines the unit quaternion corresponding to a given rotation based on _Euler_
- * angles convention and @f$Z_1Y_2Z_3@f$ order.
+ * @brief Determines the unit quaternion corresponding to a given rotation based on
+ * _Euler_ angles convention and @f$Z_1Y_2Z_3@f$ order.
  *
  * @param[in] angles [rad] _Euler_ angles @f$(\alpha,\beta,\gamma)@f$ vector.
  * @return A unit quaternion.
@@ -633,8 +657,10 @@ inline Quaternion EulerZYZ2Quat(const grabnum::Vector3d& angles)
  * @see TiltTorsion2Rot() Quat2TiltTorsion()
  */
 inline Quaternion TiltTorsion2Quat(const double tilt_azimuth, const double tilt,
-                                 const double torsion)
-{ return Rot2Quat(TiltTorsion2Rot(tilt_azimuth, tilt, torsion)); }
+                                   const double torsion)
+{
+  return Rot2Quat(TiltTorsion2Rot(tilt_azimuth, tilt, torsion));
+}
 /**
  * @brief Determines the unit quaternion corresponding to a given rotation based on
  * _tilt-and-torsion_ angle system.

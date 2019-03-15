@@ -1,7 +1,7 @@
 /**
  * @file kinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 23 Oct 2018
+ * @date 15 Mar 2019
  * @brief File containing kinematics-related functions to be included in the GRAB CDPR
  * library.
  */
@@ -9,15 +9,14 @@
 #ifndef GRABCOMMON_LIBCDPR_KINEMATICS_H
 #define GRABCOMMON_LIBCDPR_KINEMATICS_H
 
-#include "types.h"
-#include "rotations.h"
 #include "matrix_utilities.h"
+#include "rotations.h"
+#include "types.h"
 
 /**
- * @brief namespace for CDPR-related utilities, such as kinematics and dynamics.
+ * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
  */
-namespace grabcdpr
-{
+namespace grabcdpr {
 /** @defgroup ZeroOrderKinematics Zero Order Kinematics
  * This group collects all elements related to zero-order kinematics of a generic 6DoF
  * CDPR.
@@ -41,8 +40,8 @@ namespace grabcdpr
  * @param[in] pos_PG_loc [m] Local CoG position @f$^\mathcal{P}\mathbf{r}'@f$.
  * @param[out] platform A pointer to the platform variables structure to be updated.
  * @note See @ref legend for symbols reference.
- * @note Both orientation parametrizations are valid here, that is both angles and quaternions
- * can be used.
+ * @note Both orientation parametrizations are valid here, that is both angles and
+ * quaternions can be used.
  */
 template <class OrientationType, class PlatformVarsType>
 void UpdatePlatformPose(const grabnum::Vector3d& position,
@@ -56,8 +55,8 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
  * @param[in] params A pointer to the platform parameters structure.
  * @param[out] platform A pointer to the platform variables structure to be updated.
  * @see UpdatePlatformPose()
- * @note Both orientation parametrizations are valid here, that is both angles and quaternions
- * can be used.
+ * @note Both orientation parametrizations are valid here, that is both angles and
+ * quaternions can be used.
  */
 template <class OrientationType, class PlatformVarsType>
 void UpdatePlatformPose(const grabnum::Vector3d& position,
@@ -80,8 +79,8 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
  * @param[out] cable A pointer to the cable structure including the positions to be
  * updated.
  * @note See @ref legend for symbols reference.
- * @note Both orientation parametrizations are valid here, that is both angles and quaternions
- * can be used.
+ * @note Both orientation parametrizations are valid here, that is both angles and
+ * quaternions can be used.
  */
 template <class PlatformVarsType>
 void UpdatePosA(const ActuatorParams* params, const PlatformVarsType* platform,
@@ -92,8 +91,9 @@ void UpdatePosA(const ActuatorParams* params, const PlatformVarsType* platform,
  *
  * Given current swivel angle @f$\sigma_i@f$, the following versors are updated:
  * @f[
- * \hat{\mathbf{u}}_i = \hat{\mathbf{i}}_i \cos(\sigma_i) + \hat{\mathbf{j}}_i \sin(\sigma_i) \\
- * \hat{\mathbf{w}}_i = -\hat{\mathbf{i}}_i \sin(\sigma_i) + \hat{\mathbf{j}}_i \cos(\sigma_i)
+ * \hat{\mathbf{u}}_i = \hat{\mathbf{i}}_i \cos(\sigma_i) + \hat{\mathbf{j}}_i
+ * \sin(\sigma_i) \\ \hat{\mathbf{w}}_i = -\hat{\mathbf{i}}_i \sin(\sigma_i) +
+ * \hat{\mathbf{j}}_i \cos(\sigma_i)
  * @f]
  * being @f$\hat{\mathbf{i}}_i, \hat{\mathbf{j}}_i@f$ known parameters.
  * @param[in] params Swivel pulley parameters.
@@ -119,7 +119,8 @@ void CalcPulleyVersors(const PulleyParams& params, CableVars* cable);
  *
  * Given current vector @f$\mathbf{f}_i@f$, the swivel angle is calculated as follows:
  * @f[
- * \sigma_i = \arctan_2(\hat{\mathbf{i}}_i \cdot \mathbf{f}_i , \hat{\mathbf{j}}_i \cdot \mathbf{f}_i)
+ * \sigma_i = \arctan_2(\hat{\mathbf{i}}_i \cdot \mathbf{f}_i , \hat{\mathbf{j}}_i \cdot
+ * \mathbf{f}_i)
  * @f]
  * being @f$\hat{\mathbf{i}}_i, \hat{\mathbf{j}}_i@f$ known parameters.
  * @param[in] params Swivel pulley parameters.
@@ -130,8 +131,7 @@ void CalcPulleyVersors(const PulleyParams& params, CableVars* cable);
  * constraint
  * @f[ \hat{\mathbf{w}}_i \cdot \mathbf{f}_i = 0 @f]
  */
-double CalcSwivelAngle(const PulleyParams& params,
-                       const grabnum::Vector3d& pos_DA_glob);
+double CalcSwivelAngle(const PulleyParams& params, const grabnum::Vector3d& pos_DA_glob);
 /**
  * @brief Calculate pulley swivel angle @f$\sigma_i@f$.
  * @param[in] params Swivel pulley parameters.
@@ -148,10 +148,10 @@ double CalcSwivelAngle(const PulleyParams& params, const CableVars* cable);
  * calculated as follows:
  * @f[
  * \psi_i = 2 \arctan\left[
- *      \frac{\hat{\mathbf{k}}_i \cdot \mathbf{f}_i}{\hat{\mathbf{u}}_i \cdot \mathbf{f}_i} +
- *      \sqrt{1 - \frac{2r_i}{\hat{\mathbf{u}}_i \cdot \mathbf{f}_i} + \left(
- *      \frac{\hat{\mathbf{k}}_i \cdot \mathbf{f}_i}{\hat{\mathbf{u}}_i \cdot \mathbf{f}_i}
- *      \right)^2}\right]
+ *      \frac{\hat{\mathbf{k}}_i \cdot \mathbf{f}_i}{\hat{\mathbf{u}}_i \cdot
+ * \mathbf{f}_i} + \sqrt{1 - \frac{2r_i}{\hat{\mathbf{u}}_i \cdot \mathbf{f}_i} + \left(
+ *      \frac{\hat{\mathbf{k}}_i \cdot \mathbf{f}_i}{\hat{\mathbf{u}}_i \cdot
+ * \mathbf{f}_i} \right)^2}\right]
  * @f]
  * being @f$\hat{\mathbf{k}}_i, r_i@f$ known parameters.
  * @param[in] params Swivel pulley parameters.
@@ -181,8 +181,9 @@ double CalcTangentAngle(const PulleyParams& params, const CableVars* cable);
  * Given current tangent angle @f$\psi_i@f$ and versor @f$\hat{\mathbf{u}}_i@f$, the
  * following versors are calculated:
  * @f[
- * \hat{\mathbf{n}}_i = \hat{\mathbf{u}}_i \cos(\psi_i) + \hat{\mathbf{k}}_i \sin(\psi_i) \\
- * \hat{\boldsymbol{\rho}}_i = -\hat{\mathbf{u}}_i \sin(\psi_i) + \hat{\mathbf{k}}_i \cos(\psi_i)
+ * \hat{\mathbf{n}}_i = \hat{\mathbf{u}}_i \cos(\psi_i) + \hat{\mathbf{k}}_i \sin(\psi_i)
+ * \\ \hat{\boldsymbol{\rho}}_i = -\hat{\mathbf{u}}_i \sin(\psi_i) + \hat{\mathbf{k}}_i
+ * \cos(\psi_i)
  * @f]
  * being @f$\hat{\mathbf{k}}_i@f$ a known parameter.
  * Then, from @f$ \mathbf{f}_i@f$ cable vector is calculated as:
@@ -250,8 +251,8 @@ double CalcCableLen(const PulleyParams& params, const CableVars* cable);
  * @param[in] platform A pointer to the updated platform structure.
  * @param[in] params A pointer to _i-th_ cable parameters.
  * @param[out] cable A pointer to _i-th_ cable variables structure to be updated.
- * @note Both orientation parametrizations are valid here, that is both angles and quaternions
- * can be used.
+ * @note Both orientation parametrizations are valid here, that is both angles and
+ * quaternions can be used.
  */
 template <class PlatformVarsType>
 void UpdateCableZeroOrd(const ActuatorParams* params, const PlatformVarsType* platform,
@@ -264,8 +265,8 @@ void UpdateCableZeroOrd(const ActuatorParams* params, const PlatformVarsType* pl
  * @f$\boldsymbol{\varepsilon}@f$.
  * @param[in] params A pointer to the robot parameters structure.
  * @param[out] vars A pointer to the robot variables structure to be updated.
- * @note Both orientation parametrizations are valid here, that is both angles and quaternions
- * can be used.
+ * @note Both orientation parametrizations are valid here, that is both angles and
+ * quaternions can be used.
  */
 template <class OrientationType, class VarsType>
 void UpdateIK0(const grabnum::Vector3d& position, const OrientationType& orientation,

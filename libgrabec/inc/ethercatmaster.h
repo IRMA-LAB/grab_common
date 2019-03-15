@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.h
  * @author Edoardo Idà, Simone Comari
- * @date 13 Mar 2019
+ * @date 15 Mar 2019
  * @brief This file includes an abstract class to setup an ethercat master-slave
  * communication.
  */
@@ -29,6 +29,9 @@
 #include "threads.h"
 #include "types.h"
 
+/**
+ * @brief Namespace for GRAB EtherCAT library.
+ */
 namespace grabec {
 
 /**

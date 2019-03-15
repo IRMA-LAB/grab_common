@@ -1,7 +1,7 @@
 /**
  * @file solvers.h
  * @author Edoardo Idà, Simone Comari
- * @date 21 Aug 2018
+ * @date 15 Mar 2019
  * @brief File containing numeric solver to be included in the GRAB numeric library.
  */
 
@@ -11,13 +11,13 @@
 #include "matrix.h"
 
 /**
- * Namespace for GRAB numeric library.
+ * @brief Namespace for GRAB numeric library.
  */
 namespace grabnum
 {
 
 /**
- * Namespace for GRAB numeric solvers.
+ * @brief Namespace for GRAB numeric solvers.
  */
 namespace solvers
 {

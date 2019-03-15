@@ -1,7 +1,7 @@
 /**
  * @file common.h
  * @author Simone Comari
- * @date 13 Mar 2019
+ * @date 15 Mar 2019
  * @brief File containing common basic utilities to be included in the GRAB numeric
  * library.
  */
@@ -17,6 +17,9 @@
 #define SQUARE(x) ((x) * (x)) /**< returns the square of an element. */
 #endif
 
+/**
+ * @brief Namespace for GRAB numeric library.
+ */
 namespace grabnum {
 
 static constexpr double EPSILON = 1e-7; /**< tolerance for floating point comparison */

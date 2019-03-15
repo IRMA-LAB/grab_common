@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 11 Mar 2019
+ * @date 15 Mar 2019
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -20,6 +20,9 @@
 #include "ethercatslave.h"
 #include "types.h"
 
+/**
+ * @brief Namespace for GRAB EtherCAT library.
+ */
 namespace grabec {
 /**
  * @brief Gold Solo Whistle Drive _states_ as in physical drive documentation.

@@ -1,13 +1,16 @@
 /**
  * @file filters.h
  * @author Simone Comari
- * @date 13 Mar 2019
+ * @date 15 Mar 2019
  * @brief This file include filters implementations.
  */
 
 #ifndef GRABCOMMON_LIBNUMERIC_FILTERS_H
 #define GRABCOMMON_LIBNUMERIC_FILTERS_H
 
+/**
+ * @brief Namespace for GRAB numeric library.
+ */
 namespace grabnum {
 
 /**
