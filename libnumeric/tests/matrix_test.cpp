@@ -1,11 +1,11 @@
 #include <QtTest/QtTest>
+
 #include <cmath>
 
 #include "matrix.h"
+#include "matrix_utilities.h"
+#include "common.h"
 
-/**
- * @brief The TestMatrix class
- */
 class TestMatrix : public QObject
 {
   Q_OBJECT
@@ -26,34 +26,21 @@ private:
   grabnum::Matrix2i zeros22i_;
 
 private slots:
-  /**
-   * Called before each test function is executed (overloaded).
-   */
   void init();
-  /**
-   * Test @a Matrix constructors.
-   */
+
   void Constructors();
-  /**
-   * Test @a Matrix operators overloadings.
-   */
+
   void ClassOperators();
-  /**
-   * Test @a Matrix setters.
-   */
+
   void Setters();
-  /**
-   * Test @a Matrix getters.
-   */
+
   void Getters();
-  /**
-   * Test @a Matrix manipulating functions.
-   */
+
   void Manipulations();
-  /**
-   * Test external operations and utilities on matrices.
-   */
+
   void Operations();
+
+  void Utilities();
 };
 
 void TestMatrix::init()
@@ -156,8 +143,7 @@ void TestMatrix::ClassOperators()
     if (!res)
       break;
     for (uint8_t j = 0; j < kDim2_; ++j)
-      if (std::abs(DValues_[i * kDim2_ + j] - mat23d_copy(i + 1, j + 1)) >
-          grabnum::EPSILON)
+      if (!grabnum::IsClose(DValues_[i * kDim2_ + j], mat23d_copy(i + 1, j + 1)))
       {
         res = false;
         break;
@@ -389,17 +375,37 @@ void TestMatrix::Operations()
   grabnum::MatrixXi<5, 2> vcat(results5, ARRAY_SIZE(results5));
   QVERIFY(grabnum::VertCat(mat23i_.Transpose(), mat22i_) == vcat);
 
-  // Test dot product
+  // Test dot-product
   QVERIFY(grabnum::Dot(row.Transpose(), row.Transpose()) == 5);
   QVERIFY(grabnum::Dot(row, row.Transpose()) == 5);
 
+  // Try cross-product
+  QVERIFY(grabnum::Cross(row.Transpose(), row.Transpose()) == grabnum::Vector3i(0));
+}
+
+void TestMatrix::Utilities()
+{
   // Test norm
+  grabnum::MatrixXi<1, 3> row(IValues_, 3);
   QVERIFY(std::abs(grabnum::Norm(row) - 2.236067977499790) <= grabnum::EPSILON);
   QVERIFY(std::abs(grabnum::Norm(row.Transpose()) - 2.236067977499790) <=
           grabnum::EPSILON);
 
-  // Try cross-product
-  QVERIFY(grabnum::Cross(row.Transpose(), row.Transpose()) == grabnum::Vector3i(0));
+  // Test determinant
+  int m_values[9] = {25, 15, -5, 15, 18, 0, -5, 0, 11};
+  grabnum::Matrix3i mat(m_values, ARRAY_SIZE(m_values));
+  QVERIFY(grabnum::Det(mat) == 2025);
+
+  // Test Cholesky decomposition
+  double l_values[9] = {5, 0, 0, 3, 3, 0, -1, 1, 3};
+  grabnum::Matrix3d l_mat(l_values, ARRAY_SIZE(l_values));
+  QVERIFY(grabnum::Cholesky(mat).IsApprox(l_mat));
+
+  // Test positive-definiteness
+  QVERIFY(mat.IsPositiveDefinite());
+  int m_values2[9] = {14, 84, 40, 18, 81, 53, 40, 7, 42};
+  mat.Fill(m_values2, ARRAY_SIZE(m_values2));
+  QVERIFY(!mat.IsPositiveDefinite());
 }
 
 QTEST_MAIN(TestMatrix)

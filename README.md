@@ -33,7 +33,13 @@ Feel free to adapt the settings to your specific need, but the minimal setup for
   - Select _$MYPROJECTPATH_ as `Source code directory` and tick `Scan recursively` option below
   - Select _$MYPROJECTPATH/doc_ as `Destination directory` (make directory if it does not exist yet)
 - In `Step 2`, in the tab `Wizard`, select `Output` under `Topics` and untick **LaTeX** option unless desired.
-- In `Step 2`, in the tab `Expert`, select `HTML` under `Topics` and tick `USE_MATHJAX` option to display mathematical formulas.
+- In `Step 2`, in the tab `Expert`, select `HTML` under `Topics` and tick`USE_MATHJAX` option to display mathematical formulas.
+- In `Step 2`, in the tab `Expert`, select `Input` under `Topics`, go to `FILE_PATTERNS` and remove all extensions except _\*.c, \*.cc, \*.cpp, \*.c++, \*.h, \*.hh, \*.hpp, \*.h++_ by selecting them and clicking the minus button. Look below for `EXCLUDE_PATTERNS` and add _tests_ and _doc_ by clicking the plus button. In the `EXCLUDE` list right above you should also add any build folder which is inside the source code directory. Finally add the following words to the `EXCLUDE_SYMBOLS` list:
+  - STATE_DEFINE
+  - GUARD_DEFINE
+  - ENTRY_DEFINE
+  - EXIT_DEFINE
+- To test your configuration, in `Step 2`, go to tab `Run` and click `Run doxygen` button. In the integrated console you will see your documentation building up. When it is done, click on `Show HTML output` and you will be prompted to a web page on your favourite browser, which you can navigate on.
 - Close the window. You will be asked to save the _Doxyfile_ in the project directory. Do it as it suggests and you are done!
 Obviously, you can edit your configuration file with your favourite text editor in a later stage.
 

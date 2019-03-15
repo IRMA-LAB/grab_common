@@ -1,25 +1,30 @@
 /**
  * @file threads.h
  * @author Simone Comari
- * @date 14 Sep 2018
- * @brief This file collects utilities to create a new thread in a user-friendly way, hiding most
- * of the complexity linked to multi-threading. It also allows the setup of a real-time thread.
+ * @date 06 Feb 2019
+ * @brief This file collects utilities to create a new thread in a user-friendly way,
+ * hiding most of the complexity linked to multi-threading. It also allows the setup of a
+ * real-time thread.
  */
 
 #ifndef GRABCOMMON_LIBGRABRT_THREADS_H
 #define GRABCOMMON_LIBGRABRT_THREADS_H
 
+#include <iostream>
+#include <limits.h>
+#include <malloc.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/resource.h>
 #include <sys/syscall.h>
-#include <iostream>
+#include <sys/time.h>
+#include <unistd.h>
 #include <vector>
-#include <limits.h>
 
-#include "grabcommon.h"
 #include "clocks.h"
+#include "grabcommon.h"
 
 #ifndef CPU_CORES_NUM
 /**
@@ -32,8 +37,7 @@
 /**
  * @brief Namespace for real-time and multi-threading utilities of GRAB software.
  */
-namespace grabrt
-{
+namespace grabrt {
 
 #ifndef THREAD_RUN
 /**
@@ -45,18 +49,35 @@ namespace grabrt
 #define THREAD_RUN(t)                                                                    \
   int ret = pthread_create(t.GetThreadIDPtr(), t.GetAttrPtr(), t._StaticTargetFun, &t);  \
   if (ret != 0)                                                                          \
-    t.HandleErrorEnWrapper(ret, "pthread_create ");
+    t.HandleErrorEnWrapper(ret, "pthread_create ");                                      \
+  else                                                                                   \
+    printf("[Thread] Thread START with ID: %ld\n", t.GetTID());
 #endif
 
 /**
-* @brief Enum to collect particular core entries as argument to BuildCPUSet().
-* @see BuildCPUSet()
-*/
-enum CpuCores
+ * @brief Enum to collect particular core entries as argument to BuildCPUSet().
+ * @see BuildCPUSet()
+ */
+enum CpuCores : int8_t
 {
-  END_CORE = -1, /**< select end physical core on the machine (#CPU_CORES_NUM - 1). */
-  ALL_CORES = -2 /**< select all physical cores on the machine. */
+  END_CORE  = -1, /**< select end physical core on the machine (#CPU_CORES_NUM - 1). */
+  ALL_CORES = -2  /**< select all physical cores on the machine. */
 };
+
+/**
+ * @brief Configure malloc behavior before new thread generation to avoid pagefaults.
+ * @note This function should be called _before_ ReserveProcessMemory().
+ * @see ReserveProcessMemory()
+ */
+void ConfigureMallocBehavior(); // Memory managment
+
+/**
+ * @brief Reserve process memory before new thread generation to avoid pagefaults.
+ * @param size (Optional) Preallocation memory size.
+ * @note This function should be called _after_ ConfigureMallocBehavior().
+ * @see ConfigureMallocBehavior()
+ */
+void ReserveProcessMemory(const uint32_t size = 0xa00000); // Memory locks
 
 /**
  * @brief Build a valid CPU set with a single core or all of them.
@@ -70,7 +91,7 @@ enum CpuCores
  * @note For further details about the implementation, click
  * <a href="https://www.systutorials.com/docs/linux/man/3-CPU_SET/">here</a>.
  */
-cpu_set_t BuildCPUSet(const int cpu_core = ALL_CORES);
+cpu_set_t BuildCPUSet(const int8_t cpu_core = ALL_CORES);
 
 /**
  * @brief Build a valid CPU set with an arbitrary, yet valid, number of cores.
@@ -81,7 +102,7 @@ cpu_set_t BuildCPUSet(const int cpu_core = ALL_CORES);
  * @return A CPU set.
  * @see CpuCores BuildCPUSet()
  */
-cpu_set_t BuildCPUSet(const std::vector<size_t>& cpu_cores);
+cpu_set_t BuildCPUSet(const std::vector<int8_t>& cpu_cores);
 
 /**
  * @brief Set a given CPU set for a specific thread.
@@ -159,7 +180,7 @@ void DisplayThreadSchedAttr(const pthread_t thread_id = pthread_self());
  */
 class Thread
 {
-public:
+ public:
   /**
    * @brief Default constructor.
    *
@@ -177,10 +198,7 @@ public:
    * and all physical cores in the CPU set.
    * @param[in] thread_name (Optional) Instance name.
    */
-  Thread(const std::string& thread_name = "Thread") : name_(thread_name)
-  {
-    InitDefault();
-  }
+  Thread(const std::string& thread_name = "Thread");
   /**
    * @brief Constructor with attributes.
    *
@@ -188,11 +206,7 @@ public:
    * @param[in] attr Desired thread attributes.
    * @param[in] thread_name (Optional) Instance name.
    */
-  Thread(pthread_attr_t& attr, const std::string& thread_name = "Thread")
-    : name_(thread_name)
-  {
-    SetAttr(attr);
-  }
+  Thread(pthread_attr_t& attr, const std::string& thread_name = "Thread");
   /**
    * @brief Constructor with CPU set.
    *
@@ -272,7 +286,7 @@ public:
    * ones.
    * @see CpuCores BuildCPUSet()
    */
-  void SetCPUs(const int cpu_core = ALL_CORES);
+  void SetCPUs(const int8_t cpu_core = ALL_CORES);
   /**
    * @brief Build a valid CPU set with an arbitrary, yet valid, number of cores and assign
    * it to the thread.
@@ -282,7 +296,7 @@ public:
    * - #END_CORE
    * @see CpuCores BuildCPUSet()
    */
-  void SetCPUs(const std::vector<size_t>& cpu_cores);
+  void SetCPUs(const std::vector<int8_t>& cpu_cores);
   /**
    * @brief Set thread scheduling attributes.
    * @param[in] policy A scheduling policy. Valid options are @b SCHED_FIFO or @b SCHED_RR
@@ -298,37 +312,57 @@ public:
   /**
    * @brief Set thread _initial_ function.
    *
-   * The _initial_ function is called once after the creation of the new thread, before its
+   * The _initial_ function is called once after the creation of the new thread, before
+   *its
    * main loop.
    * @param fun_ptr Pointer to function to be called at the beginning of the new thread.
-   * @param args Pointer to optional arguments to the initial function. Set it to @c NULL if
+   * @param args Pointer to optional arguments to the initial function. Set it to @c NULL
+   *if
    * not needed.
-   * @see SetLoopFunc() SetEndFunc()
+   * @see SetLoopFunc() SetEndFunc() SetEmergencyExitFunc()
    */
   void SetInitFunc(void (*fun_ptr)(void*), void* args);
   /**
    * @brief Set thread _loop_ function.
    *
-   * The _loop_ function is called continuosly after the initial function until thread is paused or
+   * The _loop_ function is called continuosly after the initial function until thread is
+   *paused or
    * stopped, either from an internal or external call to the thread.
    * @param fun_ptr Pointer to function to be looped forever.
    * @param args Pointer to optional arguments to the loop function. Set it to @c NULL if
    * not needed.
-   * @see SetInitFunc() SetEndFunc()
+   * @see SetInitFunc() SetEndFunc() SetEmergencyExitFunc()
    */
   void SetLoopFunc(void (*fun_ptr)(void*), void* args);
   /**
    * @brief Set thread _end_ function.
    *
-   * The _end_ function is called once after the end of main loop, consequent to a stopping call,
+   * The _end_ function is called once after the end of main loop, consequent to a
+   *stopping call,
    * right before thread is closed.
    * @param fun_ptr Pointer to function to be called before thread is closed.
    * @param args Pointer to optional arguments to the end function. Set it to @c NULL if
    * not needed.
-   * @see SetLoopFunc() SetInitFunc()
+   * @see SetLoopFunc() SetInitFunc() SetEmergencyExitFunc()
    */
   void SetEndFunc(void (*fun_ptr)(void*), void* args);
+  /**
+   * @brief Set thread _emergency exit_ function.
+   *
+   * The _emergency exit_ function is called once after the end of main loop, iff the real
+   * time deadline is missed and right before thread is closed.
+   * @param fun_ptr Pointer to function to be called before thread is closed.
+   * @param args Pointer to optional arguments to the emergency exit function. Set it to
+   * @c NULL if not needed.
+   * @see SetLoopFunc() SetInitFunc() SetEndFunc()
+   */
+  void SetEmergencyExitFunc(void (*fun_ptr)(void*), void* args);
 
+  /**
+   * @brief Get thread cycle time in nanoseconds.
+   * @return Thread cycle time in nanoseconds.
+   */
+  uint64_t GetCycleTimeNsec() const { return cycle_time_nsec_; }
   /**
    * @brief Get the integral thread of @c this. This is equivalent to its LWP ID in Linux.
    * @return Integral thread ID (aka LWP ID) if thread is active, -1 otherwise.
@@ -367,7 +401,8 @@ public:
   int GetPolicy() const;
   /**
    * @brief Get thread scheduling priority.
-   * @return %Thread scheduling priority. Valid options are [1, 99] for real-time policies and 0
+   * @return %Thread scheduling priority. Valid options are [1, 99] for real-time policies
+   * and 0
    * for normal policies. Default value is 1 for the former and 0 for the latter.
    * @note For further details about _scheduling priority_ click
    * <a href="http://man7.org/linux/man-pages/man7/sched.7.html">here</a>.
@@ -397,9 +432,20 @@ public:
    * @return A pointer to char string.
    */
   const char* GetNameCstr() const { return name_.c_str(); }
+  /**
+   * @brief Mutex
+   * @return
+   */
+  const pthread_mutex_t& Mutex() const { return mutex_; }
+  /**
+   * @brief Mutex
+   * @return
+   */
+  pthread_mutex_t& Mutex() { return mutex_; }
 
   /**
-   * @brief Set thread loop cycle time and verifies if thread setup is completed before creation.
+   * @brief Set thread loop cycle time and verifies if thread setup is completed before
+   * creation.
    * @param cycle_time_nsec (Optional) %Thread loop cycle time in nanoseconds.
    * @return 0 if thread is ready to be created. Non-zero error number otherwise.
    * @exception EFAULT Loop function is not set.
@@ -407,12 +453,13 @@ public:
    * @note For further details about error number convention, click
    * <a href="http://man7.org/linux/man-pages/man3/errno.3.html">here</a>.
    */
-  int GetReady(const uint64_t cycle_time_nsec = 1000LL);
+  int GetReady(const uint64_t cycle_time_nsec = 1000000LL);
   /**
-   * @brief Pauses a running thread. This stops the loop until thread is unpaused (or closed).
+   * @brief Pauses a running thread. This stops the loop until thread is unpaused (or
+   * closed).
    * @see Unpause()
    */
-  void Pause() { run_ = false; }
+  void Pause();
   /**
    * @brief Unpauses a previously paused thread. This operation resets the cycle clock.
    * @see Pause()
@@ -421,7 +468,8 @@ public:
   /**
    * @brief Stops and terminates the thread.
    *
-   * This operation is not reversible and terminates the thread after completion of last cycle.
+   * This operation is not reversible and terminates the thread after completion of last
+   *cycle.
    * @see THREAD_RUN Pause()
    */
   void Stop();
@@ -475,28 +523,33 @@ public:
    */
   [[noreturn]] void HandleErrorEnWrapper(const int en, const char* msg) const;
 
-private:
-  static constexpr unsigned long kStackSize = 10 * 1024 * 1024; // 10 Mb
-
-  pthread_t thread_id_;
-  pthread_attr_t attr_;
-  std::string name_;
-  long tid_;
-  struct sched_param sched_param_;
-  cpu_set_t cpu_set_;
-  uint64_t cycle_time_nsec_;
-
-  void (*init_fun_ptr_)(void*) = NULL;
-  void (*loop_fun_ptr_)(void*) = NULL;
-  void (*end_fun_ptr_)(void*) = NULL;
-  void* init_fun_args_ptr_ = NULL;
-  void* loop_fun_args_ptr_ = NULL;
-  void* end_fun_args_ptr_ = NULL;
-
-  bool run_ = false;
-  bool active_ = false;
+ private:
+  static constexpr uint32_t kStackSize = 10 * 1024 * 1024; /**< 10 Mb */
+  static constexpr uint32_t kPreAllocationSize =
+    100 * 1024 * 1024; /**< 100MB pagefault free buffer */
 
   pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;
+  pthread_t thread_id_   = 0;
+  pthread_attr_t attr_;
+  std::string name_;
+  long tid_ = -1;
+  struct sched_param sched_param_;
+  cpu_set_t cpu_set_;
+  uint64_t cycle_time_nsec_ = 1000000LL; // = 1ms
+
+  void (*init_fun_ptr_)(void*)           = NULL;
+  void (*loop_fun_ptr_)(void*)           = NULL;
+  void (*end_fun_ptr_)(void*)            = NULL;
+  void (*emergency_exit_fun_ptr_)(void*) = NULL;
+  void* init_fun_args_ptr_               = NULL;
+  void* loop_fun_args_ptr_               = NULL;
+  void* end_fun_args_ptr_                = NULL;
+  void* emergency_exit_fun_args_ptr_     = NULL;
+
+  bool run_                = false;
+  bool active_             = false;
+  bool stop_cmd_recv_      = false;
+  bool rt_deadline_missed_ = false;
 
   /**
    * @brief Initializes thread with default attributes and CPU set.

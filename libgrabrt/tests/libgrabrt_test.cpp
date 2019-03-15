@@ -1,10 +1,3 @@
-/**
- * @file libgrabrt_test.cpp
- * @author Simone Comari
- * @date 14 Sep 2018
- * @brief ...
- */
-
 #include <QString>
 #include <QtTest>
 
@@ -12,36 +5,20 @@
 #include "threads.h"
 #include "clocks.h"
 
-/**
- * @brief The LibgrabrtTest class
- */
 class LibgrabrtTest : public QObject
 {
   Q_OBJECT
 
 private Q_SLOTS:
-  /**
-   * @brief testCPUSetBuilders
-   */
   void testCPUSetBuilders();
-  /**
-   * @brief testSetThisThread
-   */
+
   void testSetThisThread();
-  /**
-   * @brief testThreadClock
-   */
+
   void testThreadClock();
-  /**
-   * @brief testNewThread
-   */
+
   void testNewThread();
 
 private:
-  /**
-   * @brief loopFun
-   * @param obj
-   */
   static void loopFun(void* obj)
   {
     static uint counter = 1;
@@ -102,7 +79,7 @@ void LibgrabrtTest::testThreadClock()
   const double period = 0.145;
   grabrt::ThreadClock clock(grabrt::Sec2NanoSec(period));
   // test waiting time
-  struct timespec ts_start, ts_end;
+  struct timespec ts_start, ts_end, ts_end2;
   double t_start, t_end;
   for (uint i = 0; i < 20; ++i)
   {
@@ -123,6 +100,9 @@ void LibgrabrtTest::testThreadClock()
   t_start = ts_start.tv_sec + grabrt::NanoSec2Sec(ts_start.tv_nsec);
   t_end = ts_end.tv_sec + grabrt::NanoSec2Sec(ts_end.tv_nsec);
   QVERIFY(grabnum::IsClose(t_end - t_start, period));
+  ts_end2 = clock.SetAndGetNextTime();
+  t_end = ts_end2.tv_sec + grabrt::NanoSec2Sec(ts_end2.tv_nsec);
+  QVERIFY(grabnum::IsClose(t_end - t_start, period));
 }
 
 void LibgrabrtTest::testNewThread()
@@ -130,7 +110,6 @@ void LibgrabrtTest::testNewThread()
   grabrt::Thread t("TestSubThread");
   t.DispAttr();
   grabrt::DisplayThreadAffinitySet();
-  return;
   t.SetCPUs(std::vector<size_t>{2, 3});
   t.SetSchedAttr(SCHED_RR, 25);
   t.DispAttr();

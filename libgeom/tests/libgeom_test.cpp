@@ -2,18 +2,13 @@
 #include <QtTest>
 
 #include "rotations.h"
+#include "quaternions.h"
 
-/**
- * @brief The LibgeomTest class
- */
 class LibgeomTest : public QObject
 {
   Q_OBJECT
 
 private Q_SLOTS:
-  /**
-   * @brief testCase1
-   */
   void testCase1();
 };
 

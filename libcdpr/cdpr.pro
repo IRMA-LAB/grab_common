@@ -1,17 +1,21 @@
 
-HEADERS += inc/kinematics.h \
-    inc/diffkinematics.h \
-    inc/types.h
+HEADERS += \
+    $$PWD/inc/kinematics.h \
+    $$PWD/inc/diffkinematics.h \
+    $$PWD/inc/types.h \
+    $$PWD/tools/json.hpp \
+    $$PWD/tools/robotconfigjsonparser.h \
+    $$PWD/../grabcommon.h
 
-SOURCES += src/kinematics.cpp \
-    src/diffkinematics.cpp
+SOURCES += \
+    $$PWD/src/kinematics.cpp \
+    $$PWD/src/diffkinematics.cpp \
+    $$PWD/tools/robotconfigjsonparser.cpp \
 
-INCLUDEPATH += inc \
-        ../libgeom/inc \
-        ../libnumeric/inc \
-        ../libnumeric/src
-
-LIBS += ../libgeom/build/libgeom.a ../libnumeric/build/libnumeric.a
+INCLUDEPATH += \
+    $$PWD/inc \
+    $$PWD/tools \
+    $$PWD/..
 
 QT       -= gui
 
@@ -25,3 +29,19 @@ TEMPLATE = lib
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+
+# Lib numeric
+unix:!macx: LIBS += -L$$PWD/../libnumeric/lib/ -lnumeric
+
+INCLUDEPATH += $$PWD/../libnumeric $$PWD/../libnumeric/inc
+DEPENDPATH += $$PWD/../libnumeric
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/lib/libnumeric.a
+
+# Lib geometric
+unix:!macx: LIBS += -L$$PWD/../libgeom/lib/ -lgeom
+
+INCLUDEPATH += $$PWD/../libgeom $$PWD/../libgeom/inc
+DEPENDPATH += $$PWD/../libgeom
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libgeom/lib/libgeom.a

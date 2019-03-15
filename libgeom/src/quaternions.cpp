@@ -1,14 +1,13 @@
 /**
  * @file quaternions.cpp
- * @author Edoardo Idà, Simone Comari
- * @date 06 Sep 2018
+ * @author Simone Comari
+ * @date 13 Mar 2019
  * @brief File containing definitions of quaternions.h.
  */
 
 #include "quaternions.h"
 
-namespace grabgeom
-{
+namespace grabgeom {
 
 grabnum::Matrix3d Quat2Rot(const Quaternion& q)
 {
@@ -37,30 +36,30 @@ Quaternion Rot2Quat(const grabnum::Matrix3d& rot_mat)
   q_square.z = 0.25 * (1 - rot_mat(1, 1) - rot_mat(2, 2) + rot_mat(3, 3));
   switch (q_square.q().MaxIdx())
   {
-  case 1:
-    q.w = sqrt(q_square.w);
-    q.x = 0.25 * (rot_mat(3, 2) - rot_mat(2, 3)) / q.w;
-    q.y = 0.25 * (rot_mat(1, 3) - rot_mat(3, 1)) / q.w;
-    q.z = 0.25 * (rot_mat(2, 1) - rot_mat(1, 2)) / q.w;
-    break;
-  case 2:
-    q.x = sqrt(q_square.x);
-    q.w = 0.25 * (rot_mat(3, 2) - rot_mat(2, 3)) / q.x;
-    q.y = 0.25 * (rot_mat(1, 3) - rot_mat(3, 1)) / q.w;
-    q.z = 0.25 * (rot_mat(2, 1) - rot_mat(1, 2)) / q.w;
-    break;
-  case 3:
-    q.y = sqrt(q_square.y);
-    q.w = 0.25 * (rot_mat(1, 3) - rot_mat(3, 1)) / q.y;
-    q.x = 0.25 * (rot_mat(3, 2) - rot_mat(2, 3)) / q.w;
-    q.z = 0.25 * (rot_mat(2, 1) - rot_mat(1, 2)) / q.w;
-    break;
-  case 4:
-    q.z = sqrt(q_square.z);
-    q.w = 0.25 * (rot_mat(2, 1) - rot_mat(1, 2)) / q.z;
-    q.x = 0.25 * (rot_mat(3, 2) - rot_mat(2, 3)) / q.w;
-    q.y = 0.25 * (rot_mat(1, 3) - rot_mat(3, 1)) / q.w;
-    break;
+    case 1:
+      q.w = sqrt(q_square.w);
+      q.x = 0.25 * (rot_mat(3, 2) - rot_mat(2, 3)) / q.w;
+      q.y = 0.25 * (rot_mat(1, 3) - rot_mat(3, 1)) / q.w;
+      q.z = 0.25 * (rot_mat(2, 1) - rot_mat(1, 2)) / q.w;
+      break;
+    case 2:
+      q.x = sqrt(q_square.x);
+      q.w = 0.25 * (rot_mat(3, 2) - rot_mat(2, 3)) / q.x;
+      q.y = 0.25 * (rot_mat(1, 2) - rot_mat(2, 1)) / q.x;
+      q.z = 0.25 * (rot_mat(1, 3) - rot_mat(3, 1)) / q.x;
+      break;
+    case 3:
+      q.y = sqrt(q_square.y);
+      q.w = 0.25 * (rot_mat(1, 3) - rot_mat(3, 1)) / q.y;
+      q.x = 0.25 * (rot_mat(1, 2) - rot_mat(2, 1)) / q.y;
+      q.z = 0.25 * (rot_mat(2, 3) - rot_mat(3, 2)) / q.y;
+      break;
+    case 4:
+      q.z = sqrt(q_square.z);
+      q.w = 0.25 * (rot_mat(2, 1) - rot_mat(1, 2)) / q.z;
+      q.x = 0.25 * (rot_mat(1, 3) - rot_mat(3, 1)) / q.z;
+      q.y = 0.25 * (rot_mat(2, 3) - rot_mat(3, 2)) / q.z;
+      break;
   }
   return q;
 }
@@ -69,7 +68,7 @@ grabnum::Vector3d QuatRotate(const Quaternion& quat, const grabnum::Vector3d& ve
 {
   assert(quat.IsUnitary());
 
-  Quaternion vect_ext(0., vect);  // pure quaternion
+  Quaternion vect_ext(0., vect); // pure quaternion
   return (quat * vect_ext * quat.Conj()).v();
 }
 

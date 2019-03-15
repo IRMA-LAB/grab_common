@@ -1,15 +1,23 @@
 
-HEADERS += inc/matrix.h inc/solvers.h \
-    inc/common.h
+HEADERS += \
+    $$PWD/inc/matrix.h \
+    $$PWD/inc/matrix_utilities.h \
+    $$PWD/inc/solvers.h \
+    $$PWD/inc/filters.h \
+    $$PWD/inc/common.h
 
-SOURCES += src/matrix.cpp src/solvers.cpp
+SOURCES += \
+    $$PWD/src/matrix.cpp \
+    $$PWD/src/matrix_utilities.tcc \
+    $$PWD/src/solvers.cpp \
+    $$PWD/src/filters.cpp
 
-INCLUDEPATH += inc src
+INCLUDEPATH += $$PWD/inc
 
-QT       -= gui
+QT           -= gui
 
 CONFIG   += c++11 staticlib
-CONFIG   -= app_bundle
+CONFIG    -= app_bundle
 
 TEMPLATE = lib
 

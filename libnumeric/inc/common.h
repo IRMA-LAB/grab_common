@@ -1,18 +1,30 @@
 /**
  * @file common.h
  * @author Simone Comari
- * @date 07 Sep 2018
+ * @date 15 Mar 2019
  * @brief File containing common basic utilities to be included in the GRAB numeric
  * library.
  */
+
 #ifndef GRABCOMMON_LIBNUMERIC_COMMON_H
 #define GRABCOMMON_LIBNUMERIC_COMMON_H
 
-namespace grabnum
-{
+#include <cmath>
+#include <stdlib.h>
+#include <vector>
+
+#ifndef SQUARE
+#define SQUARE(x) ((x) * (x)) /**< returns the square of an element. */
+#endif
+
+/**
+ * @brief Namespace for GRAB numeric library.
+ */
+namespace grabnum {
 
 static constexpr double EPSILON = 1e-7; /**< tolerance for floating point comparison */
 
+template <typename T>
 /**
  * @brief Check whether two floating numbers are close within a certain tolerance.
  *
@@ -25,11 +37,40 @@ static constexpr double EPSILON = 1e-7; /**< tolerance for floating point compar
  * return _True_ if their absolute difference is within the threshold.
  * @see EPSILON
  */
-template <typename T>
 inline bool IsClose(const T a, const T b, const double tol = EPSILON)
 {
   return fabs(a - b) <= tol;
 }
 
+template <typename T>
+/**
+ * @brief Mean value of a standard vector.
+ * @param[in] vect A m-dimensional standard vector.
+ * @return A scalar value.
+ */
+double Mean(const std::vector<T>& vect)
+{
+  T sum = 0;
+  for (size_t i = 0; i < vect.size(); ++i)
+    sum += vect[i];
+  return static_cast<double>(sum) / static_cast<double>(vect.size());
+}
+
+template <typename T>
+/**
+ * @brief Standard deviation of a standard vector.
+ * @param[in] vect A m-dimensional standard vector.
+ * @return A scalar value.
+ */
+double Std(const std::vector<T>& vect)
+{
+  double mean = Mean(vect);
+  double sum  = 0;
+  for (size_t i = 0; i < vect.size(); ++i)
+    sum += SQUARE(vect[i] - mean);
+  return sqrt(static_cast<double>(sum) / static_cast<double>(vect.size()));
+}
+
 } //  end namespace grabnum
+
 #endif // GRABCOMMON_LIBNUMERIC_COMMON_H

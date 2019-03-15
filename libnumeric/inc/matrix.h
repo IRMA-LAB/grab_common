@@ -1,25 +1,17 @@
 /**
  * @file matrix.h
  * @author Edoardo Idà, Simone Comari
- * @date 07 Sep 2018
+ * @date 15 Mar 2019
  * @brief File containing matrix class and utilities to be included in the GRAB numeric
  * library.
  *
  * In this file a simple implementation of a class object is provided, with its basic
- * functionalities.
- * Below the class there are some external independent functions which provide extra
- * utilities related to matrix operations. All elements of this file are templated to be
- * compatible with all different types and leave the user more flexibility.
+ * functionalities. All elements of this file are templated to be compatible with all
+ * different types and leave the user more flexibility.
  */
 
 #ifndef GRABCOMMON_LIBNUMERIC_MATRIX_H_
 #define GRABCOMMON_LIBNUMERIC_MATRIX_H_
-
-/**
- * Define whether the build target is a MCU or a device with a graphic interface.
- * @todo move this flag in the preprocessor flags
- */
-#define MCU_TARGET 0
 
 #include <algorithm>
 #include <cmath>
@@ -27,17 +19,19 @@
 
 #include "common.h"
 
+/**
+ * Define whether the build target is a MCU or a device with a graphic interface.
+ * @todo move this flag in the preprocessor flags
+ */
+#define MCU_TARGET 0
+
 #if (MCU_TARGET == 0)
 #include <iostream>
 #include <iomanip>
 #endif
 
-#ifndef SQUARE
-#define SQUARE(x) (x * x) /**< returns the square of an element. */
-#endif
-
 /**
- * Namespace for GRAB numeric library.
+ * @brief Namespace for GRAB numeric library.
  */
 namespace grabnum
 {
@@ -107,7 +101,7 @@ public:
    */
   uint8_t Cols() const { return cols; }
   /**
-   * Returns the matrix size, i.e. @a m x @a n.
+   * Returns the matrix size, i.e. @f$m\times n@f$.
    *
    * @return A size.
    */
@@ -142,7 +136,9 @@ public:
    * @return The linear index corresponding to a standard double index.
    */
   inline uint16_t LinIdx(const uint8_t row, const uint8_t col) const
-  { return (row - 1) * cols + col; }
+  {
+    return (row - 1) * cols + col;
+  }
   /**
    * Returns the matrix type.
    *
@@ -207,7 +203,7 @@ public:
    * param[in] lin_index The linear index of the desired entry.
    * @return The i-th entry of the matrix.
    * @note Matrix indexing starts from 1 like in Matlab and read row-by-row,
-   *top-to-bottom.
+   * top-to-bottom.
    */
   inline const T& operator()(const uint8_t lin_index) const
   {
@@ -222,7 +218,7 @@ public:
    * param[in] lin_index The linear index of the desired entry.
    * @return The i-th entry of the matrix.
    * @note Matrix indexing starts from 1 like in Matlab and read row-by-row,
-   *top-to-bottom.
+   * top-to-bottom.
    */
   inline T& operator()(const uint8_t lin_index)
   {
@@ -234,11 +230,10 @@ public:
   /**
    * Operator for element-wise comparison (equal).
    *
-   * @param other The matrix to be compared against.
+   * @param[in] other The matrix to be compared against.
    * @return true if each element of @c *this and @a other are all exactly equal.
    * @warning When using floating point scalar values you probably should rather use a
-   *fuzzy
-   * comparison such as IsApprox()
+   * fuzzy comparison such as IsApprox().
    * @see operator!=
    * @see IsApprox()
    */
@@ -249,8 +244,7 @@ public:
    * @param[in] other The matrix to be compared against.
    * @return true if at least one element of @c *this and @a other are not exactly equal.
    * @warning When using floating point scalar values you probably should rather use a
-   *fuzzy
-   * comparison such as IsApprox()
+   * fuzzy comparison such as IsApprox().
    * @see operator==
    * @see IsApprox()
    */
@@ -306,7 +300,7 @@ public:
    * @param[in] other The submatrix to be used to replace the block of  @c *this.
    * @return A reference to @c *this.
    * @note @a block_rows must be <= m - @a start_row, likewise @a block_cols <= n -
-   * @a start_col, where @a m x @a n are the dimensions of @c *this. In other words,
+   * @a start_col, where @f$m\times n@f$ are the dimensions of @c *this. In other words,
    * @a other becomes a submatrix of @c *this.
    * @see SetFromBlock()
    * @todo example
@@ -349,7 +343,7 @@ public:
    * @param[in] other The matrix whose block is used to replace @c *this.
    * @return A reference to @c *this.
    * @note @a m must be <= @a _rows - @a start_row, likewise @a n <= @a _rows -
-   * @a start_col, where @a m x @a n are the dimensions of @c *this. In other words,
+   * @a start_col, where @f$m\times n@f$ are the dimensions of @c *this. In other words,
    * @c *this becomes a submatrix of @a other.
    * @see SetBlock()
    * @todo example
@@ -457,8 +451,9 @@ public:
    * @param[in] start_col The starting column of the block.
    * @return A block of the original matrix.
    */
-  template<uint8_t blk_rows, uint8_t blk_cols>
-  Matrix<T, blk_rows, blk_cols> GetBlock(const uint8_t start_row, const uint8_t start_col) const;
+  template <uint8_t blk_rows, uint8_t blk_cols>
+  Matrix<T, blk_rows, blk_cols> GetBlock(const uint8_t start_row,
+                                         const uint8_t start_col) const;
 
   /**
    * Check if the matrix is square, i.e. @a m = @a n.
@@ -467,19 +462,34 @@ public:
    */
   bool IsSquare() const;
   /**
-   * Check if the matrix is symmetric, i.e. @a A = @a A^T.
+   * Check if the matrix is symmetric, i.e. @f$\mathbf{A} = \mathbf{A}^T@f$.
    *
    * @return true if matrix is symmetric.
    */
   bool IsSymmetric() const;
   /**
+   * Check if the matrix is positive-definite using _Cholesky decomposition_.
+   *
+   * A generic symmetric matrix @f$\mathbf{A}@f$ is positive-definite matrix if and only
+   * if it can be decomposed into a product of a unique lower triangular matrix
+   * @f$\mathbf{L}@f$ and its transpose:
+   * @f[
+   * \mathbf{A} = \mathbf{L}\mathbf{L}^T
+   * @f]
+   * where @f$\mathbf{L}@f$ is called the _Cholesky factor_ of @f$\mathbf{A}@f$, and can
+   * be interpreted as a generalized square root of @f$\mathbf{A}@f$.
+   * @return true if matrix is positive-definite.
+   * @see Cholesky()
+   */
+  bool IsPositiveDefinite() const;
+  /**
    * Operator for fuzzy element-wise comparison (equal).
    *
    * @param[in] other The matrix to be compared against.
    * @param[in] tol (optional) The difference below which two single entries are
-   *considered equal.
+   * considered equal.
    * @return true if each element of @c *this and @a other are all equal up to a certain
-   *tolerance.
+   * tolerance.
    * @see operator!=
    */
   bool IsApprox(const Matrix<T, rows, cols>& other, const double tol = EPSILON) const;
@@ -535,247 +545,9 @@ using VectorXf = Matrix<float, dim, 1>; /**< generic vector of float */
 template <uint8_t dim>
 using VectorXd = Matrix<double, dim, 1>; /**< generic vector of double */
 
-///////////////////////////////////////////////////////////////////////////////
-/// Matrix utilities
-///////////////////////////////////////////////////////////////////////////////
-
-#if (MCU_TARGET == 0)
-/**
- * Print function for matrix.
- *
- * @param[in] stream A std output stream.
- * @param[in] matrix A @a m x @a n matrix.
- * @return A reference to the input stream.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-std::ostream& operator<<(std::ostream& stream, const Matrix<T, rows, cols>& matrix);
-#endif
-
-/**
- * Addition between a scalar and a matrix.
- *
- * @param[in] scalar A scalar value.
- * @param[in] matrix A @a m x @a n matrix.
- * @return A @a m x @a n matrix, result of the addition.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator+(const T& scalar, const Matrix<T, rows, cols>& matrix);
-
-/**
- * Addition between a matrix and a scalar.
- *
- * @param[in] matrix A @a m x @a n matrix.
- * @param[in] scalar A scalar value.
- * @return A @a m x @a n matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix, const T& scalar);
-
-/**
- * Addition between two matrices.
- *
- * @param[in] matrix1 A @a m x @a n matrix.
- * @param[in] matrix2 A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix1,
-                                const Matrix<T, rows, cols>& matrix2);
-
-/**
- * Subtraction between a scalar and a matrix.
- *
- * @param[in] scalar A scalar value.
- * @param[in] matrix A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator-(const T& scalar, const Matrix<T, rows, cols>& matrix);
-
-/**
- * Subtraction between a matrix and a scalar.
- *
- * @param[in] matrix A @a m x @a n matrix.
- * @param[in] scalar A scalar value.
- * @return A @a m x @a n matrix, result of the subtraction.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix, const T& scalar);
-
-/**
- * Subtraction between two matrices.
- *
- * @param[in] matrix1 A @a m x @a n matrix.
- * @param[in] matrix2 A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix1,
-                                const Matrix<T, rows, cols>& matrix2);
-
-/**
- * Returns the opposite of a matrix.
- * This is equivalent to multiplication by -1.
- *
- * @param[in] matrix A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix);
-
-/**
- * Row-column matrix multiplication.
- *
- * @param[in] matrix1 A @a m x @a n matrix.
- * @param[in] matrix2 A @a n x @a p matrix.
- * @return A @a m x @a p matrix.
- */
-template <typename T, uint8_t rows1, uint8_t dim_common, uint8_t cols2>
-Matrix<T, rows1, cols2> operator*(const Matrix<T, rows1, dim_common>& matrix1,
-                                  const Matrix<T, dim_common, cols2>& matrix2);
-
-/**
- * Outer product operation.
- *
- * @param[in] vvect A m-dimensional vertical vector.
- * @param[in] hvect A n-dimensional horizontal vector.
- * @return A @a m x @a n matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator*(const VectorX<T, rows>& vvect,
-                                const Matrix<T, 1, cols>& hvect);
-
-/**
- * Scalar product operation.
- *
- * @param[in] scalar A scalar value.
- * @param[in] matrix A @a m x @a n matrix.
- * @return A @a m x @a n matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator*(const T& scalar, const Matrix<T, rows, cols>& matrix);
-
-/**
- * Scalar product operation.
- *
- * @param[in] matrix A @a m x @a n matrix.
- * @param[in] scalar A scalar value.
- * @return A @a m x @a n matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator*(const Matrix<T, rows, cols>& matrix, const T& scalar);
-
-/**
- * Element-wise vector multiplication.
- *
- * @param[in] vvect1 A m-dimensional vertical vector.
- * @param[in] vvect2 A m-dimensional vertical vector.
- * @return A m-dimensional vertical vector.
- */
-template <typename T, uint8_t rows>
-VectorX<T, rows> operator*(const VectorX<T, rows>& vvect1,
-                           const VectorX<T, rows>& vvect2);
-
-/**
- * Element-wise vector multiplication.
- *
- * @param[in] hvect1 A m-dimensional horizontal vector.
- * @param[in] hvect2 A m-dimensional horizontal vector.
- * @return A m-dimensional horizontal vector.
- */
-template <typename T, uint8_t cols>
-Matrix<T, 1, cols> operator*(const Matrix<T, 1, cols>& hvect1,
-                             const Matrix<T, 1, cols>& hvect2);
-
-/**
- * Matrix division by scalar operation.
- *
- * @param[in] matrix A @a m x @a n matrix.
- * @param[in] scalar A scalar value.
- * @return A @a m x @a n matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols>
-Matrix<T, rows, cols> operator/(const Matrix<T, rows, cols>& matrix, const T& scalar);
-
-/**
- * Matrix horizontal concatenation.
- *
- * @param[in] matrix_lx A @a m x @a n matrix.
- * @param[in] matrix_rx A @a m x @a p matrix.
- * @return A @a m x @a (n+p) matrix.
- */
-template <typename T, uint8_t rows, uint8_t cols1, uint8_t cols2>
-Matrix<T, rows, cols1 + cols2> HorzCat(const Matrix<T, rows, cols1>& matrix_lx,
-                                       const Matrix<T, rows, cols2>& matrix_rx);
-
-/**
- * Matrix vertical concatenation.
- *
- * @param[in] matrix_up A @a m x @a n matrix.
- * @param[in] matrix_down A @a p x @a n matrix.
- * @return A @a (m+p) x @a n matrix.
- */
-template <typename T, uint8_t rows1, uint8_t rows2, uint8_t cols>
-Matrix<T, rows1 + rows2, cols> VertCat(const Matrix<T, rows1, cols>& matrix_up,
-                                       const Matrix<T, rows2, cols>& matrix_down);
-
-/**
- * Vector dot-product operation.
- *
- * @param[in] vvect1 A m-dimensional vertical vector.
- * @param[in] vvect2 A m-dimensional vertical vector.
- * @return A scalar value.
- */
-template <typename T, uint8_t dim>
-T Dot(const VectorX<T, dim>& vvect1, const VectorX<T, dim>& vvect2);
-
-/**
- * Vector dot-product operation.
- *
- * @param[in] hvect A m-dimensional horizontal vector.
- * @param[in] vvect A m-dimensional vertical vector.
- * @return A scalar value.
- */
-template <typename T, uint8_t dim>
-T Dot(const Matrix<T, 1, dim>& hvect, const VectorX<T, dim>& vvect);
-
-/**
- * Vector L2-norm (i.e. Euclidean norm).
- *
- * @param[in] vvect A m-dimensional vertical vector.
- * @return A scalar value.
- */
-template <typename T, uint8_t dim> double Norm(const VectorX<T, dim>& vvect);
-
-/**
- * Vector L2-norm (i.e. Euclidean norm).
- *
- * @param[in] hvect A m-dimensional horizontal vector.
- * @return A scalar value.
- */
-template <typename T, uint8_t dim> double Norm(const Matrix<T, 1, dim>& hvect);
-
-/**
- * Vector cross-product operation.
- *
- * @param[in] vvect3d1 A 3-dimensional vertical vector.
- * @param[in] vvect3d2 A 3-dimensional vertical vector.
- * @return A 3x3 matrix.
- */
-template <typename T>
-Vector3<T> Cross(const Vector3<T>& vvect3d1, const Vector3<T>& vvect3d2);
-
-/**
- * Computes the skew-symmetric matrix of a 3D vector.
- *
- * @param[in] vvect3d A 3-dimensional vertical vector.
- * @return A 3x3 matrix.
- */
-template <typename T> Matrix3<T> Skew(const Vector3<T>& vvect3d);
-
 } //  end namespace grabnum
 
 // This is a trick to define templated functions in a source file.
-#include "matrix.cpp"
+#include "../src/matrix.cpp"
 
 #endif /* GRABCOMMON_LIBNUMERIC_MATRIX_H_ */

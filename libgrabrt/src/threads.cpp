@@ -1,16 +1,47 @@
 /**
  * @file threads.cpp
  * @author Simone Comari
- * @date 14 Sep 2018
+ * @date 06 Feb 2019
  * @brief File containing definitions of functions and class declared in threads.h.
  */
 
 #include "threads.h"
 
-namespace grabrt
-{
+namespace grabrt {
 
-cpu_set_t BuildCPUSet(const int cpu_core /*= ALL_CORES*/)
+void ConfigureMallocBehavior()
+{
+  // Lock all current and future pages from preventing of being paged.
+  if (mlockall(MCL_CURRENT | MCL_FUTURE))
+    perror("mlockall failed:");
+  // Turn off malloc trimming.
+  mallopt(M_TRIM_THRESHOLD, -1);
+  // Turn off shared memory (mmap) usage.
+  mallopt(M_MMAP_MAX, 0);
+}
+
+void ReserveProcessMemory(const uint32_t size)
+{
+  char* buffer;
+  buffer = static_cast<char*>(malloc(size));
+
+  // Touch each page in this piece of memory to get it mapped into RAM.
+  for (uint32_t i = 0; i < size; i += sysconf(_SC_PAGESIZE))
+    // Each write to this buffer will generate a pagefault.
+    // Once the pagefault is handled a page will be locked in memory and never given back
+    // to the system.
+    buffer[i] = 0;
+
+  // buffer will now be released. As Glibc is configured such that it never gives back
+  // memory to the kernel, the memory allocated above is locked for this process. All
+  // malloc() and new() calls come from the memory pool reserved and locked above.
+  // Issuing free() and delete() does NOT make this locking undone. So, with this locking
+  // mechanism we can build C++ applications that will never run into a major/minor
+  // pagefault, even with swapping enabled.
+  free(buffer);
+}
+
+cpu_set_t BuildCPUSet(const int8_t cpu_core /*= ALL_CORES*/)
 {
   // init
   cpu_set_t cpu_set;
@@ -20,21 +51,21 @@ cpu_set_t BuildCPUSet(const int cpu_core /*= ALL_CORES*/)
     HandleErrorEn(EINVAL, "BuildCPUSet ");
   switch (cpu_core)
   {
-  case ALL_CORES: // set all cores
-    for (size_t i = 0; i < static_cast<size_t>(CPU_CORES_NUM); i++)
-      CPU_SET(i, &cpu_set);
-    break;
-  case END_CORE:                                               // set affine single core
-    CPU_SET(static_cast<size_t>(CPU_CORES_NUM) - 1, &cpu_set); // last core
-    break;
-  default: // set affine single core
-    CPU_SET(static_cast<size_t>(cpu_core), &cpu_set);
-    break;
+    case ALL_CORES: // set all cores
+      for (size_t i = 0; i < static_cast<size_t>(CPU_CORES_NUM); i++)
+        CPU_SET(i, &cpu_set);
+      break;
+    case END_CORE:                          // set affine single core
+      CPU_SET(CPU_CORES_NUM - 1, &cpu_set); // last core
+      break;
+    default: // set affine single core
+      CPU_SET(static_cast<size_t>(cpu_core), &cpu_set);
+      break;
   }
   return cpu_set;
 }
 
-cpu_set_t BuildCPUSet(const std::vector<size_t>& cpu_cores)
+cpu_set_t BuildCPUSet(const std::vector<int8_t>& cpu_cores)
 {
   // init
   cpu_set_t cpu_set;
@@ -46,11 +77,11 @@ cpu_set_t BuildCPUSet(const std::vector<size_t>& cpu_cores)
   for (auto const& core : cpu_cores)
   {
     // validity check on single core
-    if (core >= static_cast<size_t>(CPU_CORES_NUM))
+    if (core >= CPU_CORES_NUM)
       HandleErrorEn(EINVAL, "BuildCPUSet ");
 
-    if (core == static_cast<size_t>(END_CORE))
-      CPU_SET(static_cast<size_t>(CPU_CORES_NUM) - 1, &cpu_set); // last core
+    if (core == END_CORE)
+      CPU_SET(CPU_CORES_NUM - 1, &cpu_set); // last core
     else
       CPU_SET(core, &cpu_set);
   }
@@ -66,7 +97,7 @@ void SetThreadCPUs(const cpu_set_t& cpu_set,
 }
 
 void SetThreadSchedAttr(const int policy, const int priority /*= -1*/,
-                     const pthread_t thread_id /*= pthread_self()*/)
+                        const pthread_t thread_id /*= pthread_self()*/)
 {
   struct sched_param param;
   if (priority < 0)
@@ -114,8 +145,8 @@ void DisplaySchedAttr(const int policy, const struct sched_param& param)
   printf("    policy=%s, priority=%d\n",
          (policy == SCHED_FIFO)
            ? "SCHED_FIFO"
-           : (policy == SCHED_RR) ? "SCHED_RR" : (policy == SCHED_OTHER) ? "SCHED_OTHER"
-                                                                         : "???",
+           : (policy == SCHED_RR) ? "SCHED_RR"
+                                  : (policy == SCHED_OTHER) ? "SCHED_OTHER" : "???",
          param.sched_priority);
 }
 
@@ -132,9 +163,20 @@ void DisplayThreadSchedAttr(const pthread_t thread_id /*= pthread_self()*/)
   DisplaySchedAttr(policy, param);
 }
 
-/////////////////////////////////////////////////
-/// Thread Class Methods
-/////////////////////////////////////////////////
+//------------------------------------------------------------------------------------//
+//  Thread CLASS
+//------------------------------------------------------------------------------------//
+
+Thread::Thread(const std::string& thread_name /*= "Thread"*/) : name_(thread_name)
+{
+  InitDefault();
+}
+
+Thread::Thread(pthread_attr_t& attr, const std::string& thread_name /*= "Thread"*/)
+  : name_(thread_name)
+{
+  SetAttr(attr);
+}
 
 Thread::Thread(const cpu_set_t& cpu_set, const std::string& thread_name /*= "Thread"*/)
 {
@@ -166,6 +208,8 @@ Thread::~Thread()
   pthread_attr_destroy(&attr_);
 }
 
+//--------- Public functions ---------------------------------------------------------//
+
 void Thread::SetAttr(const pthread_attr_t& attr)
 {
   int ret;
@@ -176,13 +220,12 @@ void Thread::SetAttr(const pthread_attr_t& attr)
     HandleErrorEnWrapper(ret, "pthread_attr_getaffinity_np ");
   ret = pthread_attr_getschedparam(&attr_, &sched_param_);
   if (ret != 0)
-    HandleErrorEnWrapper(ret, "pthread_attr_getschedparam ");  
+    HandleErrorEnWrapper(ret, "pthread_attr_getschedparam ");
 
   if (IsActive())
-    printf(
-      ANSI_COLOR_YELLOW
-      "WARNING: Thread is active. New attributes set but not effective!" ANSI_COLOR_RESET
-      "\n");
+    printf(ANSI_COLOR_YELLOW "[%s] WARNING: Thread is active. New attributes set but not "
+                             "effective!" ANSI_COLOR_RESET "\n",
+           name_.c_str());
 }
 
 void Thread::SetCPUs(const cpu_set_t& cpu_set)
@@ -194,7 +237,7 @@ void Thread::SetCPUs(const cpu_set_t& cpu_set)
   pthread_mutex_unlock(&mutex_);
 }
 
-void Thread::SetCPUs(const int cpu_core /*= ALL_CORES*/)
+void Thread::SetCPUs(const int8_t cpu_core /*= ALL_CORES*/)
 {
   pthread_mutex_lock(&mutex_);
   cpu_set_ = BuildCPUSet(cpu_core);
@@ -203,7 +246,7 @@ void Thread::SetCPUs(const int cpu_core /*= ALL_CORES*/)
   pthread_mutex_unlock(&mutex_);
 }
 
-void Thread::SetCPUs(const std::vector<size_t>& cpu_cores)
+void Thread::SetCPUs(const std::vector<int8_t>& cpu_cores)
 {
   pthread_mutex_lock(&mutex_);
   cpu_set_ = BuildCPUSet(cpu_cores);
@@ -232,9 +275,9 @@ void Thread::SetSchedAttr(const int policy, const int priority /*= -1*/)
     if (policy == SCHED_OTHER)
     {
       printf(ANSI_COLOR_YELLOW
-             "WARNING: Priority for SCHED_OTHER policy must be 0. Ignoring invalid "
+             "[%s] WARNING: Priority for SCHED_OTHER policy must be 0. Ignoring invalid "
              "user-set priority: %d." ANSI_COLOR_RESET "\n",
-             priority);
+             name_.c_str(), priority);
       sched_param_.sched_priority = 0;
     }
     else
@@ -252,12 +295,11 @@ void Thread::SetSchedAttr(const int policy, const int priority /*= -1*/)
 void Thread::SetInitFunc(void (*fun_ptr)(void*), void* args)
 {
   if (IsRunning())
-    printf(
-      ANSI_COLOR_YELLOW
-      "WARNING: Thread is running. New InitFunc set but not effective!" ANSI_COLOR_RESET
-      "\n");
+    printf(ANSI_COLOR_YELLOW "[%s] WARNING: Thread is running. New InitFunc set but not "
+                             "effective!" ANSI_COLOR_RESET "\n",
+           name_.c_str());
 
-  init_fun_ptr_ = fun_ptr;
+  init_fun_ptr_      = fun_ptr;
   init_fun_args_ptr_ = args;
 }
 
@@ -265,13 +307,15 @@ void Thread::SetLoopFunc(void (*fun_ptr)(void*), void* args)
 {
   if (IsRunning())
   {
-    printf(ANSI_COLOR_YELLOW
-           "WARNING: Thread is running. Cannot set new LoopFunc now!" ANSI_COLOR_RESET
-           "\n");
+    printf(
+      ANSI_COLOR_YELLOW
+      "[%s] WARNING: Thread is running. Cannot set new LoopFunc now!" ANSI_COLOR_RESET
+      "\n",
+      name_.c_str());
   }
   else
   {
-    loop_fun_ptr_ = fun_ptr;
+    loop_fun_ptr_      = fun_ptr;
     loop_fun_args_ptr_ = args;
   }
 }
@@ -280,13 +324,24 @@ void Thread::SetEndFunc(void (*fun_ptr)(void*), void* args)
 {
   if (IsActive())
   {
-    printf(
-      ANSI_COLOR_YELLOW
-      "WARNING: Thread is closed. New EndFunc set but not effective!" ANSI_COLOR_RESET
-      "\n");
+    printf(ANSI_COLOR_YELLOW "[%s] WARNING: Thread is closed. New EndFunc set but not "
+                             "effective!" ANSI_COLOR_RESET "\n",
+           name_.c_str());
   }
-  end_fun_ptr_ = fun_ptr;
+  end_fun_ptr_      = fun_ptr;
   end_fun_args_ptr_ = args;
+}
+
+void Thread::SetEmergencyExitFunc(void (*fun_ptr)(void*), void* args)
+{
+  if (IsActive())
+  {
+    printf(ANSI_COLOR_YELLOW "[%s] WARNING: Thread is closed. New EndFunc set but not "
+                             "effective!" ANSI_COLOR_RESET "\n",
+           name_.c_str());
+  }
+  emergency_exit_fun_ptr_      = fun_ptr;
+  emergency_exit_fun_args_ptr_ = args;
 }
 
 long Thread::GetTID() const { return IsRunning() ? tid_ : -1; }
@@ -319,30 +374,52 @@ int Thread::GetPolicy() const
   return policy;
 }
 
-int Thread::GetReady(const uint64_t cycle_time_nsec /*= 1000LL*/)
+int Thread::GetReady(const uint64_t cycle_time_nsec /*= 1000000LL*/)
 {
   if (loop_fun_ptr_ == NULL)
     return EFAULT;
 
   cycle_time_nsec_ = cycle_time_nsec;
-  active_ = true;
-  run_ = true;
+  active_          = true;
+  run_             = true;
   return 0;
+}
+
+void Thread::Pause()
+{
+  pthread_mutex_lock(&mutex_);
+  run_ = false;
+  pthread_mutex_unlock(&mutex_);
 }
 
 void Thread::Unpause()
 {
   if (IsActive())
-    run_ = true;
+  {
+    pthread_mutex_lock(&mutex_);
+    run_ = false;
+    pthread_mutex_unlock(&mutex_);
+  }
 }
 
 void Thread::Stop()
 {
   if (IsActive())
   {
+    stop_cmd_recv_ = true;
     Pause();
-    active_ = false;
     pthread_join(thread_id_, NULL);
+    active_        = false;
+    stop_cmd_recv_ = false;
+    printf("[%s] Thread %ld STOP\n", name_.c_str(), tid_);
+    return;
+  }
+  if (rt_deadline_missed_)
+  {
+    pthread_join(thread_id_, NULL);
+    rt_deadline_missed_ = false;
+    printf("[%s] Thread %ld STOP\n", name_.c_str(), tid_);
+    return;
   }
 }
 
@@ -381,9 +458,9 @@ void Thread::DispAttr() const
   if (ret != 0)
     HandleErrorEnWrapper(ret, "pthread_attr_getschedpolicy");
   printf("%sScheduling policy   = %s\n", prefix,
-         (i == SCHED_OTHER) ? "SCHED_OTHER" : (i == SCHED_FIFO)
-                                                ? "SCHED_FIFO"
-                                                : (i == SCHED_RR) ? "SCHED_RR" : "???");
+         (i == SCHED_OTHER)
+           ? "SCHED_OTHER"
+           : (i == SCHED_FIFO) ? "SCHED_FIFO" : (i == SCHED_RR) ? "SCHED_RR" : "???");
 
   printf("%sScheduling priority = %d\n", prefix, sched_param_.sched_priority);
 
@@ -399,8 +476,23 @@ void Thread::DispAttr() const
   printf("%sStack size          = 0x%zx bytes\n", prefix, v);
 }
 
+[[noreturn]] void Thread::HandleErrorEnWrapper(const int en, const char* msg) const
+{
+  std::string full_msg = "[";
+  full_msg.append(name_);
+  full_msg.append("] ");
+  full_msg.append(msg);
+  HandleErrorEn(en, full_msg.c_str());
+}
+
+//--------- Private functions --------------------------------------------------------//
+
 void Thread::InitDefault()
 {
+  // Configure memory so to be pagefault free.
+  ConfigureMallocBehavior();
+  ReserveProcessMemory(kPreAllocationSize);
+
   int ret;
   ret = pthread_attr_init(&attr_);
   if (ret != 0)
@@ -415,7 +507,7 @@ void Thread::InitDefault()
     HandleErrorEnWrapper(ret, "pthread_attr_setinheritsched ");
 
   sched_param_.sched_priority = 0;
-  ret = pthread_attr_setschedparam(&attr_, &sched_param_);
+  ret                         = pthread_attr_setschedparam(&attr_, &sched_param_);
   if (ret != 0)
     HandleErrorEnWrapper(ret, "pthread_attr_setschedparam ");
 
@@ -429,26 +521,52 @@ void Thread::TargetFun()
   SetThreadCPUs(cpu_set_);
   pthread_mutex_unlock(&mutex_);
   ThreadClock clock(cycle_time_nsec_);
-  clock.Reset();
+  bool ignore_deadline = GetPolicy() == SCHED_OTHER;
+  active_              = true;
 
   if (init_fun_ptr_ != NULL)
   {
+    clock.Reset();
     pthread_mutex_lock(&mutex_);
     init_fun_ptr_(init_fun_args_ptr_);
     pthread_mutex_unlock(&mutex_);
+    rt_deadline_missed_ = !(clock.WaitUntilNext() || ignore_deadline);
   }
 
-  while (active_)
+  struct timespec max_wait_time;
+  while (!(stop_cmd_recv_ || rt_deadline_missed_))
   {
-    while (run_)
+    clock.Reset();
+    while (!rt_deadline_missed_)
     {
-      clock.WaitUntilNext();
+      max_wait_time = clock.GetNextTime();
+      if (pthread_mutex_timedlock(&mutex_, &max_wait_time) == 0)
+      {
+        if (!run_)
+        {
+          pthread_mutex_unlock(&mutex_);
+          break;
+        }
+        loop_fun_ptr_(loop_fun_args_ptr_);
+        pthread_mutex_unlock(&mutex_);
+      }
+      rt_deadline_missed_ = !(clock.WaitUntilNext() || ignore_deadline);
+    }
+  }
 
+  if (rt_deadline_missed_)
+  {
+    PrintColor('r', "[%s] RT deadline missed. Thread will close automatically.",
+               name_.c_str());
+    if (emergency_exit_fun_args_ptr_ != NULL)
+    {
       pthread_mutex_lock(&mutex_);
-      loop_fun_ptr_(loop_fun_args_ptr_);
+      emergency_exit_fun_ptr_(emergency_exit_fun_args_ptr_);
       pthread_mutex_unlock(&mutex_);
     }
-    clock.Reset();
+    run_    = false;
+    active_ = false;
+    return;
   }
 
   if (end_fun_ptr_ != NULL)
@@ -457,15 +575,6 @@ void Thread::TargetFun()
     end_fun_ptr_(end_fun_args_ptr_);
     pthread_mutex_unlock(&mutex_);
   }
-}
-
-[[noreturn]] void Thread::HandleErrorEnWrapper(const int en, const char* msg) const
-{
-  std::string full_msg = "[";
-  full_msg.append(name_);
-  full_msg.append("] ");
-  full_msg.append(msg);
-  HandleErrorEn(en, full_msg.c_str());
 }
 
 } // end namespace grabrt

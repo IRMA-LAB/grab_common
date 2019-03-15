@@ -1,11 +1,5 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2018-08-24T17:04:34
-#
-#-------------------------------------------------
 
 QT       += testlib
-
 QT       -= gui
 
 TARGET = libcdpr_test
@@ -20,25 +14,37 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-# You can also make your code fail to compile if you use deprecated APIs.
-# In order to do so, uncomment the following line.
-# You can also select to disable deprecated APIs only up to a certain version of Qt.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
-
 HEADERS += \
-    inc/kinematics.h
+    $$PWD/inc/kinematics.h \
+    $$PWD/inc/diffkinematics.h \
+    $$PWD/inc/types.h \
+    $$PWD/tools/json.hpp \
+    $$PWD/tools/robotconfigjsonparser.h \
+    $$PWD/../grabcommon.h
 
 SOURCES += \
-        test/libcdpr_test.cpp \
-        src/kinematics.cpp
+    $$PWD/src/kinematics.cpp \
+    $$PWD/src/diffkinematics.cpp \
+    $$PWD/tools/robotconfigjsonparser.cpp \
+    $$PWD/test/libcdpr_test.cpp
 
 INCLUDEPATH += \
-        ../libgeom/inc \
-        ../libgeom/src \
-        ../libnumeric/inc \
-        ../libnumeric/src \
-        inc
+    $$PWD/inc \
+    $$PWD/tools \
+    $$PWD/..
 
-DEFINES += SRCDIR=\\\"$$PWD/\\\"
+# Lib numeric
+unix:!macx: LIBS += -L$$PWD/../libnumeric/lib/ -lnumeric
 
+INCLUDEPATH += $$PWD/../libnumeric $$PWD/../libnumeric/inc
+DEPENDPATH += $$PWD/../libnumeric
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/lib/libnumeric.a
+
+# Lib geometric
+unix:!macx: LIBS += -L$$PWD/../libgeom/lib/ -lgeom
+
+INCLUDEPATH += $$PWD/../libgeom $$PWD/../libgeom/inc
+DEPENDPATH += $$PWD/../libgeom
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../libgeom/lib/libgeom.a
