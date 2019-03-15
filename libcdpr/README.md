@@ -27,4 +27,4 @@ Please refer to code documentation below to obtain more detailed information abo
 
 ## Documentation
 
-To auto-generate an user-friendly documentation straight out of the source code, please follow instructions in **Documentation** section [here](../README) instructions and substitute _$MYPROJECTPATH_ with _$REPO/cable_robot/lib/grab_common/libcdpr_, where _$REPO_ is the absolute path to your _cable_robot_ repository clone.
+To auto-generate an user-friendly documentation straight out of the source code, please follow instructions in **Documentation** section [here](../README.md) instructions and substitute _$MYPROJECTPATH_ with _$REPO/cable_robot/lib/grab_common/libcdpr_, where _$REPO_ is the absolute path to your _cable_robot_ repository clone.
