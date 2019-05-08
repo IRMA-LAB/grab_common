@@ -170,7 +170,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
 }
 
 GoldSoloWhistleDriveStates
-GoldSoloWhistleDrive::GetDriveState(const Bitfield16& status_word)
+GoldSoloWhistleDrive::GetDriveState(const std::bitset<16> &status_word)
 {
   if (status_word[StatusBit::SWITCH_ON_DISABLED] == SET)
   { // drive idle: OFF=true
@@ -201,7 +201,7 @@ GoldSoloWhistleDrive::GetDriveState(const Bitfield16& status_word)
   return ST_FAULT;
 }
 
-std::string GoldSoloWhistleDrive::GetDriveStateStr(const Bitfield16& status_word)
+std::string GoldSoloWhistleDrive::GetDriveStateStr(const std::bitset<16>& status_word)
 {
   return kStatesStr_[GetDriveState(status_word)];
 }
@@ -255,8 +255,7 @@ RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
 
 void GoldSoloWhistleDrive::ReadInputs()
 {
-  input_pdos_.status_word.SetBitset(
-    EC_READ_U16(domain_data_ptr_ + offset_in_.status_word));
+  input_pdos_.status_word = EC_READ_U16(domain_data_ptr_ + offset_in_.status_word);
   input_pdos_.display_op_mode = EC_READ_S8(domain_data_ptr_ + offset_in_.display_op_mode);
   input_pdos_.pos_actual_value =
     EC_READ_S32(domain_data_ptr_ + offset_in_.position_actual_value);
@@ -286,7 +285,7 @@ void GoldSoloWhistleDrive::ReadInputs()
 void GoldSoloWhistleDrive::WriteOutputs()
 {
   EC_WRITE_U16(domain_data_ptr_ + offset_out_.control_word,
-               output_pdos_.control_word.GetBitset().to_ulong());
+               output_pdos_.control_word.to_ulong());
   EC_WRITE_S8(domain_data_ptr_ + offset_out_.op_mode, output_pdos_.op_mode);
   if (drive_state_ == ST_OPERATION_ENABLED || drive_state_ == ST_SWITCHED_ON)
   {
@@ -338,21 +337,21 @@ void GoldSoloWhistleDrive::EcPrintCb(const std::string& msg,
 void GoldSoloWhistleDrive::Shutdown()
 {
   PrintCommand("Shutdown");
-  output_pdos_.control_word.Clear(ControlBit::SWITCH_ON);
-  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
-  output_pdos_.control_word.Set(ControlBit::QUICK_STOP);
-  output_pdos_.control_word.Clear(ControlBit::FAULT);
+  output_pdos_.control_word.reset(ControlBit::SWITCH_ON);
+  output_pdos_.control_word.set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.set(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.reset(ControlBit::FAULT);
 }
 
 void GoldSoloWhistleDrive::SwitchOn()
 {
   PrintCommand("SwitchOn");
   // Trigger device control command
-  output_pdos_.control_word.Set(ControlBit::SWITCH_ON);
-  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
-  output_pdos_.control_word.Set(ControlBit::QUICK_STOP);
-  output_pdos_.control_word.Clear(ControlBit::ENABLE_OPERATION);
-  output_pdos_.control_word.Clear(ControlBit::FAULT);
+  output_pdos_.control_word.set(ControlBit::SWITCH_ON);
+  output_pdos_.control_word.set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.set(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.reset(ControlBit::ENABLE_OPERATION);
+  output_pdos_.control_word.reset(ControlBit::FAULT);
   // Setup default operational mode before enabling the drive
   output_pdos_.op_mode         = CYCLIC_POSITION;
   output_pdos_.target_position = input_pdos_.pos_actual_value;
@@ -362,46 +361,46 @@ void GoldSoloWhistleDrive::EnableOperation()
 {
   PrintCommand("EnableOperation");
   // Trigger device control command
-  output_pdos_.control_word.Set(ControlBit::SWITCH_ON);
-  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
-  output_pdos_.control_word.Set(ControlBit::QUICK_STOP);
-  output_pdos_.control_word.Set(ControlBit::ENABLE_OPERATION);
-  output_pdos_.control_word.Clear(ControlBit::FAULT);
+  output_pdos_.control_word.set(ControlBit::SWITCH_ON);
+  output_pdos_.control_word.set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.set(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.set(ControlBit::ENABLE_OPERATION);
+  output_pdos_.control_word.reset(ControlBit::FAULT);
 }
 
 void GoldSoloWhistleDrive::DisableOperation()
 {
   PrintCommand("DisableOperation");
   // Trigger device control command
-  output_pdos_.control_word.Set(ControlBit::SWITCH_ON);
-  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
-  output_pdos_.control_word.Set(ControlBit::QUICK_STOP);
-  output_pdos_.control_word.Clear(ControlBit::ENABLE_OPERATION);
-  output_pdos_.control_word.Clear(ControlBit::FAULT);
+  output_pdos_.control_word.set(ControlBit::SWITCH_ON);
+  output_pdos_.control_word.set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.set(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.reset(ControlBit::ENABLE_OPERATION);
+  output_pdos_.control_word.reset(ControlBit::FAULT);
 }
 
 void GoldSoloWhistleDrive::DisableVoltage()
 {
   PrintCommand("DisableVoltage");
   // Trigger device control command
-  output_pdos_.control_word.Clear(ControlBit::ENABLE_VOLTAGE);
-  output_pdos_.control_word.Clear(ControlBit::FAULT);
+  output_pdos_.control_word.reset(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.reset(ControlBit::FAULT);
 }
 
 void GoldSoloWhistleDrive::QuickStop()
 {
   PrintCommand("QuickStop");
   // Trigger device control command
-  output_pdos_.control_word.Set(ControlBit::ENABLE_VOLTAGE);
-  output_pdos_.control_word.Clear(ControlBit::QUICK_STOP);
-  output_pdos_.control_word.Clear(ControlBit::FAULT);
+  output_pdos_.control_word.set(ControlBit::ENABLE_VOLTAGE);
+  output_pdos_.control_word.reset(ControlBit::QUICK_STOP);
+  output_pdos_.control_word.reset(ControlBit::FAULT);
 }
 
 void GoldSoloWhistleDrive::FaultReset()
 {
   PrintCommand("FaultReset");
   // Trigger device control command
-  output_pdos_.control_word.Set(ControlBit::FAULT);
+  output_pdos_.control_word.set(ControlBit::FAULT);
 }
 
 void GoldSoloWhistleDrive::ChangePosition(const int32_t target_position)

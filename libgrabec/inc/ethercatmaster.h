@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.h
  * @author Edoardo Idà, Simone Comari
- * @date 15 Mar 2019
+ * @date 08 May 2019
  * @brief This file includes an abstract class to setup an ethercat master-slave
  * communication.
  */
@@ -9,6 +9,7 @@
 #ifndef ETHERCATMASTER_H
 #define ETHERCATMASTER_H
 
+#include <bitset>
 #include <cstring>
 #include <iostream>
 #include <limits.h>
@@ -98,7 +99,7 @@ class EthercatMaster
    * signal emition in a Qt context, i.e. in a QObject which inherits from this class.
    * @warning This function lives in the real-time thread, so keep it short if overridden.
    */
-  virtual void EcStateChangedCb(const Bitfield8& /*new_state*/) {}
+  virtual void EcStateChangedCb(const std::bitset<3>& /*new_state*/) {}
   /**
    * @brief EtherCAT information print pseudo-signal.
    *
@@ -161,7 +162,7 @@ class EthercatMaster
     {};                             /**< State of ethercat configuration. */
   uint8_t* domain_data_ptr_ = NULL; /**< Pointer to ethercat domain data. */
 
-  Bitfield8 check_state_flags_; /**< Bitfield object where every bit represents the state
+  std::bitset<3> check_state_flags_; /**< Container where every bit represents the state
                                  * of an element. 1 means element is _operational_, 0 that
                                  * it is not. */
   /** @} */                     // end of EthercatUtilities group

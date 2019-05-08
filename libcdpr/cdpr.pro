@@ -4,8 +4,7 @@ HEADERS += \
     $$PWD/inc/diffkinematics.h \
     $$PWD/inc/types.h \
     $$PWD/tools/json.hpp \
-    $$PWD/tools/robotconfigjsonparser.h \
-    $$PWD/../grabcommon.h
+    $$PWD/tools/robotconfigjsonparser.h
 
 SOURCES += \
     $$PWD/src/kinematics.cpp \
@@ -14,8 +13,7 @@ SOURCES += \
 
 INCLUDEPATH += \
     $$PWD/inc \
-    $$PWD/tools \
-    $$PWD/..
+    $$PWD/tools
 
 QT       -= gui
 

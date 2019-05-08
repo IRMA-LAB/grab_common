@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 15 Mar 2019
+ * @date 08 May 2019
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -15,7 +15,6 @@
 #include <QObject>
 
 #include "StateMachine.h"
-#include "grabcommon.h"
 
 #include "ethercatslave.h"
 #include "types.h"
@@ -78,7 +77,7 @@ enum Commands : uint8_t
  */
 struct GSWDriveInPdos
 {
-  Bitfield16 status_word;      /**< status_word */
+  std::bitset<16> status_word; /**< status_word */
   int8_t display_op_mode;      /**< display_op_mode */
   int32_t pos_actual_value;    /**< pos_actual_value */
   int32_t vel_actual_value;    /**< vel_actual_value */
@@ -164,13 +163,13 @@ class GoldSoloWhistleDrive: public QObject,
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
-  static GoldSoloWhistleDriveStates GetDriveState(const Bitfield16& status_word);
+  static GoldSoloWhistleDriveStates GetDriveState(const std::bitset<16>& status_word);
   /**
    * @brief Get latest known physical drive state.
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
-  static std::string GetDriveStateStr(const Bitfield16& status_word);
+  static std::string GetDriveStateStr(const std::bitset<16>& status_word);
   /**
    * @brief Get actual drive position (aka counts).
    * @return Actual drive position (aka counts).
@@ -371,12 +370,12 @@ class GoldSoloWhistleDrive: public QObject,
    */
   struct OutputPdos
   {
-    Bitfield16 control_word; /**< control_word */
-    int8_t op_mode;          /**< op_mode */
-    int16_t target_torque;   /**< target_torque */
-    int32_t target_position; /**< target_position */
-    int32_t target_velocity; /**< target_velocity */
-  } output_pdos_;            /**< output_pdos_ */
+    std::bitset<16> control_word; /**< control_word */
+    int8_t op_mode;               /**< op_mode */
+    int16_t target_torque;        /**< target_torque */
+    int32_t target_position;      /**< target_position */
+    int32_t target_velocity;      /**< target_velocity */
+  } output_pdos_;                 /**< output_pdos_ */
 
   GoldSoloWhistleDriveStates drive_state_; /**< physical drive state */
 
