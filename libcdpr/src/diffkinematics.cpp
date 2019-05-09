@@ -1,7 +1,7 @@
 /**
  * @file diffkinematics.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 05 Sep 2018
+ * @date 09 May 2019
  * @brief File containing definitions of functions declared in diffkinematics.h.
  */
 
@@ -87,29 +87,29 @@ double CalcTangAngSpeed(const CableVars* cable)
 }
 
 void CalcCableVersorsDot(const grabnum::Vector3d& vers_w, const grabnum::Vector3d& vers_n,
-                         const grabnum::Vector3d& vers_rho, const double tan_ang,
+                         const grabnum::Vector3d& vers_t, const double tan_ang,
                          const double tan_ang_vel, const double swivel_ang_vel,
                          CableVars* cable)
 {
-  cable->vers_n_dot = vers_w * cos(tan_ang) * tan_ang_vel - vers_rho * tan_ang_vel;
+  cable->vers_n_dot = vers_w * cos(tan_ang) * tan_ang_vel - vers_t * tan_ang_vel;
   cable->vers_n_dot = vers_w * sin(tan_ang) * swivel_ang_vel + vers_n * tan_ang_vel;
 }
 
 void CalcCableVersorsDot(CableVars* cable)
 {
-  CalcCableVersorsDot(cable->vers_w, cable->vers_n, cable->vers_rho, cable->tan_ang,
+  CalcCableVersorsDot(cable->vers_w, cable->vers_n, cable->vers_t, cable->tan_ang,
                       cable->tan_ang_vel, cable->swivel_ang_vel, cable);
 }
 
-double CalcCableSpeed(const grabnum::Vector3d& vers_rho,
+double CalcCableSpeed(const grabnum::Vector3d& vers_t,
                       const grabnum::Vector3d& vel_OA_glob)
 {
-  return grabnum::Dot(vers_rho, vel_OA_glob);
+  return grabnum::Dot(vers_t, vel_OA_glob);
 }
 
 double CalcCableSpeed(const CableVars* cable)
 {
-  return CalcCableSpeed(cable->vers_rho, cable->vel_OA_glob);
+  return CalcCableSpeed(cable->vers_t, cable->vel_OA_glob);
 }
 
 template <class PlatformVarsType>
@@ -211,7 +211,7 @@ double CalcTangAngAcc(const double pulley_radius, const CableVars* cable)
                         cable->tan_ang, cable->tan_ang_vel, cable->swivel_ang_vel);
 }
 
-double CalcCableAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& vers_rho,
+double CalcCableAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& vers_t,
                     const grabnum::Vector3d& pos_DA_glob,
                     const grabnum::Vector3d& pos_BA_glob,
                     const grabnum::Vector3d& acc_OA_glob, const double tan_ang,
@@ -219,12 +219,12 @@ double CalcCableAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& ve
 {
   return grabnum::Dot(vers_u, pos_DA_glob) * sin(tan_ang) * SQUARE(swivel_ang_vel) +
          grabnum::Norm(pos_BA_glob) * SQUARE(tan_ang_vel) +
-         grabnum::Dot(vers_rho, acc_OA_glob);
+         grabnum::Dot(vers_t, acc_OA_glob);
 }
 
 double CalcCableAcc(const CableVars* cable)
 {
-  return CalcCableAcc(cable->vers_u, cable->vers_rho, cable->pos_DA_glob,
+  return CalcCableAcc(cable->vers_u, cable->vers_t, cable->pos_DA_glob,
                       cable->pos_BA_glob, cable->acc_OA_glob, cable->tan_ang,
                       cable->tan_ang_vel, cable->swivel_ang_vel);
 }

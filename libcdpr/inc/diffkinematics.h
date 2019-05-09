@@ -1,7 +1,7 @@
 /**
  * @file diffkinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 15 Mar 2019
+ * @date 09 May 2019
  * @brief File containing differential kinematics-related functions to be included in the
  * GRAB CDPR library.
  */
@@ -29,20 +29,20 @@ namespace grabcdpr {
  * @brief Update platform-related first-order quantities.
  *
  * Given a new velocity of the platform
- * @f$\dot{\mathbf{q}} = (\dot{\mathbf{p}}^T, \dot{\boldsymbol{\varepsilon}}^T)^T@f$,
+ * @f$\dot{\mathbf{x}} = (\dot{\mathbf{p}}_P^T, \dot{\boldsymbol{\varepsilon}}^T)^T@f$,
  * the following quantities are updated:
  * @f[
  * \boldsymbol{\omega} = \mathbf{H}(\boldsymbol{\varepsilon})
  * \dot{\boldsymbol{\varepsilon}} \\
- * \dot{\mathbf{r}} = \dot{\mathbf{p}} + \boldsymbol{\omega} \times \mathbf{r}' =
- * \dot{\mathbf{p}} + \tilde{\boldsymbol{\Omega}}\mathbf{r}'
+ * \dot{\mathbf{p}}_G = \dot{\mathbf{p}}_P + \boldsymbol{\omega} \times \mathbf{p}'_G =
+ * \dot{\mathbf{p}}_P + \tilde{\boldsymbol{\Omega}}\mathbf{p}'_G
  * @f]
- * being @f$\tilde{\boldsymbol{\Omega}}@f$ the anti-symmetric matrix of
+ * being @f$\tilde{\boldsymbol{\Omega}}@f$ the skew-symmetric matrix of
  * @f$\boldsymbol{\omega}@f$.
- * @param[in] velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+ * @param[in] velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
  * @param[in] orientation_dot Platform orientation time-derivative
  * @f$\dot{\boldsymbol{\varepsilon}}@f$.
- * @param[in] pos_PG_glob [m] Global CoG position @f$\mathbf{r}'@f$.
+ * @param[in] pos_PG_glob [m] Global CoG position @f$\mathbf{p}'_G@f$.
  * @param[out] platform A pointer to the platform structure including vars to be updated.
  * @note See @ref legend for symbols reference.
  * @note Both orientation parametrizations are valid here, that is both angles and
@@ -54,7 +54,7 @@ void UpdatePlatformVel(const grabnum::Vector3d& velocity,
                        const grabnum::Vector3d& pos_PG_glob, PlatformVarsType* platform);
 /**
  * @brief Update platform-related first-order quantities.
- * @param[in] velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+ * @param[in] velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
  * @param[in] orientation_dot Platform orientation time-derivative
  * @f$\dot{\boldsymbol{\varepsilon}}@f$.
  * @param[in,out] platform A pointer to the platform structure including vars to be
@@ -73,9 +73,9 @@ void UpdatePlatformVel(const grabnum::Vector3d& velocity,
  *
  * Given current @f$\mathbf{a}'_i@f$, the following vector is updated:
  * @f[
- * \dot{\mathbf{a}}_i = \dot{\mathbf{p}} + \tilde{\boldsymbol{\Omega}}\mathbf{a}'_i
+ * \dot{\mathbf{a}}_i = \dot{\mathbf{p}}_P + \tilde{\boldsymbol{\Omega}}\mathbf{a}'_i
  * @f]
- * being @f$\tilde{\boldsymbol{\Omega}}@f$ the anti-symmetric matrix of
+ * being @f$\tilde{\boldsymbol{\Omega}}@f$ the skew-symmetric matrix of
  * @f$\boldsymbol{\omega}@f$.
  * @param[in] pos_PA_glob [m] Vector @f$\mathbf{a}'_i@f$.
  * @param[in] platform A pointer to the updated platform variables structure.
@@ -133,16 +133,16 @@ void CalcPulleyVersorsDot(CableVars* cable);
  * @brief Calculate pulley swivel angle speed @f$\dot{\sigma}_i@f$.
  *
  * Given current
- * @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i, \dot{\mathbf{a}}_i, \mathbf{f}_i@f$, the
- * swivel angle speed is calculated as:
+ * @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i, \dot{\mathbf{a}}_i,
+ * \boldsymbol{\rho}^*_i@f$, the swivel angle speed is calculated as:
  * @f[
  * \dot{\sigma}_i = \frac{\hat{\mathbf{w}}_i \cdot \dot{\mathbf{a}}_i}
- *        {\hat{\mathbf{u}}_i \cdot \dot{\mathbf{f}}_i}
+ *        {\hat{\mathbf{u}}_i \cdot \boldsymbol{\rho}^*_i}
  * @f]
  * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
  * @param[in] vers_w Versor @f$\hat{\mathbf{w}}_i@f$.
  * @param[in] vel_OA_glob [m/s] Vector @f$\dot{\mathbf{a}}_i@f$.
- * @param[in] pos_DA_glob [m] Vector @f$\mathbf{f}_i@f$.
+ * @param[in] pos_DA_glob [m] Vector @f$\boldsymbol{\rho}^*_i@f$.
  * @return Swivel angle speed @f$\dot{\sigma}_i@f$ in _rad/s_.
  * @note See @ref legend for symbols reference.
  */
@@ -166,7 +166,7 @@ double CalcSwivelAngSpeed(const CableVars* cable);
  * tangent angle speed is calculated as:
  * @f[
  * \dot{\psi}_i = \frac{\hat{\mathbf{n}}_i \cdot \dot{\mathbf{a}}_i}
- *        {\|\boldsymbol{\rho}_i\|}
+ *        {l_i}
  * @f]
  * @param[in] vers_n Versor @f$\hat{\mathbf{n}}_i@f$.
  * @param[in] vel_OA_glob [m/s] Vector @f$\dot{\mathbf{a}}_i@f$.
@@ -187,20 +187,20 @@ double CalcTangAngSpeed(const CableVars* cable);
 
 /**
  * @brief Calculate cable versors @f$\dot{\hat{\mathbf{n}}}_i,
- * \dot{\hat{\boldsymbol{\rho}}}_i@f$.
+ * \dot{\hat{\mathbf{t}}}_i@f$.
  *
  * Given current
- * @f$\hat{\mathbf{w}}_i, \hat{\mathbf{n}}_i, \hat{\boldsymbol{\rho}}_i, \psi_i,
+ * @f$\hat{\mathbf{w}}_i, \hat{\mathbf{n}}_i, \hat{\mathbf{t}}_i, \psi_i,
  * \dot{\psi}_i, \dot{\sigma}_i@f$, the cable versors speed is calculated as:
  * @f[
  * \dot{\hat{\mathbf{n}}}_i = \hat{\mathbf{w}}_i \cos(\psi_i) \dot{\sigma}_i -
- *      \hat{\boldsymbol{\rho}}_i \dot{\psi}_i \\
- * \dot{\hat{\boldsymbol{\rho}}}_i = \hat{\mathbf{w}}_i \sin(\psi_i) \dot{\sigma}_i +
+ *      \hat{\mathbf{t}}_i \dot{\psi}_i \\
+ * \dot{\hat{\mathbf{t}}}_i = \hat{\mathbf{w}}_i \sin(\psi_i) \dot{\sigma}_i +
  *      \hat{\mathbf{n}}_i \dot{\psi}_i
  * @f]
  * @param[in] vers_w Versor @f$\hat{\mathbf{w}}_i@f$.
  * @param[in] vers_n Versor @f$\hat{\mathbf{n}}_i@f$.
- * @param[in] vers_rho Versor @f$\hat{\boldsymbol{\rho}}_i@f$.
+ * @param[in] vers_t Versor @f$\hat{\mathbf{t}}_i@f$.
  * @param[in] tan_ang [rad] Tangent angle @f$\psi_i@f$.
  * @param[in] tan_ang_vel [rad/s] Tangent angle speed @f$\dot{\psi}_i@f$.
  * @param[in] swivel_ang_vel [rad/s] Swivel angle speed in @f$\dot{\sigma}_i@f$.
@@ -209,12 +209,12 @@ double CalcTangAngSpeed(const CableVars* cable);
  * @note See @ref legend for symbols reference.
  */
 void CalcCableVersorsDot(const grabnum::Vector3d& vers_w, const grabnum::Vector3d& vers_n,
-                         const grabnum::Vector3d& vers_rho, const double tan_ang,
+                         const grabnum::Vector3d& vers_t, const double tan_ang,
                          const double tan_ang_vel, const double swivel_ang_vel,
                          CableVars* cable);
 /**
  * @brief Calculate cable versors @f$\dot{\hat{\mathbf{n}}}_i,
- * \dot{\hat{\boldsymbol{\rho}}}_i@f$.
+ * \dot{\hat{\mathbf{t}}}_i@f$.
  * @param[in,out] cable A pointer to the cable structure including the versors to be
  * calculated and the updated input quantities.
  * @see CalcCableVersorsDot()
@@ -224,17 +224,17 @@ void CalcCableVersorsDot(CableVars* cable);
 /**
  * @brief Calculate cable speed @f$\dot{l}_i@f$.
  *
- * Given current @f$\hat{\boldsymbol{\rho}}_i, \dot{\mathbf{a}}_i@f$, the cable speed is
+ * Given current @f$\hat{\mathbf{t}}_i, \dot{\mathbf{a}}_i@f$, the cable speed is
  * calculated as:
  * @f[
- * \dot{l}_i = \hat{\boldsymbol{\rho}}_i \cdot \dot{\mathbf{a}}_i
+ * \dot{l}_i = \hat{\mathbf{t}}_i \cdot \dot{\mathbf{a}}_i
  * @f]
- * @param[in] vers_rho Versor @f$\hat{\boldsymbol{\rho}}_i@f$.
+ * @param[in] vers_t Versor @f$\hat{\mathbf{t}}_i@f$.
  * @param[in] vel_OA_glob [m/s] Vector @f$\dot{\mathbf{a}}_i@f$.
  * @return Cable speed @f$\dot{l}_i@f$ in _m/s_.
  * @note See @ref legend for symbols reference.
  */
-double CalcCableSpeed(const grabnum::Vector3d& vers_rho,
+double CalcCableSpeed(const grabnum::Vector3d& vers_t,
                       const grabnum::Vector3d& vel_OA_glob);
 /**
  * @brief Calculate cable speed @f$\dot{l}_i@f$.
@@ -278,17 +278,17 @@ void UpdateIK1(const grabnum::Vector3d& velocity, const OrientationType& orienta
  * @brief Update platform-related second-order quantities.
  *
  * Given a new acceleration of the platform
- * @f$\ddot{\mathbf{q}} = (\ddot{\mathbf{p}}^T, \ddot{\boldsymbol{\varepsilon}}^T)^T
+ * @f$\ddot{\mathbf{x}} = (\ddot{\mathbf{p}}^T, \ddot{\boldsymbol{\varepsilon}}^T)^T
  * @f$, the following quantities are updated:
  * @f[
  * \boldsymbol{\alpha} = \dot{\mathbf{H}}
  * (\dot{\boldsymbol{\varepsilon}}, \boldsymbol{\varepsilon})
  * \dot{\boldsymbol{\varepsilon}} + \mathbf{H}(\boldsymbol{\varepsilon})
  * \ddot{\boldsymbol{\varepsilon}} \\
- * \ddot{\mathbf{r}} = \ddot{\mathbf{p}} + \boldsymbol{\alpha} \times \mathbf{r}' +
- * \boldsymbol{\omega}\times (\boldsymbol{\omega}\times \mathbf{r}') =
+ * \ddot{\mathbf{r}} = \ddot{\mathbf{p}} + \boldsymbol{\alpha} \times \mathbf{p}'_G +
+ * \boldsymbol{\omega}\times (\boldsymbol{\omega}\times \mathbf{p}'_G) =
  * \ddot{\mathbf{p}} + (\tilde{\mathbf{A}} +
- * \tilde{\boldsymbol{\Omega}} \tilde{\boldsymbol{\Omega}}) \mathbf{r}'
+ * \tilde{\boldsymbol{\Omega}} \tilde{\boldsymbol{\Omega}}) \mathbf{p}'_G
  * @f]
  * being @f$\tilde{\boldsymbol{\Omega}}, \tilde{\mathbf{A}}@f$ the anti-symmetric matrix
  * of @f$\boldsymbol{\omega}, \boldsymbol{\alpha}@f$ respectively.
@@ -296,7 +296,7 @@ void UpdateIK1(const grabnum::Vector3d& velocity, const OrientationType& orienta
  * @f$\ddot{\mathbf{p}}@f$.
  * @param[in] angles_acc [rad/s<sup>2</sup>] Platform orientation second time-derivative
  * @f$\ddot{\boldsymbol{\varepsilon}}@f$.
- * @param[in] pos_PG_glob [m] Global CoG position @f$\mathbf{r}'@f$.
+ * @param[in] pos_PG_glob [m] Global CoG position @f$\mathbf{p}'_G@f$.
  * @param[out] platform A pointer to the platform structure including vars to be updated.
  * @note See @ref legend for symbols reference.
  * @note Both orientation parametrizations are valid here, that is both angles and
@@ -362,17 +362,17 @@ void UpdateAccA(const PlatformVarsType* platform, CableVars* cable);
  * @brief Calculate pulley swivel angle acceleration @f$\ddot{\sigma}_i@f$.
  *
  * Given current @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i, \dot{\mathbf{a}}_i,
- * \mathbf{f}_i, \ddot{\mathbf{a}}_i, \dot{\sigma}_i@f$, the swivel angle acceleration is
- * calculated as:
+ * \boldsymbol{\rho}^*_i, \ddot{\mathbf{a}}_i, \dot{\sigma}_i@f$, the swivel angle
+ * acceleration is calculated as:
  * @f[
  * \ddot{\sigma}_i = \frac{\hat{\mathbf{w}}_i \cdot \ddot{\mathbf{a}}_i -
  *        2 \hat{\mathbf{u}}_i \cdot \dot{\mathbf{a}}_i \dot{\sigma}_i}
- *        {\hat{\mathbf{u}}_i \cdot \mathbf{f}_i}
+ *        {\hat{\mathbf{u}}_i \cdot \boldsymbol{\rho}^*_i}
  * @f]
  * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
  * @param[in] vers_w Versor @f$\hat{\mathbf{w}}_i@f$.
  * @param[in] vel_OA_glob [m/s] Vector @f$\dot{\mathbf{a}}_i@f$.
- * @param[in] pos_DA_glob [m] Vector @f$\mathbf{f}_i@f$.
+ * @param[in] pos_DA_glob [m] Vector @f$\boldsymbol{\rho}^*_i@f$.
  * @param[in] acc_OA_glob [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{a}}_i@f$.
  * @param[in] swivel_ang_vel [rad/s] Swivel angle speed @f$\dot{\sigma}_i@f$.
  * @return Swivel angle acceleration @f$\ddot{\sigma}_i@f$ in _rad/s<sup>2</sup>_.
@@ -394,12 +394,12 @@ double CalcSwivelAngAcc(const CableVars* cable);
 /**
  * @brief Calculate pulley tangent angle acceleration @f$\ddot{\psi}_i@f$.
  *
- * Given current @f$\hat{\mathbf{u}}_i, \hat{\mathbf{n}}_i, \mathbf{f}_i,
+ * Given current @f$\hat{\mathbf{u}}_i, \hat{\mathbf{n}}_i, \boldsymbol{\rho}^*_i,
  * \boldsymbol{\rho}_i, \ddot{\mathbf{a}}_i, \dot{l}_i, \psi_i, \dot{\psi}_i,
  * \dot{\sigma}_i@f$, the tangent angle acceleration is calculated as:
  * @f[
  * \ddot{\psi}_i = \frac{\hat{\mathbf{n}}_i \cdot \ddot{\mathbf{a}}_i +
- *        \hat{\mathbf{u}}_i \cdot \mathbf{f}_i \cos(\psi_i) \dot{\sigma}_i -
+ *        \hat{\mathbf{u}}_i \cdot \boldsymbol{\rho}^*_i \cos(\psi_i) \dot{\sigma}_i -
  *        (2 \dot{l}_i + r_i \dot{\psi}_i) \dot{\psi}_i}
  *        {\|\boldsymbol{\rho}_i\|}
  * @f]
@@ -407,7 +407,7 @@ double CalcSwivelAngAcc(const CableVars* cable);
  * @param[in] pulley_radius [m] Swivel pulley radius @f$r_i@f$.
  * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
  * @param[in] vers_n Versor @f$\hat{\mathbf{n}}_i@f$.
- * @param[in] pos_DA_glob [m] Vector @f$\mathbf{f}_i@f$.
+ * @param[in] pos_DA_glob [m] Vector @f$\boldsymbol{\rho}^*_i@f$.
  * @param[in] pos_BA_glob [m] Vector @f$\boldsymbol{\rho}_i@f$.
  * @param[in] acc_OA_glob [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{a}}_i@f$.
  * @param[in] speed [m/s] Cable speed @f$\dot{l}_i@f$.
@@ -436,17 +436,18 @@ double CalcTangAngAcc(const double pulley_radius, const CableVars* cable);
 /**
  * @brief Calculate cable acceleration @f$\ddot{l}_i@f$.
  *
- * Given current @f$\hat{\mathbf{u}}_i, \hat{\boldsymbol{\rho}}_i, \ddot{\mathbf{a}}_i,
- * \mathbf{f}_i, \boldsymbol{\rho}_i, \psi_i, \dot{\psi}_i, \dot{\sigma}_i@f$, the cable
- * acceleration is calculated as:
+ * Given current @f$\hat{\mathbf{u}}_i, \hat{\mathbf{t}}_i, \ddot{\mathbf{a}}_i,
+ * \boldsymbol{\rho}^*_i, \boldsymbol{\rho}_i, \psi_i, \dot{\psi}_i, \dot{\sigma}_i@f$,
+ * the cable acceleration is calculated as:
  * @f[
- * \ddot{l}_i = \hat{\mathbf{u}}_i \cdot \mathbf{f}_i \sin(\psi_i) \dot{\sigma}_i^2 +
+ * \ddot{l}_i = \hat{\mathbf{u}}_i \cdot \boldsymbol{\rho}^*_i \sin(\psi_i)
+ * \dot{\sigma}_i^2 +
  *        \|\boldsymbol{\rho}_i\| \dot{\psi}_i +
- *        \hat{\boldsymbol{\rho}}_i \cdot \ddot{\mathbf{a}}_i
+ *        \hat{\mathbf{t}}_i \cdot \ddot{\mathbf{a}}_i
  * @f]
  * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
- * @param[in] vers_rho Versor @f$\hat{\boldsymbol{\rho}}_i@f$.
- * @param[in] pos_DA_glob [m] Vector @f$\mathbf{f}_i@f$.
+ * @param[in] vers_t Versor @f$\hat{\mathbf{t}}_i@f$.
+ * @param[in] pos_DA_glob [m] Vector @f$\boldsymbol{\rho}^*_i@f$.
  * @param[in] pos_BA_glob [m] Vector @f$\boldsymbol{\rho}_i@f$.
  * @param[in] acc_OA_glob [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{a}}_i@f$.
  * @param[in] tan_ang [rad] Tangent angle @f$\psi_i@f$.
@@ -455,7 +456,7 @@ double CalcTangAngAcc(const double pulley_radius, const CableVars* cable);
  * @return Cable acceleration @f$\ddot{l}_i@f$ in _m/s<sup>2</sup>_.
  * @note See @ref legend for symbols reference.
  */
-double CalcCableAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& vers_rho,
+double CalcCableAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& vers_t,
                     const grabnum::Vector3d& pos_DA_glob,
                     const grabnum::Vector3d& pos_BA_glob,
                     const grabnum::Vector3d& acc_OA_glob, const double tan_ang,
