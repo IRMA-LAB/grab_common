@@ -816,7 +816,7 @@ struct WinchParams
    * @brief CountsToLengthFactor
    * @return
    */
-  double CountsToLengthFactor()
+  double CountsToLengthFactor() const
   {
     static double tau = sqrt(pow(M_PI * drum_diameter, 2.0) + pow(drum_pitch, 2.0)) /
                         (motor_encoder_res * gear_ratio);
