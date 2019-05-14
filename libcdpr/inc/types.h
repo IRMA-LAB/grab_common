@@ -1,7 +1,7 @@
 /**
  * @file libcdpr/inc/types.h
  * @author Edoardo Idà, Simone Comari
- * @date 09 May 2019
+ * @date 14 May 2019
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -810,7 +810,7 @@ struct WinchParams
   double drum_diameter = 0.1;   /**< [m] todo..*/
   double gear_ratio    = 5.0;   /**< [m] todo..*/
   uint32_t motor_encoder_res =
-    0; /**< motor encoder resolution in counts per revolution. */
+    1048576; /**< motor encoder resolution in counts per revolution. */
 
   /**
    * @brief CountsToLengthFactor
@@ -818,8 +818,9 @@ struct WinchParams
    */
   double CountsToLengthFactor() const
   {
-    static double tau = sqrt(pow(M_PI * drum_diameter, 2.0) + pow(drum_pitch, 2.0)) /
-                        (motor_encoder_res * gear_ratio);
+    static double tau =
+      sqrt(pow(M_PI * drum_diameter, 2.0) + pow(drum_pitch, 2.0) - drum_diameter * 0.1) /
+      (motor_encoder_res * gear_ratio);
     return tau;
   }
 };
