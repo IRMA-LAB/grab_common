@@ -1,7 +1,7 @@
-/**
+﻿/**
  * @file goldsolowhistledrive.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 05 Feb 2019
+ * @date 30 May 2019
  * @brief File containing class implementation declared in goldsolowhistledrive.h.
  */
 
@@ -58,9 +58,16 @@ constexpr ec_pdo_info_t GoldSoloWhistleDrive::kPDOs_[];
 constexpr ec_sync_info_t GoldSoloWhistleDrive::kSyncs_[];
 constexpr char* GoldSoloWhistleDrive::kStatesStr_[];
 
-GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position,
-                                           QObject* parent /*= NULL*/)
-  : QObject(parent), StateMachine(ST_MAX_STATES)
+GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position
+#if USE_QT
+                                           , QObject* parent /*= NULL*/
+#endif
+                                           )
+  :
+#if USE_QT
+    QObject(parent),
+#endif
+    StateMachine(ST_MAX_STATES)
 {
   alias_              = kAlias;
   position_           = slave_position;
@@ -210,43 +217,67 @@ std::string GoldSoloWhistleDrive::GetDriveStateStr(const std::bitset<16>& status
 
 RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
 {
-  static ec_sdo_request_t* sdo_ptr = NULL;
+  static ec_sdo_request_t* sdo_ptr = nullptr;
 
   if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(config_ptr, kOpModeIdx,
                                                        kOpModeSubIdx, CYCLIC_POSITION)))
   {
-    EcPrintCb(
-      QString("Drive %1 failed to create OpMode SDO request").arg(id_).toStdString(),
-      'r');
+    std::string msg;
+#if USE_QT
+    msg = QString("Drive %1 failed to create OpMode SDO request").arg(id_).toStdString();
+#else
+    std::ostringstream msg_stream;
+    msg_stream << "Drive " << id_ << " failed to create OpMode SDO request";
+    msg = msg_stream.str();
+#endif
+    EcPrintCb(msg, 'r');
     return ECONFIG;
   }
   ecrt_sdo_request_timeout(sdo_ptr, 500);
   if (ecrt_slave_config_sdo8(config_ptr, kOpModeIdx, kOpModeSubIdx, CYCLIC_POSITION) != 0)
   {
-    EcPrintCb(QString("Drive %1 failed to add a config value to OpMode SDO")
-                .arg(id_)
-                .toStdString(),
-              'r');
+    std::string msg;
+#if USE_QT
+    msg = QString("Drive %1 failed to add a config value to OpMode SDO").arg(id_)
+        .toStdString();
+#else
+    std::ostringstream msg_stream;
+    msg_stream << "Drive " << id_ << " failed to add a config value to OpMode SDO";
+    msg = msg_stream.str();
+#endif
+    EcPrintCb(msg, 'r');
     return ECONFIG;
   }
 
   if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(
           config_ptr, kHomingMethodIdx, kHomingMethodSubIdx, kHomingOnPosMethod)))
   {
-    EcPrintCb(QString("Drive %1 failed to create HomingMethod SDO request")
-                .arg(id_)
-                .toStdString(),
-              'r');
+    std::string msg;
+#if USE_QT
+    msg = QString("Drive %1 failed to create HomingMethod SDO request").arg(id_)
+        .toStdString();
+#else
+    std::ostringstream msg_stream;
+    msg_stream << "Drive " << id_ << " failed to create HomingMethod SDO request";
+    msg = msg_stream.str();
+#endif
+    EcPrintCb(msg, 'r');
     return ECONFIG;
   }
   ecrt_sdo_request_timeout(sdo_ptr, 500);
   if (ecrt_slave_config_sdo8(config_ptr, kHomingMethodIdx, kHomingMethodSubIdx,
                              kHomingOnPosMethod) != 0)
   {
-    EcPrintCb(QString("Drive %1 failed to add a config value to HomingMethod SDO")
-                .arg(id_)
-                .toStdString(),
-              'r');
+    std::string msg;
+#if USE_QT
+    msg = QString("Drive %1 failed to add a config value to HomingMethod SDO").arg(id_)
+        .toStdString();
+#else
+    std::ostringstream msg_stream;
+    msg_stream << "Drive " << id_ << " failed to add a config value to HomingMethod SDO";
+    msg = msg_stream.str();
+#endif
+    EcPrintCb(msg, 'r');
     return ECONFIG;
   }
 
@@ -326,10 +357,12 @@ void GoldSoloWhistleDrive::EcPrintCb(const std::string& msg,
                                      const char color /* = 'w' */) const
 {
   EthercatSlave::EcPrintCb(msg, color);
+#if USE_QT
   if (color == 'r')
     emit printMessage(msg.c_str());
   else
     emit logMessage(msg.c_str());
+#endif
 }
 
 //----- External events taken by this state machine ----------------------------------//
@@ -526,10 +559,18 @@ void GoldSoloWhistleDrive::InitFun()
 STATE_DEFINE(GoldSoloWhistleDrive, Start, NoEventData)
 {
   prev_state_ = ST_START;
-  EcPrintCb(QString("Drive %1 initial state: %2")
-              .arg(id_)
-              .arg(kStatesStr_[ST_START])
-              .toStdString());
+  std::string msg;
+#if USE_QT
+  msg = QString("Drive %1 initial state: %2")
+      .arg(id_)
+      .arg(kStatesStr_[ST_START])
+      .toStdString();
+#else
+  std::ostringstream msg_stream;
+  msg_stream << "Drive " << id_ << " initial state: " << kStatesStr_[ST_START];
+  msg = msg_stream.str();
+#endif
+  EcPrintCb(msg);
   // This happens automatically on drive's start up. We simply imitate the behavior here.
   InternalEvent(ST_NOT_READY_TO_SWITCH_ON);
 }
@@ -600,15 +641,24 @@ STATE_DEFINE(GoldSoloWhistleDrive, Fault, NoEventData)
 {
   PrintStateTransition(prev_state_, ST_FAULT);
   prev_state_ = ST_FAULT;
-
+#if USE_QT
   emit driveFaulted();
+#endif
 }
 
 //----- Miscellaneous ----------------------------------------------------------------//
 
 inline void GoldSoloWhistleDrive::PrintCommand(const char* cmd) const
 {
-  EcPrintCb(QString("Drive %1 received command: %2").arg(id_).arg(cmd).toStdString());
+  std::string msg;
+#if USE_QT
+  msg = QString("Drive %1 received command: %2").arg(id_).arg(cmd).toStdString();
+#else
+  std::ostringstream msg_stream;
+  msg_stream << "Drive " << id_ << " received command: " << cmd;
+  msg = msg_stream.str();
+#endif
+  EcPrintCb(msg);
 }
 
 void GoldSoloWhistleDrive::PrintStateTransition(
@@ -617,10 +667,19 @@ void GoldSoloWhistleDrive::PrintStateTransition(
 {
   if (current_state == new_state)
     return;
-  EcPrintCb(QString("Drive %1 state transition: %2 --> %3")
-              .arg(id_)
-              .arg(kStatesStr_[current_state], kStatesStr_[new_state])
-              .toStdString());
+  std::string msg;
+#if USE_QT
+  msg = QString("Drive %1 state transition: %2 --> %3")
+      .arg(id_)
+      .arg(kStatesStr_[current_state], kStatesStr_[new_state])
+      .toStdString();
+#else
+  std::ostringstream msg_stream;
+  msg_stream << "Drive " << id_ << " state transition: " << kStatesStr_[current_state] <<
+                " --> " << kStatesStr_[new_state];
+  msg = msg_stream.str();
+#endif
+  EcPrintCb(msg);
 }
 
 } // end namespace grabec

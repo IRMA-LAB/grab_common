@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 08 May 2019
+ * @date 30 May 2019
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -11,8 +11,11 @@
 
 #include <bitset>
 #include <iostream>
+#include <sstream>
 
+#if USE_QT
 #include <QObject>
+#endif
 
 #include "StateMachine.h"
 
@@ -142,11 +145,16 @@ class GoldSoloWhistleDriveData: public EventData
  * - fast stop during operation
  * - reaction to a specific fault
  */
-class GoldSoloWhistleDrive: public QObject,
-                            public virtual EthercatSlave,
-                            public StateMachine
+class GoldSoloWhistleDrive:
+#if USE_QT
+    public QObject,
+#endif
+    public virtual EthercatSlave,
+    public StateMachine
 {
+#if USE_QT
   Q_OBJECT
+#endif
 
  public:
   /**
@@ -155,8 +163,11 @@ class GoldSoloWhistleDrive: public QObject,
    * @param[in] slave_position Slave position in ethercat chain.
    * @param[in] parent The Qt parent, in this case the actuator it belongs to.
    */
-  GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position,
-                       QObject* parent = NULL);
+  GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position
+#if USE_QT
+                       , QObject* parent = nullptr
+#endif
+      );
 
   /**
    * @brief Get latest known physical drive state.
@@ -348,6 +359,7 @@ class GoldSoloWhistleDrive: public QObject,
    */
   bool IsReadyToShutDown() const override final;
 
+#if USE_QT
  signals:
   /**
    * @brief Drive faulted notice.
@@ -361,6 +373,7 @@ class GoldSoloWhistleDrive: public QObject,
    * @brief Emit a message to be printed.
    */
   void printMessage(const QString&) const;
+#endif
 
  protected:
   GSWDriveInPdos input_pdos_; /**< input_pdos_ */
