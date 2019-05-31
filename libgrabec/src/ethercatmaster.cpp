@@ -230,7 +230,7 @@ bool EthercatMaster::SetupEcNtw()
   {
     EcPrintCb("Initialization EtherCAT network " + GetRetValStr(EFAIL), 'r');
     EcStateChangedCb(check_state_flags_);
-    if (master_ptr_ != NULL)
+    if (master_ptr_ != nullptr)
       ReleaseMaster();
     return false;
   }

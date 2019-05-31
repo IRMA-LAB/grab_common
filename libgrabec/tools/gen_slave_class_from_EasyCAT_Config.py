@@ -51,7 +51,7 @@ public:
    * @param slave_position
    */
   %sSlave(const uint8_t slave_position);
-  ~%sSlave();
+  ~%sSlave() override;
 
   /**
    * @brief Slave's main function to be cycled.
@@ -165,7 +165,7 @@ private:
        EC_WD_ENABLE},
     {1, EC_DIR_INPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs_) + 1,
        EC_WD_DISABLE},
-    {0xff, static_cast<ec_direction_t>(0), 0, NULL,
+    {0xff, static_cast<ec_direction_t>(0), 0, nullptr,
        static_cast<ec_watchdog_mode_t>(0)}};
 """)
     if inputs_present:
@@ -316,7 +316,7 @@ constexpr ec_sync_info_t %sSlave::kSyncs_[];
         for i, entry in enumerate(config_params['Outputs']['Entries']):
             f.write("""  domain_registers_[%d] = {alias_, position_, vendor_id_, product_code_,
                           kPdoEntries_[%d].index, kPdoEntries_[%d].subindex,
-                          &offset_out_.%s, NULL};\n""" % (i, i, i, entry.Name))
+                          &offset_out_.%s, nullptr};\n""" % (i, i, i, entry.Name))
         i += 1
     else:
         i = 0
@@ -324,7 +324,7 @@ constexpr ec_sync_info_t %sSlave::kSyncs_[];
         for j, entry in enumerate(config_params['Inputs']['Entries']):
             f.write("""  domain_registers_[%d] = {alias_, position_, vendor_id_, product_code_,
                           kPdoEntries_[%d].index, kPdoEntries_[%d].subindex,
-                          &offset_in_.%s, NULL};\n""" %
+                          &offset_in_.%s, nullptr};\n""" %
                     (i + j, i + j, i + j, entry.Name))
     f.write("""
   domain_registers_ptr_ = domain_registers_;
@@ -429,11 +429,17 @@ def main():
 
     # Generate class files.
     print('Generating header file...')
-    gen_header(os.path.join(os.path.dirname(__file__), '..', 'inc', 'slaves',
-                            'easycat', ofilename + '.h'), config_params)
+    ofiledir = os.path.join(os.path.dirname(__file__), '..', 'inc', 'slaves',
+                            'easycat')
+    if not os.path.exists(ofiledir):
+        os.mkdir(ofiledir)
+    gen_header(os.path.join(ofiledir, ofilename + '.h'), config_params)
     print('Generating source file...')
-    gen_source(os.path.join(os.path.dirname(__file__), '..', 'src', 'slaves',
-                            'easycat', ofilename + '.cpp'), config_params)
+    ofiledir = os.path.join(os.path.dirname(__file__), '..', 'src', 'slaves',
+                            'easycat')
+    if not os.path.exists(ofiledir):
+        os.mkdir(ofiledir)
+    gen_source(os.path.join(ofiledir, ofilename + '.cpp'), config_params)
     print('Generation complete.\nYou can find the new files in the "slaves" '
           'folders of your local "libgrabec" directory.')
     print("Don't forget to copy '%s.h' in '%s'!" %

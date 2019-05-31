@@ -443,11 +443,11 @@ class GoldSoloWhistleDrive: public QObject,
   };
 
   static constexpr ec_sync_info_t kSyncs_[5] = {
-    {0, EC_DIR_OUTPUT, 0, NULL, EC_WD_DISABLE},
-    {1, EC_DIR_INPUT, 0, NULL, EC_WD_DISABLE},
+    {0, EC_DIR_OUTPUT, 0, nullptr, EC_WD_DISABLE},
+    {1, EC_DIR_INPUT, 0, nullptr, EC_WD_DISABLE},
     {2, EC_DIR_OUTPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs_) + 0, EC_WD_ENABLE},
     {3, EC_DIR_INPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs_) + 1, EC_WD_DISABLE},
-    {0xff, EC_DIR_INVALID, 0, 0x00, EC_WD_DEFAULT}};
+    {0xff, EC_DIR_INVALID, 0, nullptr, EC_WD_DEFAULT}};
 
   // Useful ethercat struct
   struct OffsetOut

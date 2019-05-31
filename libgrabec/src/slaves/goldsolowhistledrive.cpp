@@ -76,9 +76,9 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kControlWordIdx,
                           kControlWordSubIdx,
                           &offset_out_.control_word,
-                          NULL};
+                          nullptr};
   domain_registers_[1]  = {alias_,     position_,     vendor_id_,           product_code_,
-                          kOpModeIdx, kOpModeSubIdx, &offset_out_.op_mode, NULL};
+                          kOpModeIdx, kOpModeSubIdx, &offset_out_.op_mode, nullptr};
   domain_registers_[2]  = {alias_,
                           position_,
                           vendor_id_,
@@ -86,7 +86,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kTargetTorqueIdx,
                           kTargetTorqueSubIdx,
                           &offset_out_.target_torque,
-                          NULL};
+                          nullptr};
   domain_registers_[3]  = {alias_,
                           position_,
                           vendor_id_,
@@ -94,7 +94,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kTargetPosIdx,
                           kTargetPosSubIdx,
                           &offset_out_.target_position,
-                          NULL};
+                          nullptr};
   domain_registers_[4]  = {alias_,
                           position_,
                           vendor_id_,
@@ -102,7 +102,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kTargetVelIdx,
                           kTargetVelSubIdx,
                           &offset_out_.target_velocity,
-                          NULL};
+                          nullptr};
   domain_registers_[5]  = {alias_,
                           position_,
                           vendor_id_,
@@ -110,7 +110,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kStatusWordIdx,
                           kStatusWordSubIdx,
                           &offset_in_.status_word,
-                          NULL};
+                          nullptr};
   domain_registers_[6]  = {alias_,
                           position_,
                           vendor_id_,
@@ -118,7 +118,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kDisplayOpModeIdx,
                           kDisplayOpModeSubIdx,
                           &offset_in_.display_op_mode,
-                          NULL};
+                          nullptr};
   domain_registers_[7]  = {alias_,
                           position_,
                           vendor_id_,
@@ -126,7 +126,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kPosActualValueIdx,
                           kPosActualValueSubIdx,
                           &offset_in_.position_actual_value,
-                          NULL};
+                          nullptr};
   domain_registers_[8]  = {alias_,
                           position_,
                           vendor_id_,
@@ -134,7 +134,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kVelActualValueIdx,
                           kVelActualValueSubIdx,
                           &offset_in_.velocity_actual_value,
-                          NULL};
+                          nullptr};
   domain_registers_[9]  = {alias_,
                           position_,
                           vendor_id_,
@@ -142,7 +142,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kTorqueActualValueIdx,
                           kTorqueActualValueSubIdx,
                           &offset_in_.torque_actual_value,
-                          NULL};
+                          nullptr};
   domain_registers_[10] = {alias_,
                            position_,
                            vendor_id_,
@@ -150,7 +150,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                            kDigInIndex,
                            kDigInSubIndex,
                            &offset_in_.digital_inputs,
-                           NULL};
+                           nullptr};
   domain_registers_[11] = {alias_,
                            position_,
                            vendor_id_,
@@ -158,7 +158,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                            kAuxPosActualValueIdx,
                            kAuxPosActualValueSubIdx,
                            &offset_in_.aux_pos_actual_value,
-                           NULL};
+                           nullptr};
 
   domain_registers_ptr_  = domain_registers_;
   slave_pdo_entries_ptr_ = const_cast<ec_pdo_entry_info_t*>(kPdoEntries_);

@@ -1,7 +1,7 @@
 /**
  * @file ethercatslave.cpp
  * @author Simone Comari, Edoardo Idà
- * @date 13 Mar 2019
+ * @date 30 May 2019
  * @brief File containing definitions of functions and class declared in ethercatslave.h.
  */
 
@@ -50,11 +50,11 @@ ec_pdo_entry_reg_t EthercatSlave::GetDomainRegister(const uint8_t index) const
 
 RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)
 {
-  static ec_sdo_request_t* sdo_ptr = NULL;
+  static ec_sdo_request_t* sdo_ptr = nullptr;
 
-  if (sdo_ptr != NULL)
+  if (sdo_ptr != nullptr)
     return EINV;
-  if (config_ptr == NULL)
+  if (config_ptr == nullptr)
     return ECONFIG;
   return OK;
 }
