@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.cpp
  * @author Simone Comari
- * @date 13 Mar 2019
+ * @date 17 Jun 2019
  * @brief This file includes definitions of class declared in robotconfigjsonparser.h.
  */
 
@@ -269,9 +269,9 @@ bool RobotConfigJsonParser::AreCableParamsValid(
     ret = false;
   }
 
-  if (params.winch.drum_diameter <= 0.0)
+  if (params.winch.drum_diameter < 0.0)
   {
-    std::cerr << "[ERROR] motor drum diameter must be strictly positive!" << std::endl;
+    std::cerr << "[ERROR] motor drum diameter must be positive!" << std::endl;
     ret = false;
   }
 
