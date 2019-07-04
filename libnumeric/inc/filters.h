@@ -1,7 +1,7 @@
 /**
  * @file filters.h
  * @author Simone Comari
- * @date 10 Apr 2019
+ * @date 04 Jul 2019
  * @brief This file include filters implementations.
  */
 
@@ -24,15 +24,15 @@ class LowPassFilter
  public:
   /**
    * @brief LowPassFilter constructor.
-   * @param cutoff_freq [Hz] Cutoff frequency of low-pass filter.
-   * @param sampling_time_sec Sampling time in seconds.
+   * @param[in] cutoff_freq [Hz] Cutoff frequency of low-pass filter.
+   * @param[in] sampling_time_sec Sampling time in seconds.
    */
   LowPassFilter(const double& cutoff_freq, const double& sampling_time_sec);
   /**
    * @brief LowPassFilter full constructor.
-   * @param cutoff_freq [Hz] Cutoff frequency of low-pass filter.
-   * @param sampling_time_sec Sampling time in seconds.
-   * @param init_value Initial value of the signal to be filtered.
+   * @param[in] cutoff_freq [Hz] Cutoff frequency of low-pass filter.
+   * @param[in] sampling_time_sec Sampling time in seconds.
+   * @param[in] init_value Initial value of the signal to be filtered.
    */
   LowPassFilter(const double& cutoff_freq, const double& sampling_time_sec,
                 const double& init_value);
@@ -40,17 +40,20 @@ class LowPassFilter
 
   /**
    * @brief Set LP filter cutoff frequency.
-   * @param cutoff_freq [Hz] Cutoff frequency of low-pass filter.
+   * @param[in] cutoff_freq [Hz] Cutoff frequency of low-pass filter.
+   * @param[in] reset If _True_ reinitialize the filter, i.e. clear its history.
    */
   void SetCutoffFreq(const double& cutoff_freq, bool reset = false);
   /**
    * @brief Set LP filter sampling time.
-   * @param sampling_time_sec Sampling time in seconds.
+   * @param[in] sampling_time_sec Sampling time in seconds.
+   * @param[in] reset If _True_ reinitialize the filter, i.e. clear its history.
    */
   void SetSamplingTime(const double& sampling_time_sec, bool reset = false);
   /**
    * @brief Set LP filter time constant.
-   * @param time_const_sec Time constant in seconds.
+   * @param[in] time_const_sec Time constant in seconds.
+   * @param[in] reset If _True_ reinitialize the filter, i.e. clear its history.
    */
   void SetTimeConstant(const double& time_const_sec, bool reset = false);
 
@@ -77,7 +80,7 @@ class LowPassFilter
 
   /**
    * @brief Filter a new value of a signal.
-   * @param raw_value New signal value.
+   * @param[in] raw_value New signal value.
    * @return Filtered value.
    */
   virtual double Filter(const double& raw_value);
@@ -87,44 +90,57 @@ class LowPassFilter
   void Reset() { initialized_ = false; }
 
  protected:
-  double cutoff_freq_; // [Hz]
-  double Ts_;          // [sec]
-  double Tf_;          // [sec]
-  double alpha_ = 0.0;
+  double cutoff_freq_; /**< Cut-off frequency in [Hz]. */
+  double Ts_;          /**< Sampling time in [sec]. */
+  double
+    Tf_; /**< Filter time constant in [sec]. This is equal to @f$1/(2/pi f_{cutoff})@f$.*/
+  double alpha_ = 0.0; /**< Time constants dependend filter factor. */
 
-  bool initialized_;
-  double filtered_value_;
+  bool initialized_;      /**< Boolean flag to check if filter is already initialized. */
+  double filtered_value_; /**< Latest filtered value. */
 
+  /**
+   * @brief Update filter constants
+   * @param[in] reset If _True_ reinitialize the filter, i.e. clear its history.
+   */
   virtual void UpdateConstant(bool reset = false);
 };
 
+
+/**
+ * @brief A second-order low-pass filter implementation.
+ */
 class SecondOrderLPFilter: LowPassFilter
 {
  public:
   /**
    * @brief LowPassFilter constructor.
-   * @param cutoff_freq [Hz] Cutoff frequency of low-pass filter.
-   * @param sampling_time_sec Sampling time in seconds.
+   * @param[in] cutoff_freq1 [Hz] First order cutoff frequency of low-pass filter.
+   * @param[in] cutoff_freq2 [Hz] Second order cutoff frequency of low-pass filter.
+   * @param[in] sampling_time_sec Sampling time in seconds.
    */
   SecondOrderLPFilter(const double& cutoff_freq1, const double& cutoff_freq2,
                       const double& sampling_time_sec);
   /**
    * @brief LowPassFilter full constructor.
-   * @param cutoff_freq [Hz] Cutoff frequency of low-pass filter.
-   * @param sampling_time_sec Sampling time in seconds.
-   * @param init_value Initial value of the signal to be filtered.
+   * @param[in] cutoff_freq1 [Hz] First order cutoff frequency of low-pass filter.
+   * @param[in] cutoff_freq2 [Hz] Second order cutoff frequency of low-pass filter.
+   * @param[in] sampling_time_sec Sampling time in seconds.
+   * @param[in] init_value Initial value of the signal to be filtered.
    */
-  SecondOrderLPFilter(const double& cutoff_freq, const double& cutoff_freq2,
+  SecondOrderLPFilter(const double& cutoff_freq1, const double& cutoff_freq2,
                       const double& sampling_time_sec, const double& init_value);
 
   /**
    * @brief Set LP filter cutoff frequencies.
-   * @param cutoff_freq [Hz] Cutoff frequencies of low-pass filter.
+   * @param[in] cutoff_freq [Hz] Cutoff frequencies of low-pass filter.
+   * @param[in] reset If _True_ reinitialize the filter, i.e. clear its history.
    */
   void SetCutoffFreq(const std::vector<double>& cutoff_freq, bool reset = false);
   /**
    * @brief Set LP filter time constants.
-   * @param time_const_sec Time constants in seconds.
+   * @param[in] time_const_sec Time constants in seconds.
+   * @param[in] reset If _True_ reinitialize the filter, i.e. clear its history.
    */
   void SetTimeConstant(const std::vector<double>& time_const_sec, bool reset = false);
 
@@ -141,7 +157,7 @@ class SecondOrderLPFilter: LowPassFilter
 
   /**
    * @brief Filter a new value of a signal.
-   * @param raw_value New signal value.
+   * @param[in] raw_value New signal value.
    * @return Filtered value.
    */
   double Filter(const double& raw_value) override;
