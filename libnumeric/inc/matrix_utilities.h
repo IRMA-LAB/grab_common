@@ -1,7 +1,7 @@
 /**
  * @file matrix_utilities.h
  * @author Edoardo Idà, Simone Comari
- * @date 15 Mar 2019
+ * @date 27 Mar 2019
  * @brief File containing matrix utilities to be included in the GRAB numeric library.
  *
  * In this file there are some external independent functions which provide extra
@@ -27,7 +27,7 @@ namespace grabnum {
  * @param[in] matrix A @f$m\times n@f$ matrix.
  * @return A reference to the input stream.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 std::ostream& operator<<(std::ostream& stream, const Matrix<T, rows, cols>& matrix);
 #endif
 
@@ -38,7 +38,7 @@ std::ostream& operator<<(std::ostream& stream, const Matrix<T, rows, cols>& matr
  * @param[in] matrix A @f$m\times n@f$ matrix.
  * @return A @f$m\times n@f$ matrix, result of the addition.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator+(const T& scalar, const Matrix<T, rows, cols>& matrix);
 
 /**
@@ -48,7 +48,7 @@ Matrix<T, rows, cols> operator+(const T& scalar, const Matrix<T, rows, cols>& ma
  * @param[in] scalar A scalar value.
  * @return A @f$m\times n@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix, const T& scalar);
 
 /**
@@ -58,7 +58,7 @@ Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix, const T& sc
  * @param[in] matrix2 A @f$m\times n@f$ matrix.
  * @return A @f$m\times n@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix1,
                                 const Matrix<T, rows, cols>& matrix2);
 
@@ -69,7 +69,7 @@ Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix1,
  * @param[in] matrix A @f$m\times n@f$ matrix.
  * @return A @f$m\times n@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator-(const T& scalar, const Matrix<T, rows, cols>& matrix);
 
 /**
@@ -79,7 +79,7 @@ Matrix<T, rows, cols> operator-(const T& scalar, const Matrix<T, rows, cols>& ma
  * @param[in] scalar A scalar value.
  * @return A @f$m\times n@f$ matrix, result of the subtraction.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix, const T& scalar);
 
 /**
@@ -89,7 +89,7 @@ Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix, const T& sc
  * @param[in] matrix2 A @f$m\times n@f$ matrix.
  * @return A @f$m\times n@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix1,
                                 const Matrix<T, rows, cols>& matrix2);
 
@@ -100,7 +100,7 @@ Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix1,
  * @param[in] matrix A @f$m\times n@f$ matrix.
  * @return A @f$m\times n@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix);
 
 /**
@@ -110,7 +110,7 @@ Matrix<T, rows, cols> operator-(const Matrix<T, rows, cols>& matrix);
  * @param[in] matrix2 A @f$n\times p@f$ matrix.
  * @return A @f$m\times p@f$ matrix.
  */
-template <typename T, uint8_t rows1, uint8_t dim_common, uint8_t cols2>
+template <typename T, uint rows1, uint dim_common, uint cols2>
 Matrix<T, rows1, cols2> operator*(const Matrix<T, rows1, dim_common>& matrix1,
                                   const Matrix<T, dim_common, cols2>& matrix2);
 
@@ -121,7 +121,7 @@ Matrix<T, rows1, cols2> operator*(const Matrix<T, rows1, dim_common>& matrix1,
  * @param[in] hvect A n-dimensional horizontal vector.
  * @return A @f$m\times n@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator*(const VectorX<T, rows>& vvect,
                                 const Matrix<T, 1, cols>& hvect);
 
@@ -132,7 +132,7 @@ Matrix<T, rows, cols> operator*(const VectorX<T, rows>& vvect,
  * @param[in] matrix A @f$m\times n@f$ matrix.
  * @return A @f$m\times n@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator*(const T& scalar, const Matrix<T, rows, cols>& matrix);
 
 /**
@@ -142,7 +142,7 @@ Matrix<T, rows, cols> operator*(const T& scalar, const Matrix<T, rows, cols>& ma
  * @param[in] scalar A scalar value.
  * @return A @f$m\times n@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator*(const Matrix<T, rows, cols>& matrix, const T& scalar);
 
 /**
@@ -152,7 +152,7 @@ Matrix<T, rows, cols> operator*(const Matrix<T, rows, cols>& matrix, const T& sc
  * @param[in] vvect2 A m-dimensional vertical vector.
  * @return A m-dimensional vertical vector.
  */
-template <typename T, uint8_t rows>
+template <typename T, uint rows>
 VectorX<T, rows> operator*(const VectorX<T, rows>& vvect1,
                            const VectorX<T, rows>& vvect2);
 
@@ -163,7 +163,7 @@ VectorX<T, rows> operator*(const VectorX<T, rows>& vvect1,
  * @param[in] hvect2 A m-dimensional horizontal vector.
  * @return A m-dimensional horizontal vector.
  */
-template <typename T, uint8_t cols>
+template <typename T, uint cols>
 Matrix<T, 1, cols> operator*(const Matrix<T, 1, cols>& hvect1,
                              const Matrix<T, 1, cols>& hvect2);
 
@@ -174,7 +174,7 @@ Matrix<T, 1, cols> operator*(const Matrix<T, 1, cols>& hvect1,
  * @param[in] scalar A scalar value.
  * @return A @f$m\times n@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols> operator/(const Matrix<T, rows, cols>& matrix, const T& scalar);
 
 /**
@@ -184,7 +184,7 @@ Matrix<T, rows, cols> operator/(const Matrix<T, rows, cols>& matrix, const T& sc
  * @param[in] matrix_rx A @f$m\times p@f$ matrix.
  * @return A @f$m\times (n+p)@f$ matrix.
  */
-template <typename T, uint8_t rows, uint8_t cols1, uint8_t cols2>
+template <typename T, uint rows, uint cols1, uint cols2>
 Matrix<T, rows, cols1 + cols2> HorzCat(const Matrix<T, rows, cols1>& matrix_lx,
                                        const Matrix<T, rows, cols2>& matrix_rx);
 
@@ -195,7 +195,7 @@ Matrix<T, rows, cols1 + cols2> HorzCat(const Matrix<T, rows, cols1>& matrix_lx,
  * @param[in] matrix_down A @f$p\times n@f$ matrix.
  * @return A @f$(m+p)\times n@f$ matrix.
  */
-template <typename T, uint8_t rows1, uint8_t rows2, uint8_t cols>
+template <typename T, uint rows1, uint rows2, uint cols>
 Matrix<T, rows1 + rows2, cols> VertCat(const Matrix<T, rows1, cols>& matrix_up,
                                        const Matrix<T, rows2, cols>& matrix_down);
 
@@ -206,7 +206,7 @@ Matrix<T, rows1 + rows2, cols> VertCat(const Matrix<T, rows1, cols>& matrix_up,
  * @param[in] vvect2 A m-dimensional vertical vector.
  * @return A scalar value.
  */
-template <typename T, uint8_t dim>
+template <typename T, uint dim>
 T Dot(const VectorX<T, dim>& vvect1, const VectorX<T, dim>& vvect2);
 
 /**
@@ -216,7 +216,7 @@ T Dot(const VectorX<T, dim>& vvect1, const VectorX<T, dim>& vvect2);
  * @param[in] vvect A m-dimensional vertical vector.
  * @return A scalar value.
  */
-template <typename T, uint8_t dim>
+template <typename T, uint dim>
 T Dot(const Matrix<T, 1, dim>& hvect, const VectorX<T, dim>& vvect);
 
 /**
@@ -225,7 +225,7 @@ T Dot(const Matrix<T, 1, dim>& hvect, const VectorX<T, dim>& vvect);
  * @param[in] vvect A m-dimensional vertical vector.
  * @return A scalar value.
  */
-template <typename T, uint8_t dim> double Norm(const VectorX<T, dim>& vvect);
+template <typename T, uint dim> double Norm(const VectorX<T, dim>& vvect);
 
 /**
  * Vector L2-norm (i.e. Euclidean norm).
@@ -233,7 +233,7 @@ template <typename T, uint8_t dim> double Norm(const VectorX<T, dim>& vvect);
  * @param[in] hvect A m-dimensional horizontal vector.
  * @return A scalar value.
  */
-template <typename T, uint8_t dim> double Norm(const Matrix<T, 1, dim>& hvect);
+template <typename T, uint dim> double Norm(const Matrix<T, 1, dim>& hvect);
 
 /**
  * Vector cross-product operation.
@@ -266,9 +266,9 @@ template <typename T> Matrix3<T> Skew(const Vector3<T>& vvect3d);
  * @return The cofactor of given matrix and entry position.
  * @note This function is used to compute the determinant in Matrix::Det().
  */
-template <typename T, uint8_t rows, uint8_t cols>
+template <typename T, uint rows, uint cols>
 Matrix<T, rows - 1, cols - 1> GetCofactor(const Matrix<T, rows, cols>& matrix,
-                                          const uint8_t p, const uint8_t q);
+                                          const uint p, const uint q);
 
 /**
  * Recursive function for finding determinant of matrix using cofactors approach.
@@ -276,7 +276,7 @@ Matrix<T, rows - 1, cols - 1> GetCofactor(const Matrix<T, rows, cols>& matrix,
  * @param[in] matrix The matrix whose determinant is to be found.
  * @return The determinant of the matrix.
  */
-template <typename T, uint8_t dim> T Det(const Matrix<T, dim, dim>& matrix);
+template <typename T, uint dim> T Det(const Matrix<T, dim, dim>& matrix);
 
 /**
  * Returns _Cholesky factor_ of given symmetric, positive-definite matrix.
@@ -293,8 +293,18 @@ template <typename T, uint8_t dim> T Det(const Matrix<T, dim, dim>& matrix);
  * @note This function is used to check whether a matrix is positive-definite by
  * Matrix::IsPositiveDefinite().
  */
-template <typename T, uint8_t dim>
+template <typename T, uint dim>
 MatrixXd<dim, dim> Cholesky(const Matrix<T, dim, dim>& matrix);
+
+/**
+ * Return square matrix inverse.
+ *
+ * @param[in] matrix The square matrix to be inverted.
+ * @return The inverse of given square matrix with changed type to double independently
+ * from the original input type.
+ */
+template <typename T, uint dim>
+MatrixXd<dim, dim> Inverse(const Matrix<T, dim, dim>& matrix);
 
 /**
  * Mean value of a vector.
@@ -302,7 +312,7 @@ MatrixXd<dim, dim> Cholesky(const Matrix<T, dim, dim>& matrix);
  * @param[in] vvect A m-dimensional vertical vector.
  * @return A scalar value.
  */
-template <typename T, uint8_t dim> double Mean(const VectorX<T, dim>& vvect);
+template <typename T, uint dim> double Mean(const VectorX<T, dim>& vvect);
 
 /**
  * Standard deviation of a vector.
@@ -310,7 +320,7 @@ template <typename T, uint8_t dim> double Mean(const VectorX<T, dim>& vvect);
  * @param[in] vvect A m-dimensional vertical vector.
  * @return A scalar value.
  */
-template <typename T, uint8_t dim> double Std(const VectorX<T, dim>& vvect);
+template <typename T, uint dim> double Std(const VectorX<T, dim>& vvect);
 
 } //  end namespace grabnum
 

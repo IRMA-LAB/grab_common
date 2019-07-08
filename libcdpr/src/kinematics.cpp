@@ -1,14 +1,13 @@
 /**
  * @file kinematics.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 05 Sep 2018
+ * @date 09 May 2019
  * @brief File containing definitions of functions declared in kinematics.h.
  */
 
 #include "kinematics.h"
 
-namespace grabcdpr
-{
+namespace grabcdpr {
 
 template <class OrientationType, class PlatformVarsType>
 void UpdatePlatformPose(const grabnum::Vector3d& position,
@@ -44,8 +43,8 @@ void CalcPulleyVersors(const PulleyParams& params, const double swivel_ang,
 {
   double cos_sigma = cos(swivel_ang);
   double sin_sigma = sin(swivel_ang);
-  cable->vers_u = params.vers_i * cos_sigma + params.vers_j * sin_sigma;
-  cable->vers_w = -params.vers_i * sin_sigma + params.vers_j * cos_sigma;
+  cable->vers_u    = params.vers_i * cos_sigma + params.vers_j * sin_sigma;
+  cable->vers_w    = -params.vers_i * sin_sigma + params.vers_j * cos_sigma;
 }
 
 void CalcPulleyVersors(const PulleyParams& params, CableVars* cable)
@@ -67,11 +66,9 @@ double CalcSwivelAngle(const PulleyParams& params, const CableVars* cable)
 double CalcTangentAngle(const PulleyParams& params, const grabnum::Vector3d& vers_u,
                         const grabnum::Vector3d& pos_DA_glob)
 {
-  double app_var =
-    grabnum::Dot(params.vers_k, pos_DA_glob) / grabnum::Dot(vers_u, pos_DA_glob);
-  double psi =
-    2. * atan(app_var + sqrt(1. - 2. * params.radius / grabnum::Dot(vers_u, pos_DA_glob) +
-                             SQUARE(app_var)));
+  double s       = grabnum::Dot(vers_u, pos_DA_glob);
+  double app_var = grabnum::Dot(params.vers_k, pos_DA_glob) / s;
+  double psi = 2. * atan(app_var + sqrt(1. - 2. * params.radius / s + SQUARE(app_var)));
   return psi;
 }
 
@@ -87,8 +84,8 @@ void CalcCableVectors(const PulleyParams& params, const grabnum::Vector3d& vers_
   // Versors describing cable exit direction from swivel pulley.
   double cos_psi = cos(tan_ang);
   double sin_psi = sin(tan_ang);
-  cable->vers_n = vers_u * cos_psi + params.vers_k * sin_psi;
-  cable->vers_rho = vers_u * sin_psi - params.vers_k * cos_psi;
+  cable->vers_n  = vers_u * cos_psi + params.vers_k * sin_psi;
+  cable->vers_t  = vers_u * sin_psi - params.vers_k * cos_psi;
   // Vector from swivel pulley exit point to platform attaching point.
   cable->pos_BA_glob = pos_DA_glob - params.radius * (vers_u + cable->vers_n);
 }
@@ -98,15 +95,21 @@ void CalcCableVectors(const PulleyParams& params, CableVars* cable)
   CalcCableVectors(params, cable->vers_u, cable->pos_DA_glob, cable->tan_ang, cable);
 }
 
-double CalcCableLen(const grabnum::Vector3d& pos_BA_glob, const double pulley_radius,
-                    const double tan_ang)
+double CalcCableLen(const grabnum::Vector3d& pos_BA_glob)
 {
-  return pulley_radius * (M_PI - tan_ang) + grabnum::Norm(pos_BA_glob);
+  return grabnum::Norm(pos_BA_glob);
 }
 
-double CalcCableLen(const PulleyParams& params, const CableVars* cable)
+double CalcMotorCounts(const double tau, const double cable_len,
+                       const double pulley_radius, const double tan_ang)
 {
-  return CalcCableLen(cable->pos_BA_glob, params.radius, cable->tan_ang);
+  return (cable_len + pulley_radius * (M_PI - tan_ang)) / tau;
+}
+
+double CalcMotorCounts(ActuatorParams& params, const CableVars* cable)
+{
+  return CalcMotorCounts(params.winch.CountsToLengthFactor(), cable->length,
+                         params.pulley.radius, cable->tan_ang);
 }
 
 template <class PlatformVarsType>
@@ -118,9 +121,9 @@ void UpdateCableZeroOrd(const ActuatorParams* params, const PlatformVarsType* pl
     CalcSwivelAngle(params->pulley, cable); // from 1st kinematic constraint.
   CalcPulleyVersors(params->pulley, cable);
   cable->tan_ang =
-    CalcTangentAngle(params->pulley, cable);           // from 2nd kinematic constraint.
-  CalcCableVectors(params->pulley, cable);             // from 1st kinematic constraint.
-  cable->length = CalcCableLen(params->pulley, cable); // from 3rd kinematic constraint.
+    CalcTangentAngle(params->pulley, cable);        // from 2nd kinematic constraint.
+  CalcCableVectors(params->pulley, cable);          // from 1st kinematic constraint.
+  cable->length = CalcCableLen(cable->pos_BA_glob); // from 3rd kinematic constraint.
 }
 
 template <class OrientationType, class VarsType>

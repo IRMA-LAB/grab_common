@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 15 Mar 2019
+ * @date 30 May 2019
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -11,11 +11,13 @@
 
 #include <bitset>
 #include <iostream>
+#include <sstream>
 
+#if USE_QT
 #include <QObject>
+#endif
 
 #include "StateMachine.h"
-#include "grabcommon.h"
 
 #include "ethercatslave.h"
 #include "types.h"
@@ -78,7 +80,7 @@ enum Commands : uint8_t
  */
 struct GSWDriveInPdos
 {
-  Bitfield16 status_word;      /**< status_word */
+  std::bitset<16> status_word; /**< status_word */
   int8_t display_op_mode;      /**< display_op_mode */
   int32_t pos_actual_value;    /**< pos_actual_value */
   int32_t vel_actual_value;    /**< vel_actual_value */
@@ -143,11 +145,16 @@ class GoldSoloWhistleDriveData: public EventData
  * - fast stop during operation
  * - reaction to a specific fault
  */
-class GoldSoloWhistleDrive: public QObject,
-                            public virtual EthercatSlave,
-                            public StateMachine
+class GoldSoloWhistleDrive:
+#if USE_QT
+    public QObject,
+#endif
+    public virtual EthercatSlave,
+    public StateMachine
 {
+#if USE_QT
   Q_OBJECT
+#endif
 
  public:
   /**
@@ -156,21 +163,24 @@ class GoldSoloWhistleDrive: public QObject,
    * @param[in] slave_position Slave position in ethercat chain.
    * @param[in] parent The Qt parent, in this case the actuator it belongs to.
    */
-  GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position,
-                       QObject* parent = NULL);
+  GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position
+#if USE_QT
+                       , QObject* parent = nullptr
+#endif
+      );
 
   /**
    * @brief Get latest known physical drive state.
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
-  static GoldSoloWhistleDriveStates GetDriveState(const Bitfield16& status_word);
+  static GoldSoloWhistleDriveStates GetDriveState(const std::bitset<16>& status_word);
   /**
    * @brief Get latest known physical drive state.
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
-  static std::string GetDriveStateStr(const Bitfield16& status_word);
+  static std::string GetDriveStateStr(const std::bitset<16>& status_word);
   /**
    * @brief Get actual drive position (aka counts).
    * @return Actual drive position (aka counts).
@@ -349,6 +359,7 @@ class GoldSoloWhistleDrive: public QObject,
    */
   bool IsReadyToShutDown() const override final;
 
+#if USE_QT
  signals:
   /**
    * @brief Drive faulted notice.
@@ -362,6 +373,7 @@ class GoldSoloWhistleDrive: public QObject,
    * @brief Emit a message to be printed.
    */
   void printMessage(const QString&) const;
+#endif
 
  protected:
   GSWDriveInPdos input_pdos_; /**< input_pdos_ */
@@ -371,12 +383,12 @@ class GoldSoloWhistleDrive: public QObject,
    */
   struct OutputPdos
   {
-    Bitfield16 control_word; /**< control_word */
-    int8_t op_mode;          /**< op_mode */
-    int16_t target_torque;   /**< target_torque */
-    int32_t target_position; /**< target_position */
-    int32_t target_velocity; /**< target_velocity */
-  } output_pdos_;            /**< output_pdos_ */
+    std::bitset<16> control_word; /**< control_word */
+    int8_t op_mode;               /**< op_mode */
+    int16_t target_torque;        /**< target_torque */
+    int32_t target_position;      /**< target_position */
+    int32_t target_velocity;      /**< target_velocity */
+  } output_pdos_;                 /**< output_pdos_ */
 
   GoldSoloWhistleDriveStates drive_state_; /**< physical drive state */
 
@@ -444,11 +456,11 @@ class GoldSoloWhistleDrive: public QObject,
   };
 
   static constexpr ec_sync_info_t kSyncs_[5] = {
-    {0, EC_DIR_OUTPUT, 0, NULL, EC_WD_DISABLE},
-    {1, EC_DIR_INPUT, 0, NULL, EC_WD_DISABLE},
+    {0, EC_DIR_OUTPUT, 0, nullptr, EC_WD_DISABLE},
+    {1, EC_DIR_INPUT, 0, nullptr, EC_WD_DISABLE},
     {2, EC_DIR_OUTPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs_) + 0, EC_WD_ENABLE},
     {3, EC_DIR_INPUT, 1, const_cast<ec_pdo_info_t*>(kPDOs_) + 1, EC_WD_DISABLE},
-    {0xff, EC_DIR_INVALID, 0, 0x00, EC_WD_DEFAULT}};
+    {0xff, EC_DIR_INVALID, 0, nullptr, EC_WD_DEFAULT}};
 
   // Useful ethercat struct
   struct OffsetOut

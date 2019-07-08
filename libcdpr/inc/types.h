@@ -1,50 +1,116 @@
 /**
  * @file libcdpr/inc/types.h
  * @author Edoardo Idà, Simone Comari
- * @date 15 Mar 2019
+ * @date 14 May 2019
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
  * @note
+ *
+ * Below we present a legend with all relevant symbols and nomenclature used throughout
+ * the code.
+ *
  * <table>
- * <caption id="legend">Legend</caption>
- * <tr><th>Name     <th>Symbol     <th>Expression  <th>Description
- * <tr><td> _Global frame_  <td>@f$\mathcal{O}@f$ <td> -<td> World frame, centered on
+ * <caption id="legend">Systems of reference and geometric points</caption>
+ * <tr><th>Name     <th>Symbol     <th>Description
+ * <tr><td> _Global frame_  <td>@f$\mathcal{O}@f$ <td> World frame, centered on
  * point
  * @f$O@f$ and vertically aligned with gravitational axis.
- * <tr><td> _Local frame_  <td>@f$\mathcal{P}@f$ <td> -<td> Body-fixed frame centered
+ * <tr><td> _Local frame_  <td>@f$\mathcal{P}@f$ <td> Body-fixed frame centered
  * on an arbitrary point @f$P@f$ belonging to the platform and arbitrarly oriented.
- * <tr><td> _Swivel pulley frame_  <td>@f$\mathcal{D}_i@f$ <td> -<td> Fixed frame
+ * <tr><td> _Swivel pulley frame_  <td>@f$\mathcal{D}_i@f$ <td> Fixed frame
  * centered on point @f$D@f$. Its @f$z@f$-axis represents the swiveling axis of the _i-th_
  * pulley.
- * <tr><td> _World origin_  <td>@f$O@f$ <td> -<td> Origin of global frame_
+ * <tr><td> _World origin_  <td>@f$O@f$ <td> Origin of global frame
  *@f$\mathcal{O}@f$.
- * <tr><td> _Local origin_  <td>@f$P@f$ <td> -<td> An arbitrary point rigidly fixed to the
+ * <tr><td> _Local origin_  <td>@f$P@f$ <td> An arbitrary point rigidly fixed to the
  * platform, taken as the origin of _local frame_ @f$\mathcal{P}@f$.
- * <tr><td> _CoG_  <td>@f$G@f$ <td> - <td> The center of gravity (or baricenter) of the
+ * <tr><td> _CoG_  <td>@f$G@f$ <td> The center of gravity (or baricenter) of the
  * platform.
- * <tr><td> _Swivel pulley frame origin_  <td> @f$D_i@f$ <td> - <td> A fixed point around
+ * <tr><td> _Swivel pulley frame origin_  <td> @f$D_i@f$ <td> A fixed point around
  * which the _i-th_ swivel pulley swivels. It also coincides with the entry point on the
  * pulley
  * of the cable unwinding from the _i-th_ winch. It is taken as origin of a fixed frame
  * used to parametrize the position of the pulley wrt global frame.
- * <tr><td> _Swivel pulley exit point_  <td>@f$B_i@f$ <td> - <td> The exit point of the
+ * <tr><td> _Swivel pulley exit point_  <td>@f$B_i@f$ <td> The exit point of the
  * cable from the _i-th_ swivel pulley, going to the platform. At this point the cable is
  * assumed
  * to be tangent to the pulley and belonging to the pulley plane (always true in static
  * conditions).
- * <tr><td> _Platform attach point_  <td>@f$A_i@f$ <td> - <td> The attaching point of the
+ * <tr><td> _Platform attach point_  <td>@f$A_i@f$ <td> The attaching point of the
  * _i-th_ cable to the platform. This point is fixed wrt the local frame.
- * <tr><td> _Pulley center_  <td>@f$C_i@f$ <td> - <td> The revolving center of the _i-th_
+ * <tr><td> _Pulley center_  <td>@f$C_i@f$ <td> The revolving center of the _i-th_
  * pulley.
- * <tr><td> _Position_  <td>@f$\mathbf{p}@f$ <td> @f$^\mathcal{O}(P - O)@f$ <td> Global
+ * </table>
+ *
+ * <table>
+ * <caption id="platform_vars">CDPR time-varying platform variables</caption>
+ * <tr><th>Name     <th>Symbol     <th>Expression  <th>Description
+ * <tr><td> _Position_  <td>@f$\mathbf{p}_P@f$ <td> @f$^\mathcal{O}(P - O)@f$ <td> Global
  * position of the platform expressed in global frame coordinates, i.e. of point @f$P@f$.
- * <tr><td> -  <td>@f$\mathbf{r}@f$ <td> @f$^\mathcal{O}(G - O)@f$ <td> Global
- * position of the platform's CoG @f$G@f$ expressed in global frame coordinates.
- * <tr><td> -  <td>@f$\mathbf{r}'@f$ <td> @f$^\mathcal{O}(G - P)@f$ <td> Local
- * position of the platform's CoG @f$G@f$ expressed in global frame coordinates.
- * <tr><td> -  <td>@f$^\mathcal{P}\mathbf{r}'@f$ <td> @f$^\mathcal{P}(G - P)@f$
+ * <tr><td> _Orientation_ <td> @f$\boldsymbol{\varepsilon}@f$ <td> - <td> Global
+ * orientation of the platform expressed by 3 angles.
+ * <tr><td> _Quaternion_ <td> @f$\boldsymbol{\varepsilon}_q@f$ <td> - <td> Global
+ * orientation of the platform expressed by a quaternion @f$(q_w, q_x, q_y, q_z)^T@f$.
+ * <tr><td> _Pose_ <td> @f$\mathbf{x}@f$ <td>
+ * @f$[\mathbf{p}_P^T, \boldsymbol{\varepsilon}^T]^T@f$ <td> Platform pose or generalized
+ * variables using angles.
+ * <tr><td> _Pose variant_ <td> @f$\mathbf{x}_q@f$ <td>
+ * @f$[\mathbf{p}_P^T, \boldsymbol{\varepsilon}_q^T]^T@f$ <td> Platform pose or
+ * generalized variables using quaternion.
+ * <tr><td> _Velocity_ <td> @f$\mathbf{v}@f$ <td>
+ * @f$[\dot{\mathbf{p}}_P^T, \boldsymbol{\omega}^T]^T@f$ <td> Platform linear and angular
+ * velocity.
+ * </table>
+ *
+ * <table>
+ * <caption id="cable_vars">CDPR time-varying cable variables</caption>
+ * <tr><th>Name     <th>Symbol     <th>Expression  <th>Description
+ * <tr><td> _Number of cables_  <td> @f$N@f$ <td> - <td> Number of cables attached to the
+ * platform.
+ * <tr><td> _Cable length_  <td> @f$l_i@f$ <td> @f$\|A_i - B_i\|@f$ <td> Length of _i-th_
+ * cable from point @f$B_i@f$ to point @f$A_i@f$, including winding around swivel pulley.
+ * <tr><td> _Motor counts_ <td>@f$q_i@f$ <td> - <td> Motor counts (i.e. position) of
+ * _i-th_ motor.
+ * <tr><td> _Swivel angle_ <td>@f$\sigma_i@f$ <td> - <td> _i-th_ pulley swivel angle, i.e.
+ * the angle between @f$\hat{\mathbf{x}}_i@f$ and @f$\hat{\mathbf{u}}_i@f$.
+ * <tr><td> _Tangent angle_ <td>@f$\psi_i@f$ <td> - <td> _i-th_ pulley tangent angle, i.e.
+ * the angle between @f$\hat{\mathbf{u}}_i@f$ and @f$\hat{\mathbf{n}}_i@f$.
+ * </table>
+ *
+ * <table>
+ * <caption id="params">CDPR static parameters</caption>
+ * <tr><th>Name     <th>Symbol     <th>Expression  <th>Description
+ * <tr><td> - <td> @f$^\mathcal{P}\mathbf{p}'_G@f$ <td> @f$^\mathcal{P}(G - P)@f$
  * <td> Local position of the platform's CoG @f$G@f$ expressed in local frame coordinates.
+ * <tr><td> - <td> @f$^\mathcal{P}\mathbf{a}'_i@f$ <td> @f$^\mathcal{P}(A_i - P)@f$
+ * <td> Local position of the attaching point of the _i-th_ cable to the platform
+ * expressed in local frame coordinates.
+ * <tr><td> _Platform mass_ <td> @f$m@f$ <td> - <td> Platform mass in [Kg].
+ * <tr><td> _Platform inertia_ <td> @f$\mathcal{P}\mathbf{I}_G@f$ <td> - <td> Platform
+ * inertia expressed in local frame P.
+ * <tr><td> _Motor inertia_ <td> @f$\mathbf{I}_q@f$ <td> - <td> Motor inertia.
+ * <tr><td> _Transmittion ratio_ <td> @f$\tau_i@f$ <td> - <td> _i-th_ motor counts-to-
+ * cable-length factor.
+ * <tr><td> _Pulley radius_ <td>@f$r_i@f$ <td> - <td> _i-th_ swivel pulley radius length.
+ * <tr><td> -  <td>@f$\mathbf{d}_i@f$ <td> @f$^\mathcal{O}(D_i - O)@f$ <td> Global
+ * position of point @f$D_i@f$ expressed in global frame coordinates. This is a fixed
+ * vector.
+ * <tr><td> - <td>@f$\hat{\mathbf{i}}_i@f$ <td> - <td> @f$x@f$-axis versor of _i-th_
+ * swivel pulley frame @f$\mathcal{D}_i@f$.
+ * <tr><td> - <td>@f$\hat{\mathbf{j}}_i@f$ <td> - <td> @f$y@f$-axis versor of _i-th_
+ * swivel pulley frame @f$\mathcal{D}_i@f$.
+ * <tr><td> - <td>@f$\hat{\mathbf{k}}_i@f$ <td> - <td> @f$z@f$-axis versor of _i-th_
+ * swivel pulley frame @f$\mathcal{D}_i@f$. This is also the swiveling axis of the pulley.
+ * </table>
+ *
+ * <table>
+ * <caption id="ancillary">CDPR ancillary variables</caption>
+ * <tr><th>Name     <th>Symbol     <th>Expression  <th>Description
+ * <tr><td> -  <td>@f$\mathbf{p}_G@f$ <td> @f$^\mathcal{O}(G - O)@f$ <td> Global
+ * position of the platform's CoG @f$G@f$ expressed in global frame coordinates.
+ * <tr><td> -  <td>@f$\mathbf{p}'_G@f$ <td> @f$^\mathcal{O}(G - P)@f$ <td> Local
+ * position of the platform's CoG @f$G@f$ expressed in global frame coordinates.
  * <tr><td> -  <td>@f$\mathbf{a}_i@f$ <td> @f$^\mathcal{O}(A_i - O)@f$ <td> Global
  * position of the attaching point of the _i-th_ cable to the platform expressed in global
  * frame coordinates.
@@ -52,51 +118,13 @@
  * position of the attaching point of the _i-th_ cable to the platform expressed in global
  * frame
  * coordinates.
- * <tr><td> -  <td>@f$^\mathcal{P}\mathbf{a}'_i@f$ <td> @f$^\mathcal{P}(A_i - P)@f$
- * <td> Local position of the attaching point of the _i-th_ cable to the platform
- * expressed in local frame coordinates.
- * <tr><td> -  <td>@f$\mathbf{d}_i@f$ <td> @f$^\mathcal{O}(D_i - O)@f$ <td> Global
- * position of point @f$D_i@f$ expressed in global frame coordinates. This is a fixed
- * vector.
- * <tr><td> -  <td>@f$\mathbf{f}_i@f$ <td> @f$^\mathcal{O}(A_i - D_i)@f$ <td>
+ * <tr><td> -  <td>@f$\boldsymbol{\rho}^*_i@f$ <td> @f$^\mathcal{O}(A_i - D_i)@f$ <td>
  * Time-variant vector expressed in global frame coordinates.
  * <tr><td> -  <td>@f$\mathbf{n}_i@f$ <td> @f$^\mathcal{O}(B_i - C_i)@f$ <td>
  * Time-variant vector expressed in global frame coordinates. Used to define tangent
  * angle.
  * <tr><td> _Cable vector_  <td>@f$\boldsymbol{\rho}_i@f$ <td>
  * @f$^\mathcal{O}(A_i - B_i)@f$ <td> Cable vector expressed in global frame coordinates.
- * <tr><td> _Cable length_  <td>@f$l_i@f$ <td> @f$\|A_i - B_i\| +
- * \overset{\large\frown}{B_i D_i}@f$ <td> Length of _i-th_ cable from point @f$D_i@f$ to
- * point @f$A_i@f$, including winding around swivel pulley.
- * <tr><td> _Pulley radius_ <td>@f$r_i@f$ <td> - <td> _i-th_ swivel pulley radius length.
- * <tr><td> _Swivel angle_ <td>@f$\sigma_i@f$ <td> - <td> _i-th_ pulley swivel angle, i.e.
- * the angle between @f$\hat{\mathbf{x}}_i@f$ and @f$\hat{\mathbf{u}}_i@f$.
- * <tr><td> _Tangent angle_ <td>@f$\psi_i@f$ <td> - <td> _i-th_ pulley tangent angle, i.e.
- * the angle between @f$\hat{\mathbf{u}}_i@f$ and @f$\hat{\mathbf{n}}_i@f$.
- * <tr><td> _Orientation_ <td> @f$\boldsymbol{\varepsilon}@f$ <td> - <td> Global
- * orientation of the platform expressed by 3 angles.
- * <tr><td> _Quaternion_ <td> @f$\boldsymbol{\varepsilon}_q@f$ <td> - <td> Global
- * orientation of the platform expressed by a quaternion @f$(q_w, q_x, q_y, q_z)^T@f$.
- * <tr><td> _Rotation matrix_ <td> @f$\mathbf{R}@f$ <td>
- * @f$\mathbf{R}(\boldsymbol{\varepsilon})@f$ <td> Rotation matrix from local to global
- * frame, function of the selected parametrization for the platform orientation.
- * <tr><td> _Transformation matrix_ <td> @f$\mathbf{H}@f$ <td>
- * @f$\mathbf{H}(\boldsymbol{\varepsilon})@f$ <td> Transformation matrix from angles
- * velocities @f$\dot{\boldsymbol{\varepsilon}}@f$ to angular speed vector
- * @f$\boldsymbol{\omega}@f$, function of the selected parametrization for the platform
- * orientation.
- * <tr><td> _Pose_ <td> @f$\mathbf{q}@f$ <td>
- * @f$(\mathbf{p}^T, \boldsymbol{\varepsilon}^T)^T@f$ <td> Platform pose or generalized
- * variables using angles.
- * <tr><td> _Pose variant_ <td> @f$\mathbf{q}_q@f$ <td>
- * @f$(\mathbf{p}^T, \boldsymbol{\varepsilon}_q^T)^T@f$ <td> Platform pose or
- * generalized variables using quaternion.
- * <tr><td> - <td>@f$\hat{\mathbf{i}}_i@f$ <td> - <td> @f$x@f$-axis versor of _i-th_
- * swivel pulley frame @f$\mathcal{D}_i@f$.
- * <tr><td> - <td>@f$\hat{\mathbf{j}}_i@f$ <td> - <td> @f$y@f$-axis versor of _i-th_
- * swivel pulley frame @f$\mathcal{D}_i@f$.
- * <tr><td> - <td>@f$\hat{\mathbf{k}}_i@f$ <td> - <td> @f$z@f$-axis versor of _i-th_
- * swivel pulley frame @f$\mathcal{D}_i@f$. This is also the swiveling axis of the pulley.
  * <tr><td> - <td>@f$\hat{\mathbf{u}}_i@f$ <td>
  * @f$\hat{\mathbf{u}}_i \perp \hat{\mathbf{w}}_i \perp \hat{\mathbf{k}}_i@f$ <td>
  * @f$x@f$-axis versor of a time-variant body-fixed frame to the _i-th_ swivel pulley. In
@@ -110,15 +138,32 @@
  * <tr><td> - <td>@f$\hat{\mathbf{n}}_i@f$ <td> - <td> Time-variant versor denoting the
  * direction of @f$\mathbf{n}_i@f$ and used to define the tangent angle @f$\psi_i@f$. Note
  * that @f$\mathbf{n}_i = r_i \hat{\mathbf{n}}_i@f$.
- * <tr><td> - <td>@f$\hat{\boldsymbol{\rho}}_i@f$ <td> - <td> Time-variant versor
- * denoting the direction of @f$\boldsymbol{\rho}_i@f$. Note that
- * @f$\hat{\boldsymbol{\rho}}_i \perp \hat{\mathbf{n}}_i@f$.
- * <tr><td> _Time-derivative_ <td>@f$\dot{(\cdot)}@f$ <td> @f$\frac{d(\cdot)}{dt}@f$
+ * <tr><td> - <td>@f$\hat{\mathbf{t}}_i@f$ <td> - <td> Time-variant versor
+ * denoting the direction of @f$\boldsymbol{\rho}_i@f$. Note that @f$\hat{\mathbf{t}}_i
+ * \perp \hat{\mathbf{n}}_i@f$.
+ * </table>
+ *
+ * <table>
+ * <caption id="other_notation">CDPR ancillary variables</caption>
+ * <tr><th>Name     <th>Symbol     <th>Expression  <th>Description
+ * <tr><td> _Rotation matrix_ <td> @f$\mathbf{R}@f$ <td>
+ * @f$\mathbf{R}(\boldsymbol{\varepsilon})@f$ <td> Rotation matrix from local to global
+ * frame, function of the selected parametrization for the platform orientation.
+ * <tr><td> _Transformation matrix_ <td> @f$\mathbf{H}@f$ <td>
+ * @f$\mathbf{H}(\boldsymbol{\varepsilon})@f$ <td> Transformation matrix from angles
+ * velocities @f$\dot{\boldsymbol{\varepsilon}}@f$ to angular speed vector
+ * @f$\boldsymbol{\omega}@f$, function of the selected parametrization for the platform
+ * orientation.
+ * <tr><td> _Time-derivative_ <td> @f$\dot{(\cdot)}@f$ <td> @f$\frac{d(\cdot)}{dt}@f$
  * <td> -
- * <tr><td> _Angular speed_ <td>@f$\boldsymbol{\omega}@f$ <td>
+ * <tr><td> _Second time-derivative_ <td> @f$\ddot{(\cdot)}@f$ <td>
+ * @f$\frac{d^2(\cdot)}{dt^2}@f$ <td> -
+ * <tr><td> _Skew-symmetric_ <td> @f$\tilde{(\cdot)}@f$ <td> @f$(\cdot) \times@f$ <td>
+ * Skew-symmetric matrix of a vector, equivalent to its cross product.
+ * <tr><td> _Angular speed_ <td> @f$\boldsymbol{\omega}@f$ <td>
  * @f$\mathbf{H}(\boldsymbol{\varepsilon})\dot{\boldsymbol{\varepsilon}}@f$ <td> Angular
  * speed vector of the platform expressed in global coordinates.
- * <tr><td> _Angular acceleration_ <td>@f$\boldsymbol{\alpha}@f$ <td>
+ * <tr><td> _Angular acceleration_ <td> @f$\boldsymbol{\alpha}@f$ <td>
  * @f$\dot{\mathbf{H}}(\dot{\boldsymbol{\varepsilon}}, \boldsymbol{\varepsilon})
  * \dot{\boldsymbol{\varepsilon}} + \mathbf{H}(\boldsymbol{\varepsilon})
  * \ddot{\boldsymbol{\varepsilon}} @f$ <td> Angular acceleration vector of the platform
@@ -166,34 +211,34 @@ struct PlatformVarsBase
   /** @addtogroup ZeroOrderKinematics
    * @{
    */
-  grabnum::Vector3d position; /**< [_m_] vector @f$\mathbf{p}@f$. */
+  grabnum::Vector3d position; /**< [_m_] vector @f$\mathbf{p}_P@f$. */
 
   grabnum::Matrix3d rot_mat; /**< matrix @f$\mathbf{R}@f$. */
 
-  grabnum::Vector3d pos_PG_glob; /**< [_m_] vector @f$\mathbf{r}'@f$.*/
-  grabnum::Vector3d pos_OG_glob; /**< [_m_] vector @f$\mathbf{r}@f$.*/
+  grabnum::Vector3d pos_PG_glob; /**< [_m_] vector @f$\mathbf{p}'_G@f$.*/
+  grabnum::Vector3d pos_OG_glob; /**< [_m_] vector @f$\mathbf{p}_G@f$.*/
   /** @} */                      // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
    * @{
    */
-  grabnum::Vector3d velocity; /**< [_m/s_] vector @f$\dot{\mathbf{p}}@f$. */
+  grabnum::Vector3d velocity; /**< [_m/s_] vector @f$\dot{\mathbf{p}}_P@f$. */
 
   grabnum::Vector3d angular_vel; /**< vector @f$\boldsymbol\omega@f$. */
 
-  grabnum::Vector3d vel_OG_glob; /**< [_m/s_] vector @f$\dot{\mathbf{r}}@f$. */
+  grabnum::Vector3d vel_OG_glob; /**< [_m/s_] vector @f$\dot{\mathbf{p}}_G@f$. */
   /** @} */                      // end of FirstOrderKinematics group
 
   /** @addtogroup SecondOrderKinematics
    * @{
    */
   grabnum::Vector3d
-    acceleration; /**< [_m/s<sup>2</sup>_] vector @f$\ddot{\mathbf{p}}@f$. */
+    acceleration; /**< [_m/s<sup>2</sup>_] vector @f$\ddot{\mathbf{p}}_P@f$. */
 
   grabnum::Vector3d angular_acc; /**< vector @f$\boldsymbol\alpha@f$.*/
 
   grabnum::Vector3d
-    acc_OG_glob; /**< [_m/s<sup>2</sup>_] vector @f$\ddot{\mathbf{r}}@f$.*/
+    acc_OG_glob; /**< [_m/s<sup>2</sup>_] vector @f$\ddot{\mathbf{p}}_G@f$.*/
   /** @} */      // end of SecondOrderKinematics group
 };
 
@@ -241,17 +286,16 @@ struct PlatformVars: PlatformVarsBase
   /**
    * @brief Constructor to initialize platform vars with position and angles and their
    * first and second derivatives.
-   * @param[in] _position [m] Platform global position @f$\mathbf{p}@f$.
-   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+   * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
+   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
    * @param[in] _acceleration [m/s<sup>2</sup>] Platform global linear acceleration
-   * @f$\ddot{\mathbf{p}}@f$.
+   * @f$\ddot{\mathbf{p}}_P@f$.
    * @param[in] _orientation [rad] Platform global orientation expressed by angles
    * @f$\boldsymbol{\varepsilon}@f$.
    * @param[in] _orientation_dot [rad/s] Platform orientation time-derivative
    * @f$\dot{\boldsymbol{\varepsilon}}@f$.
    * @param[in] _orientation_ddot [rad/s<sup>2</sup>] Platform orientation 2nd
-   * time-derivative
-   * @f$\ddot{\boldsymbol{\varepsilon}}@f$.
+   * time-derivative @f$\ddot{\boldsymbol{\varepsilon}}@f$.
    * @param[in] _angles_type Desired rotation parametrization. Default is @a TILT_TORSION.
    * @note See @ref legend for more details.
    * @see Update()
@@ -270,7 +314,7 @@ struct PlatformVars: PlatformVarsBase
 
   /**
    * @brief Update platform pose with position and angles.
-   * @param[in] _position [m] Platform global position @f$\mathbf{p}@f$.
+   * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
    * @param[in] _orientation [rad] Platform global orientation expressed by angles
    * @f$\boldsymbol{\varepsilon}@f$.
    * @todo handle default case better
@@ -307,7 +351,7 @@ struct PlatformVars: PlatformVarsBase
 
   /**
    * @brief Update platform velocities with linear velocity and angles speed.
-   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
    * @param[in] _orientation_dot [rad/s] Vector @f$\dot{\boldsymbol{\varepsilon}}@f$.
    * @param[in] _orientation [rad] Platform global orientation expressed by angles
    * @f$\boldsymbol{\varepsilon}@f$.
@@ -344,7 +388,7 @@ struct PlatformVars: PlatformVarsBase
    *
    * Platform orientation needed for the update are infered from current values of
    * structure members, so make sure it is up-to-date by using UpdatePose() first.
-   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
    * @param[in] _orientation_dot [rad/s] Vector @f$\dot{\boldsymbol{\varepsilon}}@f$.
    * @ingroup FirstOrderKinematics
    * @see UpdateVel()
@@ -358,7 +402,7 @@ struct PlatformVars: PlatformVarsBase
 
   /**
    * @brief Update platform accelerations with linear and angles acceleration.
-   * @param[in] _acceleration [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{p}}@f$.
+   * @param[in] _acceleration [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{p}}_P@f$.
    * @param[in] _orientation_ddot [rad/s<sup>2</sup>] Vector
    * @f$\ddot{\boldsymbol{\varepsilon}}@f$.
    * @param[in] _orientation_dot [rad/s] Vector @f$\dot{\boldsymbol{\varepsilon}}@f$.
@@ -399,7 +443,7 @@ struct PlatformVars: PlatformVarsBase
    * Platform orientation and angular velocity needed for the update are infered from
    * current values of structure members, so make sure they are up-to-date by using
    * UpdateVel() first.
-   * @param[in] _acceleration [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{p}}@f$.
+   * @param[in] _acceleration [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{p}}_P@f$.
    * @param[in] _orientation_ddot [rad/s<sup>2</sup>] Vector
    * @f$\ddot{\boldsymbol{\varepsilon}}@f$.
    * @ingroup SecondOrderKinematics
@@ -415,10 +459,10 @@ struct PlatformVars: PlatformVarsBase
   /**
    * @brief Update platform vars with position and angles and their first and second
    * derivatives.
-   * @param[in] _position [m] Platform global position @f$\mathbf{p}@f$.
-   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+   * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
+   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
    * @param[in] _acceleration [m/s<sup>2</sup>] Platform global linear acceleration
-   * @f$\ddot{\mathbf{p}}@f$.
+   * @f$\ddot{\mathbf{p}}_P@f$.
    * @param[in] _orientation [rad] Platform global orientation expressed by angles
    * @f$\boldsymbol{\varepsilon}@f$.
    * @param[in] _orientation_dot [rad/s] Platform orientation time-derivative
@@ -457,7 +501,7 @@ struct PlatformQuatVars: PlatformVarsBase
   grabnum::MatrixXd<3, 4> h_mat;  /**< matrix @f$\mathbf{H}_q@f$. */
   grabnum::MatrixXd<3, 4> dh_mat; /**< matrix @f$\dot{\mathbf{H}}_q@f$. */
 
-  grabnum::VectorXd<7> pose; /**< vector @f$\mathbf{q}_q@f$. */
+  grabnum::VectorXd<7> pose; /**< vector @f$\mathbf{x}_q@f$. */
   /** @} */                  // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
@@ -477,10 +521,10 @@ struct PlatformQuatVars: PlatformVarsBase
   /**
    * @brief Constructor to initialize platform vars with position and orientation and
    * their first and second derivatives.
-   * @param[in] _position [m] Platform global position @f$\mathbf{p}@f$.
-   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+   * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
+   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
    * @param[in] _acceleration [m/s<sup>2</sup>] Platform global linear acceleration
-   * @f$\ddot{\mathbf{p}}@f$.
+   * @f$\ddot{\mathbf{p}}_P@f$.
    * @param[in] _orientation Platform global orientation expressed by quaternion
    * @f$\boldsymbol{\varepsilon}_q@f$.
    * @param[in] _orientation_dot Platform orientation time-derivative
@@ -502,7 +546,7 @@ struct PlatformQuatVars: PlatformVarsBase
 
   /**
    * @brief Update platform pose with position and quaternion.
-   * @param[in] _position [m] Platform global position @f$\mathbf{p}@f$.
+   * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
    * @param[in] _orientation Platform global orientation expressed by quaternion
    * @f$\boldsymbol{\varepsilon}_q = (q_w, q_x, q_y, q_z)@f$.
    * @todo automatically update orientation from quaternion.
@@ -526,7 +570,7 @@ struct PlatformQuatVars: PlatformVarsBase
 
   /**
    * @brief Update platform velocities with linear velocity and angles speed.
-   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
    * @param[in] _orientation_dot Quaternion velocity
    * @f$\dot{\boldsymbol{\varepsilon}}_q@f$.
    * @param[in] _orientation Platform global orientation expressed by quaternion
@@ -549,9 +593,9 @@ struct PlatformQuatVars: PlatformVarsBase
    *
    * Platform orientation needed for the update are infered from current values of
    * structure members, so make sure they are up-to-date by using UpdatePose() first.
-   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
    * @param[in] _orientation_dot Quaternion velocity
-   *@f$\dot{\boldsymbol{\varepsilon}}_q@f$.
+   * @f$\dot{\boldsymbol{\varepsilon}}_q@f$.
    * @ingroup FirstOrderKinematics
    * @see UpdateVel()
    * @note See @ref legend for more details.
@@ -565,7 +609,7 @@ struct PlatformQuatVars: PlatformVarsBase
   /**
    * @brief Update platform accelerations with linear and quaternion acceleration.
    *
-   * @param[in] _acceleration [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{p}}@f$.
+   * @param[in] _acceleration [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{p}}_P@f$.
    * @param[in] _orientation_ddot Quaternion acceleration
    * @f$\ddot{\boldsymbol{\varepsilon}}_q@f$.
    * @param[in] _orientation_dot Quaternion speed @f$\dot{\boldsymbol{\varepsilon}}_q@f$.
@@ -587,9 +631,8 @@ struct PlatformQuatVars: PlatformVarsBase
    * @brief Update platform accelerations with linear and quaternion acceleration.
    *
    * Platform angular velocity needed for the update are infered from current values of
-   * structure members, so make sure they are up-to-date by using
-   * UpdateVel() first.
-   * @param[in] _acceleration [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{p}}@f$.
+   * structure members, so make sure they are up-to-date by using UpdateVel() first.
+   * @param[in] _acceleration [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{p}}_P@f$.
    * @param[in] _orientation_ddot Quaternion acceleration
    * @f$\ddot{\boldsymbol{\varepsilon}}_q@f$.
    * @ingroup SecondOrderKinematics
@@ -605,10 +648,10 @@ struct PlatformQuatVars: PlatformVarsBase
   /**
    * @brief Update platform vars with position and orientation and their first and second
    * derivatives.
-   * @param[in] _position [m] Platform global position @f$\mathbf{p}@f$.
-   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}@f$.
+   * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
+   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
    * @param[in] _acceleration [m/s<sup>2</sup>] Platform global linear acceleration
-   * @f$\ddot{\mathbf{p}}@f$.
+   * @f$\ddot{\mathbf{p}}_P@f$.
    * @param[in] _orientation Platform global orientation expressed by quaternion
    * @f$\boldsymbol{\varepsilon}_q@f$.
    * @param[in] _orientation_dot Platform orientation time-derivative
@@ -646,14 +689,14 @@ struct CableVars
 
   grabnum::Vector3d pos_PA_glob; /**< [_m_] vector @f$\mathbf{a}'_i@f$. */
   grabnum::Vector3d pos_OA_glob; /**< [_m_] vector @f$\mathbf{a}_i@f$. */
-  grabnum::Vector3d pos_DA_glob; /**< [_m_] vector @f$\mathbf{f}_i@f$. */
+  grabnum::Vector3d pos_DA_glob; /**< [_m_] vector @f$\boldsymbol{\rho}^*_i@f$. */
   grabnum::Vector3d pos_BA_glob; /**< [_m_] vector @f$\boldsymbol{\rho}_i@f$. */
 
   grabnum::Vector3d vers_u; /**< _i-th_ swivel pulley versor @f$\hat{\mathbf{u}}_i@f$. */
   grabnum::Vector3d vers_w; /**< _i-th_ swivel pulley versor @f$\hat{\mathbf{w}}_i@f$. */
   grabnum::Vector3d vers_n; /**< _i-th_ swivel pulley versor @f$\hat{\mathbf{n}}_i@f$. */
-  grabnum::Vector3d vers_rho; /**< _i-th_ cable versor @f$\hat{\boldsymbol{\rho}}_i@f$. */
-  /** @} */                   // end of ZeroOrderKinematics group
+  grabnum::Vector3d vers_t; /**< _i-th_ cable versor @f$\hat{\mathbf{t}}_i@f$. */
+  /** @} */                 // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
    * @{
@@ -668,11 +711,11 @@ struct CableVars
   grabnum::Vector3d vel_OA_glob; /**< [_m/s_] vector @f$\dot{\mathbf{a}}_i@f$. */
   grabnum::Vector3d vel_BA_glob; /**< [_m/s_] vector @f$\dot{\boldsymbol{\rho}}_i@f$. */
 
-  grabnum::Vector3d vers_u_dot;   /**< versor @f$\dot{\hat{\mathbf{u}}}_i@f$. */
-  grabnum::Vector3d vers_w_dot;   /**< versor @f$\dot{\hat{\mathbf{w}}}_i@f$. */
-  grabnum::Vector3d vers_n_dot;   /**< versor @f$\dot{\hat{\mathbf{n}}}_i@f$. */
-  grabnum::Vector3d vers_rho_dot; /**< versor @f$\dot{\hat{\boldsymbol{\rho}}}_i@f$. */
-  /** @} */                       // end of FirstOrderKinematics group
+  grabnum::Vector3d vers_u_dot; /**< versor @f$\dot{\hat{\mathbf{u}}}_i@f$. */
+  grabnum::Vector3d vers_w_dot; /**< versor @f$\dot{\hat{\mathbf{w}}}_i@f$. */
+  grabnum::Vector3d vers_n_dot; /**< versor @f$\dot{\hat{\mathbf{n}}}_i@f$. */
+  grabnum::Vector3d vers_t_dot; /**< versor @f$\dot{\hat{\mathbf{t}}}_i@f$. */
+  /** @} */                     // end of FirstOrderKinematics group
 
   /** @addtogroup SecondOrderKinematics
    * @{
@@ -723,7 +766,7 @@ struct PlatformParams
     ext_torque_loc; /**< [Nm] external torque vector expressed in the local frame. */
   grabnum::Vector3d
     ext_force_loc; /**< [N] external force vector expressed in the local frame. */
-  grabnum::Vector3d pos_PG_loc; /**< [m] vector @f$^\mathcal{P}\mathbf{r}'@f$. */
+  grabnum::Vector3d pos_PG_loc; /**< [m] vector @f$^\mathcal{P}\mathbf{p}'_G@f$. */
   double mass = 0.0;            /**< [Kg] platform mass (@f$m@f$). */
 };
 
@@ -767,19 +810,17 @@ struct WinchParams
   double drum_diameter = 0.1;   /**< [m] todo..*/
   double gear_ratio    = 5.0;   /**< [m] todo..*/
   uint32_t motor_encoder_res =
-    0; /**< motor encoder resolution in counts per revolution. */
+    1048576; /**< motor encoder resolution in counts per revolution. */
 
   /**
    * @brief CountsToLengthFactor
    * @return
    */
-  double CountsToLengthFactor()
+  double CountsToLengthFactor() const
   {
-    static double tau = -1.0;
-
-    if (tau < 0.0)
-      tau = sqrt(pow(M_PI * drum_diameter, 2.0) + pow(drum_pitch, 2.0)) /
-            (motor_encoder_res * gear_ratio);
+    static double tau =
+      sqrt(pow(M_PI * drum_diameter, 2.0) + pow(drum_pitch, 2.0) - drum_diameter * 0.1) /
+      (motor_encoder_res * gear_ratio);
     return tau;
   }
 };

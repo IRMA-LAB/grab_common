@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.h
  * @author Simone Comari
- * @date 13 Mar 2019
+ * @date 08 May 2019
  * @brief This file include a parser for JSON configuration file for GRAB CDPR.
  */
 
@@ -12,9 +12,8 @@
 
 #include <QString>
 
-#include "grabcommon.h"
 #include "json.hpp"
-#include "libcdpr/inc/types.h"
+#include "types.h"
 
 using json = nlohmann::json; /**< JSON library support alias */
 

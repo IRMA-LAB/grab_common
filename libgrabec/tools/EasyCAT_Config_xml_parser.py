@@ -7,7 +7,7 @@ import copy
 
 
 class DomainEntry():
-"""Domain entry element."""
+    """Domain entry element."""
     def __init__(self, element):
         """Constructor."""
         self.Index = '0' + element.find('Index').text[1:].lower()
@@ -49,7 +49,7 @@ class DomainEntry():
 
 
 class EasyCatXmlParser(object):
-"""EasyCAT XML configuration file parser."""
+    """EasyCAT XML configuration file parser."""
     def __init__(self, filepath=None):
         """Constructor."""
         # Init

@@ -1,7 +1,7 @@
 /**
  * @file matrix.h
  * @author Edoardo Idà, Simone Comari
- * @date 15 Mar 2019
+ * @date 26 Mar 2019
  * @brief File containing matrix class and utilities to be included in the GRAB numeric
  * library.
  *
@@ -26,15 +26,14 @@
 #define MCU_TARGET 0
 
 #if (MCU_TARGET == 0)
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #endif
 
 /**
  * @brief Namespace for GRAB numeric library.
  */
-namespace grabnum
-{
+namespace grabnum {
 
 /**
  * A Matlab-alike implementation of a matrix class to simplify and speed up standard
@@ -42,9 +41,9 @@ namespace grabnum
  *
  * @note Indexing starts at 1 instead of 0 (like in Matlab)!
  */
-template <typename T, uint8_t rows, uint8_t cols> class Matrix
+template <typename T, uint rows, uint cols> class Matrix
 {
-public:
+ public:
   using Matrix_t = Matrix<T, rows, cols>; /**< practical typedef for local use */
 
   /**
@@ -93,13 +92,13 @@ public:
    *
    * @return A size.
    */
-  uint8_t Rows() const { return rows; }
+  uint Rows() const { return rows; }
   /**
    * Returns numbers of rows.
    *
    * @return A size.
    */
-  uint8_t Cols() const { return cols; }
+  uint Cols() const { return cols; }
   /**
    * Returns the matrix size, i.e. @f$m\times n@f$.
    *
@@ -135,7 +134,7 @@ public:
    *
    * @return The linear index corresponding to a standard double index.
    */
-  inline uint16_t LinIdx(const uint8_t row, const uint8_t col) const
+  inline uint16_t LinIdx(const uint row, const uint col) const
   {
     return (row - 1) * cols + col;
   }
@@ -180,7 +179,7 @@ public:
    * @return The (@a row , @a col ) entry of the matrix.
    * @note Matrix indexing starts from 1 like in Matlab.
    */
-  inline const T& operator()(const uint8_t row, const uint8_t column) const
+  inline const T& operator()(const uint row, const uint column) const
   {
     return elements_[row - 1][column - 1];
   }
@@ -192,7 +191,7 @@ public:
    * @return The (@a row , @a col ) entry of the matrix.
    * @note Matrix indexing starts from 1 like in Matlab.
    */
-  inline T& operator()(const uint8_t row, const uint8_t column)
+  inline T& operator()(const uint row, const uint column)
   {
     return elements_[row - 1][column - 1];
   }
@@ -205,10 +204,10 @@ public:
    * @note Matrix indexing starts from 1 like in Matlab and read row-by-row,
    * top-to-bottom.
    */
-  inline const T& operator()(const uint8_t lin_index) const
+  inline const T& operator()(const uint lin_index) const
   {
-    uint8_t row = (lin_index - 1) / cols;
-    uint8_t column = (lin_index - 1) % cols;
+    uint row    = (lin_index - 1) / cols;
+    uint column = (lin_index - 1) % cols;
     return elements_[row][column];
   }
   /**
@@ -220,10 +219,10 @@ public:
    * @note Matrix indexing starts from 1 like in Matlab and read row-by-row,
    * top-to-bottom.
    */
-  inline T& operator()(const uint8_t lin_index)
+  inline T& operator()(const uint lin_index)
   {
-    uint8_t row = (lin_index - 1) / cols;
-    uint8_t column = (lin_index - 1) % cols;
+    uint row    = (lin_index - 1) / cols;
+    uint column = (lin_index - 1) % cols;
     return elements_[row][column];
   }
 
@@ -305,8 +304,8 @@ public:
    * @see SetFromBlock()
    * @todo example
    */
-  template <uint8_t block_rows, uint8_t block_cols>
-  Matrix_t& SetBlock(const uint8_t start_row, const uint8_t start_col,
+  template <uint block_rows, uint block_cols>
+  Matrix_t& SetBlock(const uint start_row, const uint start_col,
                      const Matrix<T, block_rows, block_cols>& other);
   /**
    * Sets a column of @c *this with the elements of a 1D matrix.
@@ -316,7 +315,7 @@ public:
    **this.
    * @return A reference to @c *this.
    */
-  Matrix_t& SetCol(const uint8_t col, const Matrix<T, rows, 1>& matrix1d);
+  Matrix_t& SetCol(const uint col, const Matrix<T, rows, 1>& matrix1d);
   /**
    * Sets a column of @c *this with the elements of a standard vector.
    *
@@ -326,7 +325,7 @@ public:
    *number of rows in the original matrix.
    * @return A reference to @c *this.
    */
-  Matrix_t& SetCol(const uint8_t col, const T* vect, const uint8_t size);
+  Matrix_t& SetCol(const uint col, const T* vect, const uint size);
   /**
    * Sets a column of @c *this with the elements of a standard vector.
    *
@@ -334,7 +333,7 @@ public:
    * @param[in] vect The standard vector to be used to replace the column of  @c *this.
    * @return A reference to @c *this.
    */
-  Matrix_t& SetCol(const uint8_t col, const std::vector<T>& vect);
+  Matrix_t& SetCol(const uint col, const std::vector<T>& vect);
   /**
    * Replaces @c *this with a block of @a other.
    *
@@ -348,8 +347,8 @@ public:
    * @see SetBlock()
    * @todo example
    */
-  template <uint8_t _rows, uint8_t _cols>
-  Matrix<T, rows, cols>& SetFromBlock(const uint8_t start_row, const uint8_t start_col,
+  template <uint _rows, uint _cols>
+  Matrix<T, rows, cols>& SetFromBlock(const uint start_row, const uint start_col,
                                       const Matrix<T, _rows, _cols>& other);
   /**
    * Set the matrix to an identity matrix.
@@ -365,7 +364,7 @@ public:
    **this.
    * @return A reference to @c *this.
    */
-  Matrix_t& SetRow(const uint8_t row, const Matrix<T, 1, cols>& matrix1d);
+  Matrix_t& SetRow(const uint row, const Matrix<T, 1, cols>& matrix1d);
   /**
    * Sets a row of @c *this with the elements of a standard vector.
    *
@@ -375,7 +374,7 @@ public:
    *of rows in the original matrix.
    * @return A reference to @c *this.
    */
-  Matrix_t& SetRow(const uint8_t row, const T* vect, const uint8_t size);
+  Matrix_t& SetRow(const uint row, const T* vect, const uint size);
   /**
    * Sets a row of @c *this with the elements of a standard vector.
    *
@@ -383,7 +382,7 @@ public:
    * @param[in] vect The standard vector to be used to replace the row of  @c *this.
    * @return A reference to @c *this.
    */
-  Matrix_t& SetRow(const uint8_t row, const std::vector<T>& vect);
+  Matrix_t& SetRow(const uint row, const std::vector<T>& vect);
   /**
    * Sets the matrix to an empty matrix.
    *
@@ -419,7 +418,7 @@ public:
    * @param[in] row2 The index of the second row to be swapped.
    * @return A reference to @c *this.
    */
-  Matrix_t& SwapRow(const uint8_t row1, const uint8_t row2);
+  Matrix_t& SwapRow(const uint row1, const uint row2);
   /**
    * Swaps two different columns of @c *this.
    *
@@ -427,7 +426,7 @@ public:
    * @param[in] col2 The index of the second column to be swapped.
    * @return A reference to @c *this.
    */
-  Matrix_t& SwapCol(const uint8_t col1, const uint8_t col2);
+  Matrix_t& SwapCol(const uint col1, const uint col2);
 
   /**
    * Extracts a row from the matrix.
@@ -435,14 +434,14 @@ public:
    * @param[in] row The index of the row to be extracted.
    * @return A 1-dimensional matrix (aka an horizontal vector).
    */
-  Matrix<T, 1, cols> GetRow(const uint8_t row) const;
+  Matrix<T, 1, cols> GetRow(const uint row) const;
   /**
    * Extracts a column from the matrix.
    *
    * @param[in] col The index of the column to be extracted.
    * @return A 1-dimensional matrix (aka a vertical vector).
    */
-  Matrix<T, rows, 1> GetCol(const uint8_t col) const;
+  Matrix<T, rows, 1> GetCol(const uint col) const;
   /**
    * Extracts a block from the matrix.
    *
@@ -451,9 +450,9 @@ public:
    * @param[in] start_col The starting column of the block.
    * @return A block of the original matrix.
    */
-  template <uint8_t blk_rows, uint8_t blk_cols>
-  Matrix<T, blk_rows, blk_cols> GetBlock(const uint8_t start_row,
-                                         const uint8_t start_col) const;
+  template <uint blk_rows, uint blk_cols>
+  Matrix<T, blk_rows, blk_cols> GetBlock(const uint start_row,
+                                         const uint start_col) const;
 
   /**
    * Check if the matrix is square, i.e. @a m = @a n.
@@ -494,7 +493,7 @@ public:
    */
   bool IsApprox(const Matrix<T, rows, cols>& other, const double tol = EPSILON) const;
 
-private:
+ private:
   T elements_[rows][cols]; /**< for easy internal access to matrix elements. */
 };
 
@@ -503,46 +502,44 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T> using Vector2 = Matrix<T, 2, 1>; /**< generic 2D vector */
-using Vector2i = Vector2<int>;                         /**< 2D vector of int */
-using Vector2l = Vector2<long>;                        /**< 2D vector of long */
-using Vector2f = Vector2<float>;                       /**< 2D vector of float */
-using Vector2d = Vector2<double>;                      /**< 2D vector of double */
+using Vector2i                      = Vector2<int>;    /**< 2D vector of int */
+using Vector2l                      = Vector2<long>;   /**< 2D vector of long */
+using Vector2f                      = Vector2<float>;  /**< 2D vector of float */
+using Vector2d                      = Vector2<double>; /**< 2D vector of double */
 
 template <typename T> using Vector3 = Matrix<T, 3, 1>; /**< generic 3D vector */
-using Vector3i = Vector3<int>;                         /**< 3D vector of int */
-using Vector3l = Vector3<long>;                        /**< 3D vector of long */
-using Vector3f = Vector3<float>;                       /**< 3D vector of float */
-using Vector3d = Vector3<double>;                      /**< 3D vector of double */
+using Vector3i                      = Vector3<int>;    /**< 3D vector of int */
+using Vector3l                      = Vector3<long>;   /**< 3D vector of long */
+using Vector3f                      = Vector3<float>;  /**< 3D vector of float */
+using Vector3d                      = Vector3<double>; /**< 3D vector of double */
 
 template <typename T> using Matrix2 = Matrix<T, 2, 2>; /**< generic 2x2 matrix */
-using Matrix2i = Matrix2<int>;                         /**< 2x2 matrix of int */
-using Matrix2l = Matrix2<long>;                        /**< 2x2 matrix of long */
-using Matrix2f = Matrix2<float>;                       /**< 2x2 matrix of float */
-using Matrix2d = Matrix2<double>;                      /**< 2x2 matrix of double */
+using Matrix2i                      = Matrix2<int>;    /**< 2x2 matrix of int */
+using Matrix2l                      = Matrix2<long>;   /**< 2x2 matrix of long */
+using Matrix2f                      = Matrix2<float>;  /**< 2x2 matrix of float */
+using Matrix2d                      = Matrix2<double>; /**< 2x2 matrix of double */
 
 template <typename T> using Matrix3 = Matrix<T, 3, 3>; /**< generic 3x3 matrix */
-using Matrix3i = Matrix3<int>;                         /**< 3x3 matrix of int */
-using Matrix3l = Matrix3<long>;                        /**< 3x3 matrix of long */
-using Matrix3f = Matrix3<float>;                       /**< 3x3 matrix of float */
-using Matrix3d = Matrix3<double>;                      /**< 3x3 matrix of double */
+using Matrix3i                      = Matrix3<int>;    /**< 3x3 matrix of int */
+using Matrix3l                      = Matrix3<long>;   /**< 3x3 matrix of long */
+using Matrix3f                      = Matrix3<float>;  /**< 3x3 matrix of float */
+using Matrix3d                      = Matrix3<double>; /**< 3x3 matrix of double */
 
-template <uint8_t rows, uint8_t cols>
+template <uint rows, uint cols>
 using MatrixXi = Matrix<int, rows, cols>; /**< generic mxn matrix of int */
-template <uint8_t rows, uint8_t cols>
+template <uint rows, uint cols>
 using MatrixXl = Matrix<long, rows, cols>; /**< generic mxn matrix of long */
-template <uint8_t rows, uint8_t cols>
+template <uint rows, uint cols>
 using MatrixXf = Matrix<float, rows, cols>; /**< generic mxn matrix of float */
-template <uint8_t rows, uint8_t cols>
+template <uint rows, uint cols>
 using MatrixXd = Matrix<double, rows, cols>; /**< generic mxn matrix of double */
 
-template <typename T, uint8_t dim>
-using VectorX = Matrix<T, dim, 1>;                           /**< generic vector */
-template <uint8_t dim> using VectorXi = Matrix<int, dim, 1>; /**< generic vector of int */
-template <uint8_t dim>
-using VectorXl = Matrix<long, dim, 1>; /**< generic vector of long */
-template <uint8_t dim>
+template <typename T, uint dim> using VectorX = Matrix<T, dim, 1>; /**< generic vector */
+template <uint dim> using VectorXi = Matrix<int, dim, 1>;  /**< generic vector of int */
+template <uint dim> using VectorXl = Matrix<long, dim, 1>; /**< generic vector of long */
+template <uint dim>
 using VectorXf = Matrix<float, dim, 1>; /**< generic vector of float */
-template <uint8_t dim>
+template <uint dim>
 using VectorXd = Matrix<double, dim, 1>; /**< generic vector of double */
 
 } //  end namespace grabnum

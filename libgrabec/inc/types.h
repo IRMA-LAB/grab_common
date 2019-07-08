@@ -13,8 +13,6 @@
 #include <stdio.h>
 #include <string>
 
-#include "grabcommon.h"
-
 #include "threads.h"
 
 /**

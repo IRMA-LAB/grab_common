@@ -1,7 +1,7 @@
 /**
  * @file ethercatmaster.cpp
  * @author Simone Comari
- * @date 14 Feb 2019
+ * @date 08 May 2019
  * @brief File containing definitions of functions and class declared in ethercatmaster.h.
  */
 
@@ -9,7 +9,7 @@
 
 namespace grabec {
 
-EthercatMaster::EthercatMaster() { check_state_flags_.ClearAll(); }
+EthercatMaster::EthercatMaster() { check_state_flags_.reset(); }
 
 EthercatMaster::~EthercatMaster()
 {
@@ -99,7 +99,7 @@ void EthercatMaster::LoopFunction()
   CheckMasterState();
   CheckDomainState();
   // If everything is ok, execute main function of master
-  if (check_state_flags_.Count() == 3) // EthercatStateFlagsBit all set
+  if (check_state_flags_.all()) // EthercatStateFlagsBit all set
     EcWorkFun();
   // Write data
   ecrt_domain_queue(domain_ptr_);
@@ -131,7 +131,7 @@ void EthercatMaster::EndFunction()
     CheckMasterState();
     CheckDomainState();
     // Send out signals to safely shut down slaves
-    if (check_state_flags_.Count() == 3) // EthercatStateFlagsBit all set
+    if (check_state_flags_.all()) // EthercatStateFlagsBit all set
       for (EthercatSlave* slave_ptr : slaves_ptrs_)
       {
         slave_ptr->ReadInputs();
@@ -230,7 +230,7 @@ bool EthercatMaster::SetupEcNtw()
   {
     EcPrintCb("Initialization EtherCAT network " + GetRetValStr(EFAIL), 'r');
     EcStateChangedCb(check_state_flags_);
-    if (master_ptr_ != NULL)
+    if (master_ptr_ != nullptr)
       ReleaseMaster();
     return false;
   }
@@ -244,11 +244,11 @@ void EthercatMaster::CheckConfigState()
   ecrt_slave_config_state(slave_config_ptr_, &slave_config_state);
   if (slave_config_state.al_state != slave_config_state_.al_state)
   {
-    check_state_flags_.Set(CONFIG, slave_config_state.al_state == EC_AL_STATE_OP);
+    check_state_flags_.set(CONFIG, slave_config_state.al_state == EC_AL_STATE_OP);
     EcStateChangedCb(check_state_flags_);
     EcPrintCb("Slaves application-layer state: " +
                 GetAlStateStr(slave_config_state.al_state),
-              check_state_flags_.CheckBit(CONFIG) ? 'w' : 'y');
+              check_state_flags_.test(CONFIG) ? 'w' : 'y');
   }
   if (slave_config_state.online != slave_config_state_.online)
   {
@@ -279,10 +279,10 @@ void EthercatMaster::CheckMasterState()
   }
   if (master_state.al_states != master_state_.al_states)
   {
-    check_state_flags_.Set(MASTER, master_state.al_states == EC_AL_STATE_OP);
+    check_state_flags_.set(MASTER, master_state.al_states == EC_AL_STATE_OP);
     EcStateChangedCb(check_state_flags_);
     EcPrintCb("Master state: " + GetAlStateStr(master_state.al_states),
-              check_state_flags_.CheckBit(MASTER) ? 'w' : 'y');
+              check_state_flags_.test(MASTER) ? 'w' : 'y');
   }
   if (master_state.link_up != master_state_.link_up)
   {
@@ -311,10 +311,10 @@ void EthercatMaster::CheckDomainState()
   }
   if (domain_state.wc_state != domain_state_.wc_state)
   {
-    check_state_flags_.Set(EC_DOMAIN, domain_state.wc_state == EC_WC_COMPLETE);
+    check_state_flags_.set(EC_DOMAIN, domain_state.wc_state == EC_WC_COMPLETE);
     EcStateChangedCb(check_state_flags_);
     EcPrintCb("Domain State: " + std::string(WcStateStr[domain_state.wc_state]),
-              check_state_flags_.CheckBit(EC_DOMAIN) ? 'w' : 'y');
+              check_state_flags_.test(EC_DOMAIN) ? 'w' : 'y');
   }
   domain_state_ = domain_state;
 }

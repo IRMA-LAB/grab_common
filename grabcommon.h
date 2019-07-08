@@ -1,7 +1,7 @@
 /**
  * @file grabcommon.h
  * @author Simone Comari
- * @date 13 Mar 2019
+ * @date 08 May 2019
  * @brief This file collects common utilities which are not specifically related to any of
  * GRAB libraries.
  */
@@ -11,13 +11,13 @@
 
 #include <errno.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
-
-#include "bitfield.h"
 
 /*---------------------- DEFINES ------------------------*/
 
