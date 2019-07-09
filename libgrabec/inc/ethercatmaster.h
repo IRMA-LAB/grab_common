@@ -28,7 +28,7 @@
 
 #include "ethercatslave.h"
 #include "threads.h"
-#include "types.h"
+#include "grabec_types.h"
 
 /**
  * @brief Namespace for GRAB EtherCAT library.

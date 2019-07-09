@@ -1,7 +1,7 @@
 /**
- * @file libcdpr/inc/types.h
+ * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 14 May 2019
+ * @date 09 Jul 2019
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -171,8 +171,8 @@
  * </table>
  */
 
-#ifndef GRABCOMMON_LIBCDPR_TYPES_H
-#define GRABCOMMON_LIBCDPR_TYPES_H
+#ifndef GRABCOMMON_LIBCDPR_CDPR_TYPES_H
+#define GRABCOMMON_LIBCDPR_CDPR_TYPES_H
 
 #include "matrix_utilities.h"
 #include "quaternions.h"
@@ -847,4 +847,4 @@ struct Params
 
 } // end namespace grabcdpr
 
-#endif // GRABCOMMON_LIBCDPR_TYPES_H
+#endif // GRABCOMMON_LIBCDPR_CDPR_TYPES_H

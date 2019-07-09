@@ -12,7 +12,7 @@
 #include "kinematics.h"
 #include "matrix_utilities.h"
 #include "rotations.h"
-#include "types.h"
+#include "cdpr_types.h"
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.

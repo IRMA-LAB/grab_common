@@ -20,7 +20,7 @@
 #include "StateMachine.h"
 
 #include "ethercatslave.h"
-#include "types.h"
+#include "grabec_types.h"
 
 /**
  * @brief Namespace for GRAB EtherCAT library.

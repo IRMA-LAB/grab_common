@@ -13,7 +13,7 @@
 #include <QString>
 
 #include "json.hpp"
-#include "types.h"
+#include "cdpr_types.h"
 
 using json = nlohmann::json; /**< JSON library support alias */
 

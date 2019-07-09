@@ -9,7 +9,7 @@
 #define GRABCOMMON_LIBGRABEC_ETHERCATSLAVE_H
 
 #include "ecrt.h"
-#include "types.h"
+#include "grabec_types.h"
 
 /**
  * @brief Namespace for GRAB EtherCAT library.

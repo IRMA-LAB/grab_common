@@ -35,7 +35,7 @@ def gen_header(filepath, config_params):
 
 """)
     f.write("""#include "ethercatslave.h"
-#include "types.h"
+#include "grabec_types.h"
 
 namespace grabec
 {

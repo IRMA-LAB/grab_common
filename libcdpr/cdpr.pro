@@ -2,7 +2,7 @@
 HEADERS += \
     $$PWD/inc/kinematics.h \
     $$PWD/inc/diffkinematics.h \
-    $$PWD/inc/types.h \
+    $$PWD/inc/cdpr_types.h \
     $$PWD/tools/json.hpp \
     $$PWD/tools/robotconfigjsonparser.h
 
