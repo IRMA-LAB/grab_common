@@ -295,4 +295,7 @@ void UpdateIK0(const grabnum::Vector3d& position, const OrientationType& orienta
 
 } // end namespace grabcdpr
 
+// This is a trick to define templated functions in a source file.
+#include "../src/kinematics.tcc"
+
 #endif // GRABCOMMON_LIBCDPR_KINEMATICS_H

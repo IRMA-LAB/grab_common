@@ -7,7 +7,7 @@ HEADERS += \
     $$PWD/tools/robotconfigjsonparser.h
 
 SOURCES += \
-    $$PWD/src/kinematics.cpp \
+    $$PWD/src/kinematics.tcc \
     $$PWD/src/diffkinematics.cpp \
     $$PWD/tools/robotconfigjsonparser.cpp \
 

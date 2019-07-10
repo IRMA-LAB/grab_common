@@ -5,6 +5,10 @@
  * @brief File containing definitions of functions declared in kinematics.h.
  */
 
+#ifndef GRABCOMMON_LIBCDPR_KINEMATICS_H
+#error Do not include this file directly, include kinematics.h instead
+#endif
+
 #include "kinematics.h"
 
 namespace grabcdpr {
