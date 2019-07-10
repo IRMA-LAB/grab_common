@@ -216,16 +216,18 @@ def ec_readln(f, entry):
     # Integers
     if entry.DataType[0] == 'u':
         sign = 'U'
+        i = 1
     else:
         sign = 'S'
+        i = 0
 
-    if entry.DataType[1:] == 'int8_t':
+    if entry.DataType[i:] == 'int8_t':
         data_type = sign + '8'
-    if entry.DataType[1:] == 'int16_t':
+    if entry.DataType[i:] == 'int16_t':
         data_type = sign + '16'
-    if entry.DataType[1:] == 'int32_t':
+    if entry.DataType[i:] == 'int32_t':
         data_type = sign + '32'
-    if entry.DataType[1:] == 'int64_t':
+    if entry.DataType[i:] == 'int64_t':
         data_type = sign + '64'
     f.write('  BufferIn.Cust.%s = EC_READ_%s(domain_data_ptr_ + '
             'offset_in_.%s);\n' % (entry.Name, data_type, entry.Name))
@@ -251,16 +253,18 @@ def ec_writeln(f, entry):
     # Integers
     if entry.DataType[0] == 'u':
         sign = 'U'
+        i = 1
     else:
         sign = 'S'
+        i = 0
 
-    if entry.DataType[1:] == 'int8_t':
+    if entry.DataType[i:] == 'int8_t':
         data_type = sign + '8'
-    if entry.DataType[1:] == 'int16_t':
+    if entry.DataType[i:] == 'int16_t':
         data_type = sign + '16'
-    if entry.DataType[1:] == 'int32_t':
+    if entry.DataType[i:] == 'int32_t':
         data_type = sign + '32'
-    if entry.DataType[1:] == 'int64_t':
+    if entry.DataType[i:] == 'int64_t':
         data_type = sign + '64'
     f.write('  EC_WRITE_%s(domain_data_ptr_ + offset_out_.%s, '
             'BufferOut.Cust.%s);\n' % (data_type, entry.Name, entry.Name))
