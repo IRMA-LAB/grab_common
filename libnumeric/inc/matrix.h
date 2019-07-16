@@ -1,7 +1,7 @@
 /**
  * @file matrix.h
  * @author Edoardo Idà, Simone Comari
- * @date 26 Mar 2019
+ * @date 16 Jul 2019
  * @brief File containing matrix class and utilities to be included in the GRAB numeric
  * library.
  *
@@ -524,6 +524,12 @@ using Matrix3i                      = Matrix3<int>;    /**< 3x3 matrix of int */
 using Matrix3l                      = Matrix3<long>;   /**< 3x3 matrix of long */
 using Matrix3f                      = Matrix3<float>;  /**< 3x3 matrix of float */
 using Matrix3d                      = Matrix3<double>; /**< 3x3 matrix of double */
+
+template <typename T> using Matrix4 = Matrix<T, 4, 4>; /**< generic 4x4 matrix */
+using Matrix4i                      = Matrix4<int>;    /**< 4x4 matrix of int */
+using Matrix4l                      = Matrix4<long>;   /**< 4x4 matrix of long */
+using Matrix4f                      = Matrix4<float>;  /**< 4x4 matrix of float */
+using Matrix4d                      = Matrix4<double>; /**< 4x4 matrix of double */
 
 template <uint rows, uint cols>
 using MatrixXi = Matrix<int, rows, cols>; /**< generic mxn matrix of int */
