@@ -64,7 +64,7 @@ bool RobotConfigJsonParser::ParseFile(const QString& filename,
 }
 
 bool RobotConfigJsonParser::ParseFile(const std::string& filename,
-                                      grabcdpr::Params* params,
+                                      grabcdpr::RobotParams* params,
                                       const bool verbose /*= false*/)
 {
   if (ParseFile(filename, verbose))
@@ -75,13 +75,13 @@ bool RobotConfigJsonParser::ParseFile(const std::string& filename,
   return false;
 }
 
-bool RobotConfigJsonParser::ParseFile(const char* filename, grabcdpr::Params* params,
+bool RobotConfigJsonParser::ParseFile(const char* filename, grabcdpr::RobotParams* params,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(std::string(filename), params, verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const QString& filename, grabcdpr::Params* params,
+bool RobotConfigJsonParser::ParseFile(const QString& filename, grabcdpr::RobotParams* params,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(filename.toStdString(), params, verbose);

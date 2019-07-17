@@ -132,7 +132,7 @@ void UpdateCableZeroOrd(const ActuatorParams* params, const PlatformVarsType* pl
 
 template <class OrientationType, class VarsType>
 void UpdateIK0(const grabnum::Vector3d& position, const OrientationType& orientation,
-               const Params* params, VarsType* vars)
+               const RobotParams* params, VarsType* vars)
 {
   UpdatePlatformPose(position, orientation, params->platform, vars->platform);
   for (uint8_t i = 0; i < vars->cables.size(); ++i)

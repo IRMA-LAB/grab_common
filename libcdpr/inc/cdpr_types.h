@@ -1,7 +1,7 @@
 /**
  * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 09 Jul 2019
+ * @date 17 Jul 2019
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -737,7 +737,7 @@ struct CableVars
  * This structure employs 3-angle parametrization for the orientation of the platform.
  * @see VarsQuatStruct
  */
-struct Vars
+struct RobotVars
 {
   PlatformVars* platform;        /**< variables of a generic 6DoF platform with angles. */
   std::vector<CableVars> cables; /**< vector of variables of a single cables in a CDPR. */
@@ -749,7 +749,7 @@ struct Vars
  * This structure employs quaternion parametrization for the orientation of the platform.
  * @see VarsStruct
  */
-struct VarsQuat
+struct RobotVarsQuat
 {
   PlatformQuatVars*
     platform; /**< variables of a generic 6DoF platform with quaternions. */
@@ -838,7 +838,7 @@ struct ActuatorParams
 /**
  * @brief Structure collecting all parameters related to a generic 6DoF CDPR.
  */
-struct Params
+struct RobotParams
 {
   PlatformParams* platform; /**< parameters of a generic 6DoF platform. */
   std::vector<ActuatorParams>

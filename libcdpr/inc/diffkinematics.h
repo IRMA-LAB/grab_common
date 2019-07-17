@@ -497,7 +497,7 @@ void UpdateCableSecondOrd(const PulleyParams& params, const PlatformVarsType* pl
  */
 template <class OrientationType, class VarsType>
 void UpdateIK2(const grabnum::Vector3d& acceleration,
-               const OrientationType& orientation_ddot, const Params* params,
+               const OrientationType& orientation_ddot, const RobotParams* params,
                VarsType* vars);
 
 /** @} */ // end of SecondOrderKinematics group
@@ -519,7 +519,7 @@ template <class OrientationType, class VarsType>
 void UpdateIK(const grabnum::Vector3d& position, const OrientationType& orientation,
               const grabnum::Vector3d& velocity, const OrientationType& orientation_dot,
               const grabnum::Vector3d& acceleration,
-              const OrientationType& orientation_ddot, const Params* params,
+              const OrientationType& orientation_ddot, const RobotParams* params,
               VarsType* vars);
 
 } // end namespace grabcdpr

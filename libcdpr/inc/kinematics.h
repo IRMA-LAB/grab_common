@@ -289,7 +289,7 @@ void UpdateCableZeroOrd(const ActuatorParams* params, const PlatformVarsType* pl
  */
 template <class OrientationType, class VarsType>
 void UpdateIK0(const grabnum::Vector3d& position, const OrientationType& orientation,
-               const Params* params, VarsType* vars);
+               const RobotParams* params, VarsType* vars);
 
 /** @} */ // end of ZeroOrderKinematics group
 
