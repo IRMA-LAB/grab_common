@@ -31,8 +31,7 @@
 *.out
 *.app
 
-# Build folders
-build*
+# Build folder
 lib
 
 # Custom settings
@@ -47,7 +46,6 @@ Doxyfile
 
 # Python
 *.pyc
-/bitfield.h
 
 # Custom EasyCAT classes
 libgrabec/inc/slaves/easycat/*
