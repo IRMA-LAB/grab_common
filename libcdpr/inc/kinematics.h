@@ -1,7 +1,7 @@
 /**
  * @file kinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 09 May 2019
+ * @date 23 Jul 2019
  * @brief File containing kinematics-related functions to be included in the GRAB CDPR
  * library.
  */
@@ -9,9 +9,9 @@
 #ifndef GRABCOMMON_LIBCDPR_KINEMATICS_H
 #define GRABCOMMON_LIBCDPR_KINEMATICS_H
 
+#include "cdpr_types.h"
 #include "matrix_utilities.h"
 #include "rotations.h"
-#include "cdpr_types.h"
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
@@ -40,13 +40,31 @@ namespace grabcdpr {
  * @param[in] pos_PG_loc [m] Local CoG position @f$^\mathcal{P}\mathbf{p}'_G@f$.
  * @param[out] platform A pointer to the platform variables structure to be updated.
  * @note See @ref legend for symbols reference.
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
  */
-template <class OrientationType, class PlatformVarsType>
 void UpdatePlatformPose(const grabnum::Vector3d& position,
-                        const OrientationType& orientation,
-                        const grabnum::Vector3d& pos_PG_loc, PlatformVarsType* platform);
+                        const grabnum::Vector3d& orientation,
+                        const grabnum::Vector3d& pos_PG_loc, PlatformVars& platform);
+/**
+ * @brief Update platform-related zero-order quantities (explicit).
+ *
+ * Given a new pose of the platform
+ * @f$\mathbf{x} = (\mathbf{p}_P^T, \boldsymbol{\varepsilon}_q^T)^T@f$, the following
+ * quantities are updated:
+ * @f[
+ * \mathbf{p}'_G = \mathbf{R}(\boldsymbol{\varepsilon}_q) ^\mathcal{P}\mathbf{p}'_G \\
+ * \mathbf{p}_G = \mathbf{p}_P + \mathbf{p}'_G
+ * @f]
+ * being @f$^\mathcal{P}\mathbf{p}'_G@f$ a known parameter.
+ * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
+ * @param[in] orientation [rad] Platform global orientation expressed by angles
+ * @f$\boldsymbol{\varepsilon}@f$.
+ * @param[in] pos_PG_loc [m] Local CoG position @f$^\mathcal{P}\mathbf{p}'_G@f$.
+ * @param[out] platform A pointer to the platform variables structure to be updated.
+ * @note See @ref legend for symbols reference.
+ */
+void UpdatePlatformPose(const grabnum::Vector3d& position,
+                        const grabgeom::Quaternion& orientation,
+                        const grabnum::Vector3d& pos_PG_loc, PlatformQuatVars& platform);
 /**
  * @brief Update platform-related zero-order quantities (implicit).
  * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
@@ -55,13 +73,22 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
  * @param[in] params A pointer to the platform parameters structure.
  * @param[out] platform A pointer to the platform variables structure to be updated.
  * @see UpdatePlatformPose()
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
  */
-template <class OrientationType, class PlatformVarsType>
 void UpdatePlatformPose(const grabnum::Vector3d& position,
-                        const OrientationType& orientation, const PlatformParams* params,
-                        PlatformVarsType* platform);
+                        const grabnum::Vector3d& orientation,
+                        const PlatformParams& params, PlatformVars& platform);
+/**
+ * @brief Update platform-related zero-order quantities (implicit).
+ * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
+ * @param[in] orientation Platform global orientation expressed by quaternion
+ * @f$\boldsymbol{\varepsilon}_q@f$.
+ * @param[in] params A pointer to the platform parameters structure.
+ * @param[out] platform A pointer to the platform variables structure to be updated.
+ * @see UpdatePlatformPose()
+ */
+void UpdatePlatformPose(const grabnum::Vector3d& position,
+                        const grabgeom::Quaternion& orientation,
+                        const PlatformParams& params, PlatformQuatVars& platform);
 
 /**
  * @brief Update global position of point @f$A_i@f$ and relative segments.
@@ -79,12 +106,20 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
  * @param[out] cable A pointer to the cable structure including the positions to be
  * updated.
  * @note See @ref legend for symbols reference.
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
  */
-template <class PlatformVarsType>
-void UpdatePosA(const ActuatorParams* params, const PlatformVarsType* platform,
-                CableVars* cable);
+void UpdatePosA(const ActuatorParams& params, const PlatformVars& platform,
+                CableVars& cable);
+/**
+ * @brief Update global position of point @f$A_i@f$ and relative segments when
+ * using quaternion to express platform orientation.
+ * @param[in] params A pointer to cable parameters.
+ * @param[in] platform A pointer to the updated platform structure.
+ * @param[out] cable A pointer to the cable structure including the positions
+ * to be updated.
+ * @see UpdatePosA()
+ */
+void UpdatePosA(const ActuatorParams& params, const PlatformQuatVars& platform,
+                CableVars& cable);
 
 /**
  * @brief Calculate swivel pulley versors @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i@f$.
@@ -104,7 +139,7 @@ void UpdatePosA(const ActuatorParams* params, const PlatformVarsType* platform,
  * @f$ \hat{\mathbf{u}}_i \perp \hat{\mathbf{w}}_i \perp \hat{\mathbf{k}}_i @f$.
  */
 void CalcPulleyVersors(const PulleyParams& params, const double swivel_ang,
-                       CableVars* cable);
+                       CableVars& cable);
 /**
  * @brief Calculate swivel pulley versors @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i@f$.
  * @param[in] params Swivel pulley parameters.
@@ -112,7 +147,7 @@ void CalcPulleyVersors(const PulleyParams& params, const double swivel_ang,
  * updated.
  * @see CalcPulleyVersors()
  */
-void CalcPulleyVersors(const PulleyParams& params, CableVars* cable);
+void CalcPulleyVersors(const PulleyParams& params, CableVars& cable);
 
 /**
  * @brief Calculate pulley swivel angle @f$\sigma_i@f$.
@@ -140,7 +175,7 @@ double CalcSwivelAngle(const PulleyParams& params, const grabnum::Vector3d& pos_
  * @return Swivel angle @f$\sigma_i@f$ in radians.
  * @see CalcSwivelAngle()
  */
-double CalcSwivelAngle(const PulleyParams& params, const CableVars* cable);
+double CalcSwivelAngle(const PulleyParams& params, const CableVars& cable);
 
 /**
  * @brief Calculate pulley tangent angle @f$\psi_i@f$.
@@ -173,7 +208,7 @@ double CalcTangentAngle(const PulleyParams& params, const grabnum::Vector3d& ver
  * @return Tangent angle @f$\psi_i@f$  in radians.
  * @see CalcTangentAngle()
  */
-double CalcTangentAngle(const PulleyParams& params, const CableVars* cable);
+double CalcTangentAngle(const PulleyParams& params, const CableVars& cable);
 
 /**
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\mathbf{t}}_i@f$ and
@@ -208,7 +243,7 @@ double CalcTangentAngle(const PulleyParams& params, const CableVars* cable);
  */
 void CalcCableVectors(const PulleyParams& params, const grabnum::Vector3d& vers_u,
                       const grabnum::Vector3d& pos_DA_glob, const double tan_ang,
-                      CableVars* cable);
+                      CableVars& cable);
 /**
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\mathbf{t}}_i@f$ and
  * cable vector @f$\boldsymbol{\rho}_i@f$.
@@ -217,7 +252,7 @@ void CalcCableVectors(const PulleyParams& params, const grabnum::Vector3d& vers_
  * calculated.
  * @see CalcCableVectors()
  */
-void CalcCableVectors(const PulleyParams& params, CableVars* cable);
+void CalcCableVectors(const PulleyParams& params, CableVars& cable);
 
 /**
  * @brief Calculate cable length @f$l_i@f$.
@@ -255,7 +290,7 @@ double CalcCableLen(const grabnum::Vector3d& pos_BA_glob);
  * @f[ \boldsymbol{\rho}_i \cdot \boldsymbol{\rho}_i = l_i^2 @f]
  */
 double CalcMotorCounts(const double tau, const double cable_len,
-                    const double pulley_radius, const double tan_ang);
+                       const double pulley_radius, const double tan_ang);
 /**
  * @brief Calculate motor counts @f$q_i@f$.
  * @param[in,out] params Actuator parameters.
@@ -263,19 +298,25 @@ double CalcMotorCounts(const double tau, const double cable_len,
  * @return Motor counts @f$q_i@f$.
  * @see CalcCableLen()
  */
-double CalcMotorCounts(ActuatorParams &params, const CableVars* cable);
+double CalcMotorCounts(ActuatorParams& params, const CableVars& cable);
 
 /**
  * @brief Update all zero-order variables of a single cable at once.
  * @param[in] platform A pointer to the updated platform structure.
  * @param[in] params A pointer to _i-th_ cable parameters.
  * @param[out] cable A pointer to _i-th_ cable variables structure to be updated.
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
  */
-template <class PlatformVarsType>
-void UpdateCableZeroOrd(const ActuatorParams* params, const PlatformVarsType* platform,
-                        CableVars* cable);
+void UpdateCableZeroOrd(const ActuatorParams& params, const PlatformVars& platform,
+                        CableVars& cable);
+/**
+ * @brief Update all zero-order variables of a single cable at once when using
+ * quaternions.
+ * @param[in] platform A pointer to the updated platform structure.
+ * @param[in] params A pointer to _i-th_ cable parameters.
+ * @param[out] cable A pointer to _i-th_ cable variables structure to be updated.
+ */
+void UpdateCableZeroOrd(const ActuatorParams& params, const PlatformQuatVars& platform,
+                        CableVars& cable);
 
 /**
  * @brief Update all robots zero-order variables at once (inverse kinematics problem).
@@ -284,18 +325,23 @@ void UpdateCableZeroOrd(const ActuatorParams* params, const PlatformVarsType* pl
  * @f$\boldsymbol{\varepsilon}@f$.
  * @param[in] params A pointer to the robot parameters structure.
  * @param[out] vars A pointer to the robot variables structure to be updated.
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
  */
-template <class OrientationType, class VarsType>
-void UpdateIK0(const grabnum::Vector3d& position, const OrientationType& orientation,
-               const RobotParams* params, VarsType* vars);
+void UpdateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orientation,
+               const RobotParams& params, RobotVars& vars);
+/**
+ * @brief Update all robots zero-order variables at once (inverse kinematics problem) when
+ * usign quaternions.
+ * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
+ * @param[in] orientation [rad] Platform global orientation expressed by angles
+ * @f$\boldsymbol{\varepsilon}@f$.
+ * @param[in] params A pointer to the robot parameters structure.
+ * @param[out] vars A pointer to the robot variables structure to be updated.
+ */
+void UpdateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& orientation,
+               const RobotParams& params, RobotVarsQuat& vars);
 
 /** @} */ // end of ZeroOrderKinematics group
 
 } // end namespace grabcdpr
-
-// This is a trick to define templated functions in a source file.
-#include "../src/kinematics.tcc"
 
 #endif // GRABCOMMON_LIBCDPR_KINEMATICS_H

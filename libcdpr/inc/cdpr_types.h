@@ -1,7 +1,7 @@
 /**
  * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 17 Jul 2019
+ * @date 23 Jul 2019
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -250,7 +250,7 @@ struct PlatformVarsBase
  */
 struct PlatformVars: PlatformVarsBase
 {
-  RotParametrization angles_type = TILT_TORSION; /**< rotation parametrization used. */
+  RotParametrization angles_type; /**< rotation parametrization used. */
 
   /** @addtogroup ZeroOrderKinematics
    * @{
@@ -281,7 +281,10 @@ struct PlatformVars: PlatformVarsBase
    * @brief Constructor to explicitly declare rotation parametrization desired only.
    * @param[in] _angles_type Desired rotation parametrization.
    */
-  PlatformVars(const RotParametrization _angles_type) { angles_type = _angles_type; }
+  PlatformVars(const RotParametrization _angles_type = TILT_TORSION)
+  {
+    angles_type = _angles_type;
+  }
 
   /**
    * @brief Constructor to initialize platform vars with position and angles and their
@@ -519,6 +522,10 @@ struct PlatformQuatVars: PlatformVarsBase
   /** @} */           // end of SecondOrderKinematics group
 
   /**
+   * @brief PlatformQuatVars default constructor.
+   */
+  PlatformQuatVars() {}
+  /**
    * @brief Constructor to initialize platform vars with position and orientation and
    * their first and second derivatives.
    * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
@@ -739,8 +746,11 @@ struct CableVars
  */
 struct RobotVars
 {
-  PlatformVars* platform;        /**< variables of a generic 6DoF platform with angles. */
+  PlatformVars platform;         /**< variables of a generic 6DoF platform with angles. */
   std::vector<CableVars> cables; /**< vector of variables of a single cables in a CDPR. */
+
+  RobotVars() {}
+  RobotVars(const RotParametrization _angles_type) : platform(_angles_type) {}
 };
 
 /**
@@ -751,7 +761,7 @@ struct RobotVars
  */
 struct RobotVarsQuat
 {
-  PlatformQuatVars*
+  PlatformQuatVars
     platform; /**< variables of a generic 6DoF platform with quaternions. */
   std::vector<CableVars> cables; /**< vector of variables of a single cables in a CDPR. */
 };
@@ -840,7 +850,7 @@ struct ActuatorParams
  */
 struct RobotParams
 {
-  PlatformParams* platform; /**< parameters of a generic 6DoF platform. */
+  PlatformParams platform; /**< parameters of a generic 6DoF platform. */
   std::vector<ActuatorParams>
     actuators; /**< vector of parameters of a single actuator in a CDPR. */
 };

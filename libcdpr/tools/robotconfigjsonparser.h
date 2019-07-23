@@ -26,7 +26,7 @@ class RobotConfigJsonParser
   /**
    * @brief RobotConfigJsonParser default constructor.
    */
-  RobotConfigJsonParser();
+  RobotConfigJsonParser() {}
 
   /**
    * @brief Parse a JSON configuration file.

@@ -9,11 +9,6 @@
 
 //--------- Public Functions ---------------------------------------------------------//
 
-RobotConfigJsonParser::RobotConfigJsonParser()
-{
-  config_params_.platform = new grabcdpr::PlatformParams;
-}
-
 bool RobotConfigJsonParser::ParseFile(const std::string& filename,
                                       const bool verbose /* = false*/)
 {
@@ -81,7 +76,8 @@ bool RobotConfigJsonParser::ParseFile(const char* filename, grabcdpr::RobotParam
   return ParseFile(std::string(filename), params, verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const QString& filename, grabcdpr::RobotParams* params,
+bool RobotConfigJsonParser::ParseFile(const QString& filename,
+                                      grabcdpr::RobotParams* params,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(filename.toStdString(), params, verbose);
@@ -96,11 +92,11 @@ void RobotConfigJsonParser::PrintConfig() const
   }
 
   std::cout << "PLATFORM PARAMETERS\n============================="
-            << "\n mass\t\t" << config_params_.platform->mass << "\n ext_force_loc\n"
-            << config_params_.platform->ext_force_loc << " ext_torque_loc\n"
-            << config_params_.platform->ext_torque_loc << " pos_PG_loc\n"
-            << config_params_.platform->pos_PG_loc << " inertia_mat_G_loc\n"
-            << config_params_.platform->inertia_mat_G_loc << std::endl;
+            << "\n mass\t\t" << config_params_.platform.mass << "\n ext_force_loc\n"
+            << config_params_.platform.ext_force_loc << " ext_torque_loc\n"
+            << config_params_.platform.ext_torque_loc << " pos_PG_loc\n"
+            << config_params_.platform.pos_PG_loc << " inertia_mat_G_loc\n"
+            << config_params_.platform.inertia_mat_G_loc << std::endl;
   for (size_t i = 0; i < config_params_.actuators.size(); i++)
   {
     std::cout << "ACTUATOR PARAMETERS #" << i << "\n============================="
@@ -149,18 +145,18 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
   std::string field;
   try
   {
-    field                         = "mass";
-    config_params_.platform->mass = platform[field];
+    field                        = "mass";
+    config_params_.platform.mass = platform[field];
     for (uint8_t i = 0; i < 3; i++)
     {
-      field                                          = "ext_force_loc";
-      config_params_.platform->ext_force_loc(i + 1)  = platform[field].at(i).at(0);
-      field                                          = "ext_torque_loc";
-      config_params_.platform->ext_torque_loc(i + 1) = platform[field].at(i).at(0);
-      field                                          = "pos_PG_loc";
-      config_params_.platform->pos_PG_loc(i + 1)     = platform[field].at(i).at(0);
-      field                                          = "inertia_mat_G_loc";
-      config_params_.platform->inertia_mat_G_loc.SetRow(
+      field                                         = "ext_force_loc";
+      config_params_.platform.ext_force_loc(i + 1)  = platform[field].at(i).at(0);
+      field                                         = "ext_torque_loc";
+      config_params_.platform.ext_torque_loc(i + 1) = platform[field].at(i).at(0);
+      field                                         = "pos_PG_loc";
+      config_params_.platform.pos_PG_loc(i + 1)     = platform[field].at(i).at(0);
+      field                                         = "inertia_mat_G_loc";
+      config_params_.platform.inertia_mat_G_loc.SetRow(
         i + 1, platform[field].at(i).get<std::vector<double>>());
     }
   }
@@ -242,13 +238,13 @@ bool RobotConfigJsonParser::ArePlatformParamsValid() const
 {
   bool ret = true;
 
-  if (config_params_.platform->mass <= 0.0)
+  if (config_params_.platform.mass <= 0.0)
   {
     std::cerr << "[ERROR] platform mass must be strictly positive!" << std::endl;
     ret = false;
   }
 
-  if (!config_params_.platform->inertia_mat_G_loc.IsPositiveDefinite())
+  if (!config_params_.platform.inertia_mat_G_loc.IsPositiveDefinite())
   {
     std::cerr << "[ERROR] platform inertia matrix must be positive definite!"
               << std::endl;
