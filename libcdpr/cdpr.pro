@@ -4,12 +4,14 @@ HEADERS += \
     $$PWD/inc/diffkinematics.h \
     $$PWD/inc/cdpr_types.h \
     $$PWD/tools/json.hpp \
-    $$PWD/tools/robotconfigjsonparser.h
+    $$PWD/tools/robotconfigjsonparser.h \
+    $$PWD/inc/statics.h
 
 SOURCES += \
     $$PWD/src/kinematics.cpp \
     $$PWD/src/diffkinematics.cpp \
     $$PWD/tools/robotconfigjsonparser.cpp \
+    $$PWD/src/statics.cpp
 
 INCLUDEPATH += \
     $$PWD/inc \
