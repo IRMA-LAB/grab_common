@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.h
  * @author Simone Comari
- * @date 08 May 2019
+ * @date 30 Jul 2019
  * @brief This file include a parser for JSON configuration file for GRAB CDPR.
  */
 
@@ -14,6 +14,8 @@
 
 #include "json.hpp"
 #include "cdpr_types.h"
+
+#define GRAVITY -9.80665
 
 using json = nlohmann::json; /**< JSON library support alias */
 

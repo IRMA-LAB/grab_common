@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.cpp
  * @author Simone Comari
- * @date 17 Jun 2019
+ * @date 30 Jul 2019
  * @brief This file includes definitions of class declared in robotconfigjsonparser.h.
  */
 
@@ -94,7 +94,8 @@ void RobotConfigJsonParser::PrintConfig() const
   std::cout << "PLATFORM PARAMETERS\n============================="
             << "\n mass\t\t" << config_params_.platform.mass << "\n ext_force_loc\n"
             << config_params_.platform.ext_force_loc << " ext_torque_loc\n"
-            << config_params_.platform.ext_torque_loc << " pos_PG_loc\n"
+            << config_params_.platform.ext_torque_loc << " gravity_acc\n"
+            << config_params_.platform.gravity_acc << " pos_PG_loc\n"
             << config_params_.platform.pos_PG_loc << " inertia_mat_G_loc\n"
             << config_params_.platform.inertia_mat_G_loc << std::endl;
   for (size_t i = 0; i < config_params_.actuators.size(); i++)
@@ -155,7 +156,10 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
       config_params_.platform.ext_torque_loc(i + 1) = platform[field].at(i).at(0);
       field                                         = "pos_PG_loc";
       config_params_.platform.pos_PG_loc(i + 1)     = platform[field].at(i).at(0);
-      field                                         = "inertia_mat_G_loc";
+      field                                         = "gravity_axis";
+      config_params_.platform.gravity_acc(i + 1) =
+        GRAVITY * static_cast<double>(platform[field].at(i).at(0));
+      field = "inertia_mat_G_loc";
       config_params_.platform.inertia_mat_G_loc.SetRow(
         i + 1, platform[field].at(i).get<std::vector<double>>());
     }
@@ -248,6 +252,12 @@ bool RobotConfigJsonParser::ArePlatformParamsValid() const
   {
     std::cerr << "[ERROR] platform inertia matrix must be positive definite!"
               << std::endl;
+    ret = false;
+  }
+
+  if (!grabnum::IsClose(GRAVITY, grabnum::Norm(config_params_.platform.gravity_acc)))
+  {
+    std::cerr << "[ERROR] module of gravity vector must be 1!" << std::endl;
     ret = false;
   }
 

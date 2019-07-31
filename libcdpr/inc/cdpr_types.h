@@ -776,8 +776,9 @@ struct PlatformParams
     ext_torque_loc; /**< [Nm] external torque vector expressed in the local frame. */
   grabnum::Vector3d
     ext_force_loc; /**< [N] external force vector expressed in the local frame. */
-  grabnum::Vector3d pos_PG_loc; /**< [m] vector @f$^\mathcal{P}\mathbf{p}'_G@f$. */
-  double mass = 0.0;            /**< [Kg] platform mass (@f$m@f$). */
+  grabnum::Vector3d pos_PG_loc;  /**< [m] vector @f$^\mathcal{P}\mathbf{p}'_G@f$. */
+  double mass = 0.0;             /**< [Kg] platform mass (@f$m@f$). */
+  grabnum::Vector3d gravity_acc; /**< [m/s^2] gravity acceleration wrt global frame. */
 };
 
 /**
