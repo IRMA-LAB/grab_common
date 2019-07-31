@@ -1,7 +1,7 @@
 /**
  * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 23 Jul 2019
+ * @date 30 Jul 2019
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -174,9 +174,14 @@
 #ifndef GRABCOMMON_LIBCDPR_CDPR_TYPES_H
 #define GRABCOMMON_LIBCDPR_CDPR_TYPES_H
 
+#include "opencv2/core.hpp"
+
 #include "matrix_utilities.h"
 #include "quaternions.h"
 #include "rotations.h"
+
+#define POSE_DIM 6
+#define POSE_QUAT_DIM 7
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
@@ -240,6 +245,9 @@ struct PlatformVarsBase
   grabnum::Vector3d
     acc_OG_glob; /**< [_m/s<sup>2</sup>_] vector @f$\ddot{\mathbf{p}}_G@f$.*/
   /** @} */      // end of SecondOrderKinematics group
+
+  grabnum::VectorXd<POSE_DIM> ext_load; /**< vector containing component of external
+                                    forces and moments, expressed in the global frame. */
 };
 
 /**
@@ -260,8 +268,8 @@ struct PlatformVars: PlatformVarsBase
   grabnum::Matrix3d h_mat;  /**< matrix @f$\mathbf{H}@f$. */
   grabnum::Matrix3d dh_mat; /**< matrix @f$\dot{\mathbf{H}}@f$. */
 
-  grabnum::VectorXd<6> pose; /**< vector @f$\mathbf{q}@f$.  */
-  /** @} */                  // end of ZeroOrderKinematics group
+  grabnum::VectorXd<POSE_DIM> pose; /**< vector @f$\mathbf{q}@f$.  */
+  /** @} */                         // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
    * @{
@@ -504,8 +512,8 @@ struct PlatformQuatVars: PlatformVarsBase
   grabnum::MatrixXd<3, 4> h_mat;  /**< matrix @f$\mathbf{H}_q@f$. */
   grabnum::MatrixXd<3, 4> dh_mat; /**< matrix @f$\dot{\mathbf{H}}_q@f$. */
 
-  grabnum::VectorXd<7> pose; /**< vector @f$\mathbf{x}_q@f$. */
-  /** @} */                  // end of ZeroOrderKinematics group
+  grabnum::VectorXd<POSE_QUAT_DIM> pose; /**< vector @f$\mathbf{x}_q@f$. */
+  /** @} */                              // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
    * @{
@@ -684,7 +692,7 @@ struct PlatformQuatVars: PlatformVarsBase
  * @brief Structure collecting variable related to a single generic cable of a CDPR.
  * @note See @ref legend for symbols reference.
  */
-struct CableVars
+struct CableVarsBase
 {
   /** @addtogroup ZeroOrderKinematics
    * @{
@@ -703,7 +711,9 @@ struct CableVars
   grabnum::Vector3d vers_w; /**< _i-th_ swivel pulley versor @f$\hat{\mathbf{w}}_i@f$. */
   grabnum::Vector3d vers_n; /**< _i-th_ swivel pulley versor @f$\hat{\mathbf{n}}_i@f$. */
   grabnum::Vector3d vers_t; /**< _i-th_ cable versor @f$\hat{\mathbf{t}}_i@f$. */
-  /** @} */                 // end of ZeroOrderKinematics group
+
+  grabnum::MatrixXd<1, POSE_DIM> geom_jacob_row; /**< _i-th_ row of geometric jacobian. */
+  /** @} */                                      // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
    * @{
@@ -738,6 +748,25 @@ struct CableVars
   /** @} */      // end of SecondOrderKinematics group
 };
 
+struct CableVars: CableVarsBase
+{
+  /** @addtogroup ZeroOrderKinematics
+   * @{
+   */
+  grabnum::MatrixXd<1, POSE_DIM> anal_jacob_row; /**< _i-th_ row of analitic jacobian. */
+  /** @} */                                      // end of ZeroOrderKinematics group
+};
+
+struct CableVarsQuat: CableVarsBase
+{
+  /** @addtogroup ZeroOrderKinematics
+   * @{
+   */
+  grabnum::MatrixXd<1, POSE_QUAT_DIM>
+    anal_jacob_row; /**< _i-th_ row of analitic jacobian. */
+  /** @} */         // end of ZeroOrderKinematics group
+};
+
 /**
  * @brief Structure collecting all variables related to a generic 6DoF CDPR.
  *
@@ -748,6 +777,9 @@ struct RobotVars
 {
   PlatformVars platform;         /**< variables of a generic 6DoF platform with angles. */
   std::vector<CableVars> cables; /**< vector of variables of a single cables in a CDPR. */
+
+  cv::Mat geom_jabobian;
+  cv::Mat anal_jabobian;
 
   RobotVars() {}
   RobotVars(const RotParametrization _angles_type) : platform(_angles_type) {}
@@ -763,7 +795,11 @@ struct RobotVarsQuat
 {
   PlatformQuatVars
     platform; /**< variables of a generic 6DoF platform with quaternions. */
-  std::vector<CableVars> cables; /**< vector of variables of a single cables in a CDPR. */
+  std::vector<CableVarsQuat>
+    cables; /**< vector of variables of a single cables in a CDPR. */
+
+  cv::Mat geom_jabobian;
+  cv::Mat anal_jabobian;
 };
 
 /**

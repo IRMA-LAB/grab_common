@@ -91,6 +91,18 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
                         const PlatformParams& params, PlatformQuatVars& platform);
 
 /**
+ * @brief Computes the components of the external loads in terms of external forces and
+ * moments acting on the platform.
+ * @param[in] R A 3-by-3 matrix, that premultiplies the equation of dynamic equilibrium in
+ * order to make the mass matrix symmetric.
+ * @param[in] params A structure containing platform parameters.
+ * @param[in,out] platform A structure containing updated platform pose and the external
+ * loads to be updated.
+ */
+void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& params,
+                         PlatformVarsBase& platform);
+
+/**
  * @brief Update global position of point @f$A_i@f$ and relative segments.
  *
  * Given current platform variables @f$\mathbf{R}, \mathbf{p}_P@f$, the following
@@ -119,7 +131,7 @@ void UpdatePosA(const ActuatorParams& params, const PlatformVars& platform,
  * @see UpdatePosA()
  */
 void UpdatePosA(const ActuatorParams& params, const PlatformQuatVars& platform,
-                CableVars& cable);
+                CableVarsQuat& cable);
 
 /**
  * @brief Calculate swivel pulley versors @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i@f$.
@@ -139,7 +151,7 @@ void UpdatePosA(const ActuatorParams& params, const PlatformQuatVars& platform,
  * @f$ \hat{\mathbf{u}}_i \perp \hat{\mathbf{w}}_i \perp \hat{\mathbf{k}}_i @f$.
  */
 void CalcPulleyVersors(const PulleyParams& params, const double swivel_ang,
-                       CableVars& cable);
+                       CableVarsBase& cable);
 /**
  * @brief Calculate swivel pulley versors @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i@f$.
  * @param[in] params Swivel pulley parameters.
@@ -147,7 +159,7 @@ void CalcPulleyVersors(const PulleyParams& params, const double swivel_ang,
  * updated.
  * @see CalcPulleyVersors()
  */
-void CalcPulleyVersors(const PulleyParams& params, CableVars& cable);
+void CalcPulleyVersors(const PulleyParams& params, CableVarsBase& cable);
 
 /**
  * @brief Calculate pulley swivel angle @f$\sigma_i@f$.
@@ -175,7 +187,7 @@ double CalcSwivelAngle(const PulleyParams& params, const grabnum::Vector3d& pos_
  * @return Swivel angle @f$\sigma_i@f$ in radians.
  * @see CalcSwivelAngle()
  */
-double CalcSwivelAngle(const PulleyParams& params, const CableVars& cable);
+double CalcSwivelAngle(const PulleyParams& params, const CableVarsBase& cable);
 
 /**
  * @brief Calculate pulley tangent angle @f$\psi_i@f$.
@@ -208,7 +220,7 @@ double CalcTangentAngle(const PulleyParams& params, const grabnum::Vector3d& ver
  * @return Tangent angle @f$\psi_i@f$  in radians.
  * @see CalcTangentAngle()
  */
-double CalcTangentAngle(const PulleyParams& params, const CableVars& cable);
+double CalcTangentAngle(const PulleyParams& params, const CableVarsBase& cable);
 
 /**
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\mathbf{t}}_i@f$ and
@@ -243,7 +255,7 @@ double CalcTangentAngle(const PulleyParams& params, const CableVars& cable);
  */
 void CalcCableVectors(const PulleyParams& params, const grabnum::Vector3d& vers_u,
                       const grabnum::Vector3d& pos_DA_glob, const double tan_ang,
-                      CableVars& cable);
+                      CableVarsBase& cable);
 /**
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\mathbf{t}}_i@f$ and
  * cable vector @f$\boldsymbol{\rho}_i@f$.
@@ -252,7 +264,7 @@ void CalcCableVectors(const PulleyParams& params, const grabnum::Vector3d& vers_
  * calculated.
  * @see CalcCableVectors()
  */
-void CalcCableVectors(const PulleyParams& params, CableVars& cable);
+void CalcCableVectors(const PulleyParams& params, CableVarsBase& cable);
 
 /**
  * @brief Calculate cable length @f$l_i@f$.
@@ -298,7 +310,20 @@ double CalcMotorCounts(const double tau, const double cable_len,
  * @return Motor counts @f$q_i@f$.
  * @see CalcCableLen()
  */
-double CalcMotorCounts(ActuatorParams& params, const CableVars& cable);
+double CalcMotorCounts(ActuatorParams& params, const CableVarsBase& cable);
+
+/**
+ * @brief UpdateJacobiansRow
+ * @param H_mat
+ * @param cable
+ */
+void UpdateJacobiansRow(const grabnum::Matrix3d H_mat, CableVars& cable);
+/**
+ * @brief UpdateJacobiansRow
+ * @param H_mat
+ * @param cable
+ */
+void UpdateJacobiansRow(const grabnum::MatrixXd<3, 4> H_mat, CableVarsQuat& cable);
 
 /**
  * @brief Update all zero-order variables of a single cable at once.
@@ -316,7 +341,7 @@ void UpdateCableZeroOrd(const ActuatorParams& params, const PlatformVars& platfo
  * @param[out] cable A pointer to _i-th_ cable variables structure to be updated.
  */
 void UpdateCableZeroOrd(const ActuatorParams& params, const PlatformQuatVars& platform,
-                        CableVars& cable);
+                        CableVarsQuat& cable);
 
 /**
  * @brief Update all robots zero-order variables at once (inverse kinematics problem).
