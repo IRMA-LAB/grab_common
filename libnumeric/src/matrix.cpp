@@ -460,4 +460,15 @@ template <typename T, uint rows, uint cols> uint16_t Matrix<T, rows, cols>::MinI
   return index;
 }
 
+template <typename T, uint rows, uint cols>
+std::vector<std::vector<uint>> Matrix<T, rows, cols>::NonZeros() const
+{
+  std::vector<std::vector<uint>> indeces;
+  for (uint row = 0; row < rows; ++row)
+    for (uint col = 0; col < cols; ++col)
+      if (elements_[row][col] != 0)
+        indeces.push_back({row + 1, col + 1});
+  return indeces;
+}
+
 } // end namespace grabnum

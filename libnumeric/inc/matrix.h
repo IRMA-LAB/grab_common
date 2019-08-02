@@ -493,6 +493,13 @@ template <typename T, uint rows, uint cols> class Matrix
    */
   bool IsApprox(const Matrix<T, rows, cols>& other, const double tol = EPSILON) const;
 
+  /**
+   * Return a vector of 2D vectors containing the 2D index of non-zero values of @c *this.
+   * @return A vector of 2D vectors containing the 2D index of non-zero values of @c
+   * *this.
+   */
+  std::vector<std::vector<uint>> NonZeros() const;
+
  private:
   T elements_[rows][cols]; /**< for easy internal access to matrix elements. */
 };
