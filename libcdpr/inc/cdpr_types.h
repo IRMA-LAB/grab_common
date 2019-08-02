@@ -174,7 +174,7 @@
 #ifndef GRABCOMMON_LIBCDPR_CDPR_TYPES_H
 #define GRABCOMMON_LIBCDPR_CDPR_TYPES_H
 
-#include "opencv2/core.hpp"
+#include <armadillo>
 
 #include "matrix_utilities.h"
 #include "quaternions.h"
@@ -284,6 +284,9 @@ struct PlatformVars: PlatformVarsBase
   grabnum::Vector3d orientation_ddot; /**< [_rad/s<sup>2</sup>_] vector
                                    @f$\ddot{\boldsymbol{\varepsilon}}@f$. */
   /** @} */                           // end of SecondOrderKinematics group
+
+  grabnum::VectorXd<POSE_DIM> ext_load_ss; /**< vector containing component of external
+                                    forces and moments, projected onto the state-space. */
 
   /**
    * @brief Constructor to explicitly declare rotation parametrization desired only.
@@ -528,6 +531,10 @@ struct PlatformQuatVars: PlatformVarsBase
   grabnum::VectorXd<4>
     orientation_ddot; /**< quaternion @f$\ddot{\boldsymbol{\varepsilon}}_q@f$. */
   /** @} */           // end of SecondOrderKinematics group
+
+  grabnum::VectorXd<POSE_QUAT_DIM>
+    ext_load_ss; /**< vector containing component of external
+     forces and moments, projected onto the state-space. */
 
   /**
    * @brief PlatformQuatVars default constructor.
@@ -778,8 +785,9 @@ struct RobotVars
   PlatformVars platform;         /**< variables of a generic 6DoF platform with angles. */
   std::vector<CableVars> cables; /**< vector of variables of a single cables in a CDPR. */
 
-  cv::Mat geom_jabobian;
-  cv::Mat anal_jabobian;
+  arma::mat geom_jabobian;
+  arma::mat anal_jabobian;
+  arma::vec tension_vector;
 
   RobotVars() {}
   RobotVars(const RotParametrization _angles_type) : platform(_angles_type) {}
@@ -798,8 +806,9 @@ struct RobotVarsQuat
   std::vector<CableVarsQuat>
     cables; /**< vector of variables of a single cables in a CDPR. */
 
-  cv::Mat geom_jabobian;
-  cv::Mat anal_jabobian;
+  arma::mat geom_jabobian;
+  arma::mat anal_jabobian;
+  arma::vec tension_vector;
 };
 
 /**

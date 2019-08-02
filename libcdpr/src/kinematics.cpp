@@ -1,7 +1,7 @@
 /**
  * @file kinematics.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 23 Jul 2019
+ * @date 01 Aug 2019
  * @brief File containing definitions of functions declared in kinematics.h.
  */
 
@@ -43,19 +43,6 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
                         const PlatformParams& params, PlatformQuatVars& platform)
 {
   UpdatePlatformPose(position, orientation, params.pos_PG_loc, platform);
-}
-
-
-void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& params,
-                         PlatformVarsBase& platform)
-{
-  platform.ext_load.SetBlock<3, 1>(
-    1, 1,
-    R * (params.mass * params.gravity_acc + platform.rot_mat * params.ext_force_loc));
-  platform.ext_load.SetBlock<3, 1>(4, 1,
-                                   grabnum::Skew(platform.pos_PG_glob) *
-                                       platform.ext_load.GetBlock<3, 1>(1, 1) +
-                                     platform.rot_mat * params.ext_torque_loc);
 }
 
 void UpdatePosA(const ActuatorParams& params, const PlatformVars& platform,
@@ -205,10 +192,8 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orien
   for (uint8_t i = 0; i < vars.cables.size(); ++i)
   {
     UpdateCableZeroOrd(params.actuators[i], vars.platform, vars.cables[i]);
-    cv::Mat(1, POSE_DIM, CV_64F, vars.cables[i].geom_jacob_row.Data())
-      .copyTo(vars.geom_jabobian.row(i));
-    cv::Mat(1, POSE_DIM, CV_64F, vars.cables[i].anal_jacob_row.Data())
-      .copyTo(vars.anal_jabobian.row(i));
+    vars.geom_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
+    vars.anal_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
   }
 }
 
@@ -219,10 +204,8 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& or
   for (uint8_t i = 0; i < vars.cables.size(); ++i)
   {
     UpdateCableZeroOrd(params.actuators[i], vars.platform, vars.cables[i]);
-    cv::Mat(1, POSE_DIM, CV_64F, vars.cables[i].geom_jacob_row.Data())
-      .copyTo(vars.geom_jabobian.row(i));
-    cv::Mat(1, POSE_QUAT_DIM, CV_64F, vars.cables[i].anal_jacob_row.Data())
-      .copyTo(vars.anal_jabobian.row(i));
+    vars.geom_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
+    vars.anal_jabobian.row(i) = arma::rowvec7(vars.cables[i].geom_jacob_row.Data());
   }
 }
 

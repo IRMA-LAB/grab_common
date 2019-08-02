@@ -47,3 +47,6 @@ INCLUDEPATH += /usr/local/lib/opencv-4.0.1/build/include \
                /usr/local/include/opencv4
 LIBS += -L"/usr/local/lib/opencv-4.0.1/build/lib"
 LIBS += -lopencv_core
+
+# Armadillo lib
+LIBS += -llapack -lblas -larmadillo

@@ -1,7 +1,7 @@
 /**
  * @file kinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 23 Jul 2019
+ * @date 01 Aug 2019
  * @brief File containing kinematics-related functions to be included in the GRAB CDPR
  * library.
  */
@@ -89,18 +89,6 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
 void UpdatePlatformPose(const grabnum::Vector3d& position,
                         const grabgeom::Quaternion& orientation,
                         const PlatformParams& params, PlatformQuatVars& platform);
-
-/**
- * @brief Computes the components of the external loads in terms of external forces and
- * moments acting on the platform.
- * @param[in] R A 3-by-3 matrix, that premultiplies the equation of dynamic equilibrium in
- * order to make the mass matrix symmetric.
- * @param[in] params A structure containing platform parameters.
- * @param[in,out] platform A structure containing updated platform pose and the external
- * loads to be updated.
- */
-void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& params,
-                         PlatformVarsBase& platform);
 
 /**
  * @brief Update global position of point @f$A_i@f$ and relative segments.
