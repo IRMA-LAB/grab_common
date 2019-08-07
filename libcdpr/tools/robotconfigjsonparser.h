@@ -107,6 +107,8 @@ class RobotConfigJsonParser
   bool ExtractPlatform(const json& raw_data);
   bool ExtractActuators(const json& raw_data);
 
+  grabcdpr::RotParametrization str2RotParametrization(const std::string& str);
+
   bool ArePlatformParamsValid() const;
   bool AreCableParamsValid(const grabcdpr::ActuatorParams& params) const;
 };

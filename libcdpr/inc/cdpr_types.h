@@ -202,6 +202,7 @@ enum RotParametrization
   RPY,          /**< _Roll, Pitch, Yaw_ angles convention (from aviation). */
   TILT_TORSION, /**< _Tilt-and-torsion_ angles, a variation of _Euler_ angles convention.
                  */
+  QUATERNION    /**< _Quaternions_ convention (not angles). */
 };
 
 //------ Structs ---------------------------------------------------------------------//
@@ -790,7 +791,11 @@ struct RobotVars
   arma::vec tension_vector;
 
   RobotVars() {}
+  RobotVars(const size_t num_cables) : cables(std::vector<CableVars>(num_cables)) {}
   RobotVars(const RotParametrization _angles_type) : platform(_angles_type) {}
+  RobotVars(const size_t num_cables, const RotParametrization _angles_type)
+    : platform(_angles_type), cables(std::vector<CableVars>(num_cables))
+  {}
 };
 
 /**
@@ -809,6 +814,10 @@ struct RobotVarsQuat
   arma::mat geom_jabobian;
   arma::mat anal_jabobian;
   arma::vec tension_vector;
+
+  RobotVarsQuat() {}
+  RobotVarsQuat(const size_t num_cables) : cables(std::vector<CableVarsQuat>(num_cables))
+  {}
 };
 
 /**
@@ -816,7 +825,8 @@ struct RobotVarsQuat
  */
 struct PlatformParams
 {
-  grabnum::Matrix3d inertia_mat_G_loc; /**< inertia matrix. */
+  RotParametrization rot_parametrization; /**< rotation parametrization used. */
+  grabnum::Matrix3d inertia_mat_G_loc;    /**< inertia matrix. */
   grabnum::Vector3d
     ext_torque_loc; /**< [Nm] external torque vector expressed in the local frame. */
   grabnum::Vector3d

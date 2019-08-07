@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.cpp
  * @author Simone Comari
- * @date 30 Jul 2019
+ * @date 05 Aug 2019
  * @brief This file includes definitions of class declared in robotconfigjsonparser.h.
  */
 
@@ -146,8 +146,10 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
   std::string field;
   try
   {
-    field                        = "mass";
-    config_params_.platform.mass = platform[field];
+    field                                       = "rotation_parametrization";
+    config_params_.platform.rot_parametrization = str2RotParametrization(platform[field]);
+    field                                       = "mass";
+    config_params_.platform.mass                = platform[field];
     for (uint8_t i = 0; i < 3; i++)
     {
       field                                         = "ext_force_loc";
@@ -168,6 +170,11 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
   {
     std::cerr << "[ERROR] Missing or invalid platform parameter field: " << field
               << std::endl;
+    return false;
+  }
+  catch (std::exception)
+  {
+    std::cerr << "[ERROR] Missing or invalid rotation parametrization" << std::endl;
     return false;
   }
   return ArePlatformParamsValid();
@@ -238,6 +245,22 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
   return true;
 }
 
+grabcdpr::RotParametrization
+RobotConfigJsonParser::str2RotParametrization(const std::string& str)
+{
+  if (str == "EULER_ZYZ")
+    return grabcdpr::RotParametrization::EULER_ZYZ;
+  if (str == "TAIT_BRYAN")
+    return grabcdpr::RotParametrization::TAIT_BRYAN;
+  if (str == "RPY")
+    return grabcdpr::RotParametrization::RPY;
+  if (str == "TILT_TORSION")
+    return grabcdpr::RotParametrization::TILT_TORSION;
+  if (str == "QUATERNION")
+    return grabcdpr::RotParametrization::QUATERNION;
+  throw std::exception();
+}
+
 bool RobotConfigJsonParser::ArePlatformParamsValid() const
 {
   bool ret = true;
@@ -255,9 +278,9 @@ bool RobotConfigJsonParser::ArePlatformParamsValid() const
     ret = false;
   }
 
-  if (!grabnum::IsClose(GRAVITY, grabnum::Norm(config_params_.platform.gravity_acc)))
+  if (!grabnum::IsClose(-GRAVITY, grabnum::Norm(config_params_.platform.gravity_acc)))
   {
-    std::cerr << "[ERROR] module of gravity vector must be 1!" << std::endl;
+    std::cerr << "[ERROR] module of gravity axis must be 1!" << std::endl;
     ret = false;
   }
 
