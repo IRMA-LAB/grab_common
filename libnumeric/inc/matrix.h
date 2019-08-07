@@ -79,6 +79,16 @@ template <typename T, uint rows, uint cols> class Matrix
    */
   Matrix(const std::vector<T>& values);
   /**
+   * Full constructor.
+   * Fills the matrix row-by-row with the elements of @a values.
+   *
+   * @param[in] iterator pointing at the beginning of the array data.
+   * @param[in] iterator pointing at the end of the array data.
+   * @see Fill()
+   */
+  template <class IteratorType>
+  Matrix(IteratorType it, IteratorType end);
+  /**
    * Parametrized constructor from another matrix with the same shape and size.
    * Makes a copy of the given matrix. It also handle automatic casting in case of
    * different types.
@@ -158,6 +168,34 @@ template <typename T, uint rows, uint cols> class Matrix
    * @return A pointer to the data of the matrix.
    */
   inline const T* Data() const { return *elements_; }
+  /**
+   * Returns a pointer to beginning of the data.
+   *
+   * @return A pointer to beginning of the data.
+   * @see Data
+   */
+  inline T* Begin() { return this->Data(); }
+  /**
+   * Returns a constant pointer to beginning of the data.
+   *
+   * @return A constant pointer to beginning of the data.
+   * @see Data
+   */
+  inline const T* Begin() const { return this->Data(); }
+  /**
+   * Returns a pointer to beginning of the data.
+   *
+   * @return A pointer to beginning of the data.
+   * @see Data
+   */
+  inline T* End() { return this->Data() + this->Size(); }
+  /**
+   * Returns a constant pointer to beginning of the data.
+   *
+   * @return A constant pointer to beginning of the data.
+   * @see Data
+   */
+  inline const T* End() const { return this->Data() + this->Size(); }
 
   /**
    * Conversion operator.
@@ -404,6 +442,15 @@ template <typename T, uint rows, uint cols> class Matrix
    * @return A reference to @c *this.
    */
   Matrix_t& Fill(const std::vector<T>& values);
+  /**
+   * Fills the matrix row-by-row with the elements of @a values.
+   *
+   * @param[in] iterator pointing at the beginning of the array data.
+   * @param[in] iterator pointing at the end of the array data.
+   * @return A reference to @c *this.
+   */
+  template <class IteratorType>
+  Matrix_t& Fill(IteratorType it, IteratorType end);
 
   /**
    * Returns the transposed matrix.

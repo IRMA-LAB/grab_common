@@ -41,6 +41,13 @@ Matrix<T, rows, cols>::Matrix(const std::vector<T>& values)
 }
 
 template <typename T, uint rows, uint cols>
+template <class IteratorType>
+Matrix<T, rows, cols>::Matrix(IteratorType it, IteratorType end)
+{
+  Fill(it, end);
+}
+
+template <typename T, uint rows, uint cols>
 template <typename T2>
 Matrix<T, rows, cols>::Matrix(const Matrix<T2, rows, cols>& other)
 {
@@ -303,6 +310,18 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::Fill(const std::vector<T>& values)
   for (uint row = 0; row < rows; ++row)
     for (uint col = 0; col < cols; ++col)
       elements_[row][col] = values[row * cols + col];
+  return *this;
+}
+
+template <typename T, uint rows, uint cols>
+template <class IteratorType>
+Matrix<T, rows, cols>& Matrix<T, rows, cols>::Fill(IteratorType it, IteratorType end)
+{
+  assert(end - it == this->Size());
+
+  for (uint row = 0; row < rows; ++row)
+    for (uint col = 0; col < cols; ++col)
+      elements_[row][col] = *(it++);
   return *this;
 }
 

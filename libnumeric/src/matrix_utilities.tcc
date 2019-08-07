@@ -61,8 +61,8 @@ Matrix<T, rows, cols> operator+(const Matrix<T, rows, cols>& matrix1,
                                 const Matrix<T, rows, cols>& matrix2)
 {
   Matrix<T, rows, cols> sum;
-  for (uint row; row <= rows; ++row)
-    for (uint col; col <= cols; ++col)
+  for (uint row = 1; row <= rows; ++row)
+    for (uint col = 1; col <= cols; ++col)
       sum(row, col) = matrix1(row, col) + matrix2(row, col);
   return sum;
 }
