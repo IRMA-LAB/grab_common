@@ -189,9 +189,16 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orien
                const RobotParams& params, RobotVars& vars)
 {
   UpdatePlatformPose(position, orientation, params.platform, vars.platform);
-  for (uint8_t i = 0; i < vars.cables.size(); ++i)
+  // Safety check
+  std::vector<id_t> active_actuators_id = params.activeActuatorsId();
+  if (vars.geom_jabobian.n_rows != active_actuators_id.size())
+    vars.geom_jabobian.resize(active_actuators_id.size(), POSE_DIM);
+  if (vars.anal_jabobian.n_rows != active_actuators_id.size())
+    vars.anal_jabobian.resize(active_actuators_id.size(), POSE_DIM);
+  for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
   {
-    UpdateCableZeroOrd(params.actuators[i], vars.platform, vars.cables[i]);
+    UpdateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
+                       vars.cables[i]);
     vars.geom_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
     vars.anal_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
   }
@@ -201,9 +208,16 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& or
                const RobotParams& params, RobotVarsQuat& vars)
 {
   UpdatePlatformPose(position, orientation, params.platform, vars.platform);
-  for (uint8_t i = 0; i < vars.cables.size(); ++i)
+  // Safety check
+  std::vector<id_t> active_actuators_id = params.activeActuatorsId();
+  if (vars.geom_jabobian.n_rows != active_actuators_id.size())
+    vars.geom_jabobian.resize(active_actuators_id.size(), POSE_DIM);
+  if (vars.anal_jabobian.n_rows != active_actuators_id.size())
+    vars.anal_jabobian.resize(active_actuators_id.size(), POSE_QUAT_DIM);
+  for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
   {
-    UpdateCableZeroOrd(params.actuators[i], vars.platform, vars.cables[i]);
+    UpdateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
+                       vars.cables[i]);
     vars.geom_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
     vars.anal_jabobian.row(i) = arma::rowvec7(vars.cables[i].geom_jacob_row.Data());
   }

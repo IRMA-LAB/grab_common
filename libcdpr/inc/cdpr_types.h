@@ -345,7 +345,7 @@ struct PlatformVars: PlatformVarsBase
     for (uint8_t i = 1; i <= 3; ++i)
     {
       pose(i)     = position(i);
-      pose(2 * i) = orientation(i);
+      pose(3 + i) = orientation(i);
     }
     switch (angles_type)
     {
@@ -360,6 +360,9 @@ struct PlatformVars: PlatformVarsBase
         break;
       case TILT_TORSION:
         rot_mat = grabgeom::TiltTorsion2Rot(orientation);
+        break;
+      default:
+        // This should never happen
         break;
     }
   }
@@ -393,6 +396,9 @@ struct PlatformVars: PlatformVarsBase
         break;
       case RPY:
         h_mat = grabgeom::HtfTiltTorsion(_orientation);
+        break;
+      default:
+        // This should never happen
         break;
     }
     angular_vel = h_mat * orientation_dot;
@@ -448,6 +454,9 @@ struct PlatformVars: PlatformVarsBase
         break;
       case EULER_ZYZ:
         dh_mat = grabgeom::DHtfZYZ(_orientation, _orientation_dot);
+        break;
+      default:
+        // This should never happen
         break;
     }
     angular_acc = dh_mat * _orientation_dot + _h_mat * orientation_ddot;
@@ -791,11 +800,20 @@ struct RobotVars
   arma::vec tension_vector;
 
   RobotVars() {}
-  RobotVars(const size_t num_cables) : cables(std::vector<CableVars>(num_cables)) {}
+  RobotVars(const size_t num_cables) : cables(std::vector<CableVars>(num_cables))
+  {
+    geom_jabobian.resize(num_cables, POSE_DIM);
+    anal_jabobian.resize(num_cables, POSE_DIM);
+    tension_vector.resize(num_cables);
+  }
   RobotVars(const RotParametrization _angles_type) : platform(_angles_type) {}
   RobotVars(const size_t num_cables, const RotParametrization _angles_type)
     : platform(_angles_type), cables(std::vector<CableVars>(num_cables))
-  {}
+  {
+    geom_jabobian.resize(num_cables, POSE_DIM);
+    anal_jabobian.resize(num_cables, POSE_DIM);
+    tension_vector.resize(num_cables);
+  }
 };
 
 /**
@@ -817,7 +835,11 @@ struct RobotVarsQuat
 
   RobotVarsQuat() {}
   RobotVarsQuat(const size_t num_cables) : cables(std::vector<CableVarsQuat>(num_cables))
-  {}
+  {
+    geom_jabobian.resize(num_cables, POSE_DIM);
+    anal_jabobian.resize(num_cables, POSE_QUAT_DIM);
+    tension_vector.resize(num_cables);
+  }
 };
 
 /**
@@ -909,6 +931,24 @@ struct RobotParams
   PlatformParams platform; /**< parameters of a generic 6DoF platform. */
   std::vector<ActuatorParams>
     actuators; /**< vector of parameters of a single actuator in a CDPR. */
+
+  std::vector<id_t> activeActuatorsId() const
+  {
+    std::vector<id_t> active_actuators_id;
+    for (uint i = 0; i < actuators.size(); i++)
+      if (actuators[i].active)
+        active_actuators_id.push_back(i);
+    return active_actuators_id;
+  }
+
+  size_t activeActuatorsNum() const
+  {
+    size_t active_actuators_counter = 0;
+    for (uint i = 0; i < actuators.size(); i++)
+      if (actuators[i].active)
+        active_actuators_counter++;
+    return active_actuators_counter;
+  }
 };
 
 } // end namespace grabcdpr
