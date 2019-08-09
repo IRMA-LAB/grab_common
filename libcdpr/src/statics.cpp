@@ -33,7 +33,7 @@ void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& param
                                        platform.ext_load.GetBlock<3, 1>(1, 1) +
                                      platform.rot_mat * params.ext_torque_loc);
 
-  platform.ext_load_ss = platform.ext_load_ss;
+  platform.ext_load_ss = platform.ext_load;
   platform.ext_load_ss.SetBlock<3, 1>(
     4, 1, platform.h_mat.Transpose() * platform.ext_load.GetBlock<3, 1>(4, 1));
 }
@@ -77,17 +77,17 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
   ulong params_idx = 0;
   ulong vars_idx   = 0;
   VectorXd<POSE_DIM> pose;
-  for (uint i = 0; i < pose.Size(); i++)
+  for (uint i = 1; i <= pose.Size(); i++)
     if (mask(i) == 1)
       pose(i) = fixed_coord(params_idx++);
     else
       pose(i) = var_coord(vars_idx++);
 
-  RobotVars vars;
+  const ulong kNumCables = params.activeActuatorsNum();
+  RobotVars vars(kNumCables, params.platform.rot_parametrization);
   UpdateIK0(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<3, 1>(4, 1), params, vars);
   UpdateExternalLoads(grabnum::Matrix3d(0.0), params.platform, vars.platform);
 
-  const ulong kNumCables = params.actuators.size();
   arma::mat Ja(kNumCables, kNumCables, arma::fill::zeros);
   arma::mat Ju(kNumCables, POSE_DIM - kNumCables, arma::fill::zeros);
   arma::vec Wa(kNumCables, arma::fill::zeros);
@@ -123,13 +123,13 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
   ulong params_idx = 0;
   ulong vars_idx   = 0;
   VectorXd<POSE_QUAT_DIM> pose;
-  for (uint i = 0; i < pose.Size(); i++)
+  for (uint i = 1; i <= pose.Size(); i++)
     if (mask(i) == 1)
       pose(i) = fixed_coord(params_idx++);
     else
       pose(i) = var_coord(vars_idx++);
 
-  RobotVarsQuat vars;
+  RobotVarsQuat vars(params.activeActuatorsNum());
   UpdateIK0(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<4, 1>(4, 1), params, vars);
   UpdateExternalLoads(grabnum::Matrix3d(0.0), params.platform, vars.platform);
 
@@ -186,7 +186,7 @@ arma::mat CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma
     dldq.row(i) = arma::rowvec6((vars.cables[i].vers_t.Transpose() * dadq).Data());
     arma::mat dtdq =
       toArmaMat(sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w) * dsdq.row(i) +
-      toArmaMat(vars.cables[i].vers_n, false) * dphidq.row(i); // 3xm
+      toArmaMat(vars.cables[i].vers_n) * dphidq.row(i); // 3xm
     // dJTp 3xnxm (p->pose), matlab equivalent = dJdq(1:3,i,:)
     dJdq.tube(arma::span(0, 2), arma::span(i)) = dtdq;
     MatrixXd<3, POSE_DIM> dadql(0.0); // set diagonal to 0

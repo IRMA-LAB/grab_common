@@ -299,6 +299,43 @@ struct PlatformVars: PlatformVarsBase
   }
 
   /**
+   * @brief Constructor to initialize platform vars with position and angles.
+   * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
+   * @param[in] _orientation [rad] Platform global orientation expressed by angles
+   * @f$\boldsymbol{\varepsilon}@f$.
+   * @param[in] _angles_type Desired rotation parametrization. Default is @a TILT_TORSION.
+   * @note See @ref legend for more details.
+   * @see UpdatePose()
+   */
+  PlatformVars(const grabnum::Vector3d& _position, const grabnum::Vector3d& _orientation,
+               const RotParametrization _angles_type = TILT_TORSION)
+  {
+    angles_type = _angles_type;
+    UpdatePose(_position, _orientation);
+  }
+  /**
+   * @brief Constructor to initialize platform vars with position and angles and their
+   * first derivatives.
+   * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
+   * @param[in] _velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
+   * @param[in] _orientation [rad] Platform global orientation expressed by angles
+   * @f$\boldsymbol{\varepsilon}@f$.
+   * @param[in] _orientation_dot [rad/s] Platform orientation time-derivative
+   * @f$\dot{\boldsymbol{\varepsilon}}@f$.
+   * @param[in] _angles_type Desired rotation parametrization. Default is @a TILT_TORSION.
+   * @note See @ref legend for more details.
+   * @see Update()
+   */
+  PlatformVars(const grabnum::Vector3d& _position, const grabnum::Vector3d& _velocity,
+               const grabnum::Vector3d& _orientation,
+               const grabnum::Vector3d& _orientation_dot,
+               const RotParametrization _angles_type = TILT_TORSION)
+  {
+    angles_type = _angles_type;
+    UpdatePose(_position, _orientation);
+    UpdateVel(_velocity, _orientation_dot);
+  }
+  /**
    * @brief Constructor to initialize platform vars with position and angles and their
    * first and second derivatives.
    * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
@@ -351,15 +388,19 @@ struct PlatformVars: PlatformVarsBase
     {
       case EULER_ZYZ:
         rot_mat = grabgeom::EulerZYZ2Rot(orientation);
+        h_mat = grabgeom::HtfZYZ(_orientation);
         break;
       case TAIT_BRYAN:
         rot_mat = grabgeom::EulerXYZ2Rot(orientation);
+        h_mat = grabgeom::HtfXYZ(_orientation);
         break;
       case RPY:
         rot_mat = grabgeom::RPY2Rot(orientation);
+        h_mat = grabgeom::HtfRPY(_orientation);
         break;
       case TILT_TORSION:
         rot_mat = grabgeom::TiltTorsion2Rot(orientation);
+        h_mat = grabgeom::HtfTiltTorsion(_orientation);
         break;
       default:
         // This should never happen
@@ -381,27 +422,8 @@ struct PlatformVars: PlatformVarsBase
                  const grabnum::Vector3d& _orientation_dot,
                  const grabnum::Vector3d& _orientation)
   {
-    velocity        = _velocity;
-    orientation_dot = _orientation_dot;
-    switch (angles_type)
-    {
-      case EULER_ZYZ:
-        h_mat = grabgeom::HtfZYZ(_orientation);
-        break;
-      case TAIT_BRYAN:
-        h_mat = grabgeom::HtfXYZ(_orientation);
-        break;
-      case TILT_TORSION:
-        h_mat = grabgeom::HtfRPY(_orientation);
-        break;
-      case RPY:
-        h_mat = grabgeom::HtfTiltTorsion(_orientation);
-        break;
-      default:
-        // This should never happen
-        break;
-    }
-    angular_vel = h_mat * orientation_dot;
+    UpdatePose(position, _orientation); // update h_mat
+    UpdateVel(_velocity, _orientation_dot);
   }
 
   /**
@@ -418,7 +440,9 @@ struct PlatformVars: PlatformVarsBase
   void UpdateVel(const grabnum::Vector3d& _velocity,
                  const grabnum::Vector3d& _orientation_dot)
   {
-    UpdateVel(_velocity, _orientation_dot, orientation);
+    velocity        = _velocity;
+    orientation_dot = _orientation_dot;
+    angular_vel = h_mat * orientation_dot;
   }
 
   /**

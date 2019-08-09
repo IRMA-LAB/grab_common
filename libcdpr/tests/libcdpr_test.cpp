@@ -12,6 +12,7 @@
 #include "diffkinematics.h"
 #include "kinematics.h"
 #include "robotconfigjsonparser.h"
+#include "statics.h"
 
 using namespace matlab::engine;
 
@@ -50,6 +51,12 @@ class LibcdprTest: public QObject
   void testUpdateJacobiansRow();
   void testUpdateCableZeroOrd();
   void testUpdateUpdateIKZeroOrd();
+
+  // Statics
+  void testUpdateExternalLoads();
+  void testCalCablesTensionStat();
+  void testCalcGsJacobians();
+  void testCalcGeometricStatic();
 };
 
 void LibcdprTest::addCable2WS(const grabcdpr::CableVars& cable,
@@ -194,8 +201,12 @@ void LibcdprTest::addPlatform2WS(const grabcdpr::PlatformVars& platform,
     factory_.createArray<double>({3, 3}, platform.h_mat.Begin(), platform.h_mat.End());
   auto dh_mat =
     factory_.createArray<double>({3, 3}, platform.dh_mat.Begin(), platform.dh_mat.End());
-  auto pose = factory_.createArray<double>({POSE_DIM, 1}, platform.pose.Begin(),
+  auto pose     = factory_.createArray<double>({POSE_DIM, 1}, platform.pose.Begin(),
                                            platform.pose.End());
+  auto ext_load = factory_.createArray<double>({POSE_DIM, 1}, platform.ext_load.Begin(),
+                                               platform.ext_load.End());
+  auto ext_load_ss = factory_.createArray<double>(
+    {POSE_DIM, 1}, platform.ext_load_ss.Begin(), platform.ext_load_ss.End());
 
   // Put variables in the MATLAB workspace
   matlab_ptr_->setVariable(u"position", std::move(position));
@@ -214,6 +225,8 @@ void LibcdprTest::addPlatform2WS(const grabcdpr::PlatformVars& platform,
   matlab_ptr_->setVariable(u"h_mat", std::move(h_mat));
   matlab_ptr_->setVariable(u"dh_mat", std::move(dh_mat));
   matlab_ptr_->setVariable(u"pose", std::move(pose));
+  matlab_ptr_->setVariable(u"ext_load", std::move(ext_load));
+  matlab_ptr_->setVariable(u"ext_load_ss", std::move(ext_load_ss));
 
   // Create cable structure in matlab workspace
   auto var_name_u = convertUTF8StringToUTF16String(var_name);
@@ -231,10 +244,13 @@ void LibcdprTest::addPlatform2WS(const grabcdpr::PlatformVars& platform,
   matlab_ptr_->eval(var_name_u + u".orientation = orientation;");
   matlab_ptr_->eval(var_name_u + u".orientation_deriv = orientation_dot;");
   matlab_ptr_->eval(var_name_u + u".orientation_deriv_2 = orientation_ddot;");
-  matlab_ptr_->eval(var_name_u + u".rot_mat = rot_mat;");
-  matlab_ptr_->eval(var_name_u + u".H_mat = h_mat;");
-  matlab_ptr_->eval(var_name_u + u".H_mat_deriv = dh_mat;");
   matlab_ptr_->eval(var_name_u + u".pose = pose;");
+  matlab_ptr_->eval(var_name_u + u".ext_load = ext_load;");
+  matlab_ptr_->eval(var_name_u + u".ext_load_ss = ext_load_ss;");
+  // Matlab iterator works column-by-column, so we need to transpose all matrices
+  matlab_ptr_->eval(var_name_u + u".rot_mat = rot_mat';");
+  matlab_ptr_->eval(var_name_u + u".H_mat = h_mat';");
+  matlab_ptr_->eval(var_name_u + u".H_mat_deriv = dh_mat';");
 }
 
 
@@ -247,6 +263,23 @@ void LibcdprTest::addRobot2WS(const grabcdpr::RobotVars& robot,
   addPlatform2WS(robot.platform, var_name + ".platform");
   for (uint i = 0; i < robot.cables.size(); i++)
     addCable2WS(robot.cables[i], var_name + ".cable(" + std::to_string(i + 1) + ", 1)");
+  // Create variables
+  auto geom_jabobian =
+    factory_.createArray<double>({robot.cables.size(), POSE_DIM},
+                                 robot.geom_jabobian.begin(), robot.geom_jabobian.end());
+  auto anal_jabobian =
+    factory_.createArray<double>({robot.cables.size(), POSE_DIM},
+                                 robot.anal_jabobian.begin(), robot.anal_jabobian.end());
+  auto tension_vector = factory_.createArray<double>(
+    {robot.cables.size(), 1}, robot.tension_vector.begin(), robot.tension_vector.end());
+  // Put variables in the MATLAB workspace
+  matlab_ptr_->setVariable(u"geom_jabobian", std::move(geom_jabobian));
+  matlab_ptr_->setVariable(u"anal_jabobian", std::move(anal_jabobian));
+  matlab_ptr_->setVariable(u"tension_vector", std::move(tension_vector));
+  // Fill fields one by one
+  matlab_ptr_->eval(var_name_u + u".geometric_jacobian = geom_jabobian;");
+  matlab_ptr_->eval(var_name_u + u".analitic_jacobian = anal_jabobian;");
+  matlab_ptr_->eval(var_name_u + u".tension_vector = tension_vector;");
 }
 
 grabcdpr::CableVars LibcdprTest::getCableFromWS(const std::string& var_name)
@@ -362,6 +395,10 @@ grabcdpr::PlatformVars LibcdprTest::getPlatformFromWS(const std::string& var_nam
     matlab_ptr_->getProperty(platform_matlab, u"H_mat");
   matlab::data::TypedArray<double> dh_mat =
     matlab_ptr_->getProperty(platform_matlab, u"H_mat_deriv");
+  matlab::data::TypedArray<double> ext_load =
+    matlab_ptr_->getProperty(platform_matlab, u"ext_load");
+  matlab::data::TypedArray<double> ext_load_ss =
+    matlab_ptr_->getProperty(platform_matlab, u"ext_load_ss");
 
   // Build corresponding platform structure
   grabcdpr::PlatformVars platform;
@@ -378,6 +415,8 @@ grabcdpr::PlatformVars LibcdprTest::getPlatformFromWS(const std::string& var_nam
   platform.orientation_dot.Fill(orientation_dot.begin(), orientation_dot.end());
   platform.orientation_ddot.Fill(orientation_ddot.begin(), orientation_ddot.end());
   platform.pose.Fill(pose.begin(), pose.end());
+  platform.ext_load.Fill(ext_load.begin(), ext_load.end());
+  platform.ext_load_ss.Fill(ext_load_ss.begin(), ext_load_ss.end());
   // Matlab iterator works column-by-column, so we need to transpose all matrices
   platform.rot_mat = grabnum::Matrix3d(rot_mat.begin(), rot_mat.end()).Transpose();
   platform.h_mat   = grabnum::Matrix3d(h_mat.begin(), h_mat.end()).Transpose();
@@ -400,6 +439,27 @@ grabcdpr::RobotVars LibcdprTest::getRobotFromWS(const std::string& var_name)
     matlab_ptr_->eval(var_name_u + u"_cable = cdpr_v.cable(" + idx_u + u");");
     robot.cables.push_back(getCableFromWS(var_name + "_cable"));
   }
+  // Get extra fields
+  // Get robot object
+  matlab::data::Array robot_matlab = matlab_ptr_->getVariable(var_name_u);
+  // Get platform properties (only array ones)
+  matlab::data::TypedArray<double> geometric_jacobian =
+    matlab_ptr_->getProperty(robot_matlab, u"geometric_jacobian");
+  matlab::data::TypedArray<double> analitic_jacobian =
+    matlab_ptr_->getProperty(robot_matlab, u"analitic_jacobian");
+  matlab::data::TypedArray<double> tension_vector =
+    matlab_ptr_->getProperty(robot_matlab, u"tension_vector");
+  // Update fields
+  std::vector<double> tension_vector_std(tension_vector.begin(), tension_vector.end());
+  robot.tension_vector = arma::vec(tension_vector_std.data(), tension_vector_std.size());
+  std::vector<double> geom_jabobian_std(geometric_jacobian.begin(),
+                                        geometric_jacobian.end());
+  matlab::data::ArrayDimensions dims = geometric_jacobian.getDimensions();
+  robot.geom_jabobian = arma::mat(geom_jabobian_std.data(), dims[0], dims[1]);
+  std::vector<double> anal_jabobian_std(analitic_jacobian.begin(),
+                                        analitic_jacobian.end());
+  dims                = analitic_jacobian.getDimensions();
+  robot.anal_jabobian = arma::mat(anal_jabobian_std.data(), dims[0], dims[1]);
   return robot;
 }
 
@@ -410,10 +470,12 @@ void LibcdprTest::initTestCase()
   // Start matlab engine synchronously
   matlab_ptr_ = startMATLAB();
 
+  // Load robot parameters
+  RobotConfigJsonParser parser;
+  parser.ParseFile("/home/simo/repos/cable_robot/config/config1.json", &params_);
   // Load same robot parameters in matlab workspace
-  matlab_ptr_->eval(u"cdpr_p = "
-                    u"CdprParameter('/home/simo/repos/cable_robot/libs/grab_common/"
-                    u"libcdpr/tests', 'pass.json');");
+  matlab_ptr_->eval(
+    u"cdpr_p = CdprParameter('/home/simo/repos/cable_robot/config', 'config1.json');");
 }
 
 //--------- Tools ---------------//
@@ -422,13 +484,13 @@ void LibcdprTest::testRobotConfigJsonParser()
 {
   // test parsing with different inputs
   RobotConfigJsonParser parser;
-  parser.ParseFile("../tests/fail1.json");
-  parser.ParseFile(QString("../tests/fail2.json"));
-  parser.ParseFile(std::string("../tests/pass.json"));
+  QVERIFY(!parser.ParseFile("../tests/fail1.json"));
+  QVERIFY(!parser.ParseFile(QString("../tests/fail2.json")));
+  QVERIFY(parser.ParseFile(std::string("../tests/pass.json")));
 
   // test getters
-  params_ = parser.GetConfigStruct();
-  parser.GetConfigStruct(&params_);
+  grabcdpr::RobotParams params = parser.GetConfigStruct();
+  parser.GetConfigStruct(&params);
 
   // test display
   //  parser.PrintConfig();
@@ -442,7 +504,6 @@ void LibcdprTest::testUpdatePlatformPose()
   grabcdpr::PlatformVars platform;
   grabnum::Vector3d position({1, 2, 3});
   grabnum::Vector3d orientation({0.1, 0.2, 0.3});
-  grabnum::Vector3d pos_PG_loc({0, -1, 0.5});
 
   // Load dummy input to Matlab workspace
   addPlatform2WS(platform, "platform_v");
@@ -450,15 +511,16 @@ void LibcdprTest::testUpdatePlatformPose()
     factory_.createArray<double>({3, 1}, position.Begin(), position.End());
   auto orientation_matlab =
     factory_.createArray<double>({3, 1}, orientation.Begin(), orientation.End());
-  auto pos_PG_loc_matlab =
-    factory_.createArray<double>({3, 1}, pos_PG_loc.Begin(), pos_PG_loc.End());
+  auto pos_PG_loc_matlab = factory_.createArray<double>(
+    {3, 1}, params_.platform.pos_PG_loc.Begin(), params_.platform.pos_PG_loc.End());
   // Put variables in the MATLAB workspace
   matlab_ptr_->setVariable(u"position", std::move(position_matlab));
   matlab_ptr_->setVariable(u"orientation", std::move(orientation_matlab));
   matlab_ptr_->setVariable(u"pos_PG_loc", std::move(pos_PG_loc_matlab));
 
   // Call C++ function implementation to be tested
-  grabcdpr::UpdatePlatformPose(position, orientation, pos_PG_loc, platform);
+  grabcdpr::UpdatePlatformPose(position, orientation, params_.platform.pos_PG_loc,
+                               platform);
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"platform_v = UpdatePlatformPose(position, orientation, "
                     u"RotationParametrizations.TILT_TORSION, pos_PG_loc, platform_v);");
@@ -661,7 +723,14 @@ void LibcdprTest::testUpdateCableZeroOrd()
   //  QCOMPARE(cable.length, matlab_cable.length); // different implementation!!
   QVERIFY(cable.pos_DA_glob.IsApprox(matlab_cable.pos_DA_glob));
   QVERIFY(cable.vers_u.IsApprox(matlab_cable.vers_u));
+  QVERIFY(cable.vers_n.IsApprox(matlab_cable.vers_n));
+  QVERIFY(cable.vers_t.IsApprox(matlab_cable.vers_t));
+  QVERIFY(cable.vers_w.IsApprox(matlab_cable.vers_w));
   QVERIFY(cable.pos_BA_glob.IsApprox(matlab_cable.pos_BA_glob));
+  QVERIFY(cable.pos_DA_glob.IsApprox(matlab_cable.pos_DA_glob));
+  QVERIFY(cable.pos_OA_glob.IsApprox(matlab_cable.pos_OA_glob));
+  QVERIFY(cable.geom_jacob_row.IsApprox(matlab_cable.geom_jacob_row));
+  QVERIFY(cable.anal_jacob_row.IsApprox(matlab_cable.anal_jacob_row));
 }
 
 void LibcdprTest::testUpdateUpdateIKZeroOrd()
@@ -696,8 +765,160 @@ void LibcdprTest::testUpdateUpdateIKZeroOrd()
   {
     QCOMPARE(robot.cables[i].swivel_ang, matlab_robot.cables[i].swivel_ang);
     QCOMPARE(robot.cables[i].tan_ang, matlab_robot.cables[i].tan_ang);
-//    QCOMPARE(robot.cables[i].length, matlab_robot.cables[i].length);
+    //  QCOMPARE(robot.cables[i].length, matlab_robot.cables[i].length); // different
+    //  implementation!!
+    QVERIFY(robot.cables[i].vers_u.IsApprox(matlab_robot.cables[i].vers_u));
+    QVERIFY(robot.cables[i].vers_n.IsApprox(matlab_robot.cables[i].vers_n));
+    QVERIFY(robot.cables[i].vers_t.IsApprox(matlab_robot.cables[i].vers_t));
+    QVERIFY(robot.cables[i].vers_w.IsApprox(matlab_robot.cables[i].vers_w));
+    QVERIFY(robot.cables[i].pos_BA_glob.IsApprox(matlab_robot.cables[i].pos_BA_glob));
+    QVERIFY(robot.cables[i].pos_DA_glob.IsApprox(matlab_robot.cables[i].pos_DA_glob));
+    QVERIFY(robot.cables[i].pos_OA_glob.IsApprox(matlab_robot.cables[i].pos_OA_glob));
+    QVERIFY(robot.cables[i].pos_PA_glob.IsApprox(matlab_robot.cables[i].pos_PA_glob));
+    QVERIFY(
+      robot.cables[i].geom_jacob_row.IsApprox(matlab_robot.cables[i].geom_jacob_row));
+    QVERIFY(
+      robot.cables[i].anal_jacob_row.IsApprox(matlab_robot.cables[i].anal_jacob_row));
   }
+  QVERIFY(arma::approx_equal(robot.geom_jabobian, matlab_robot.geom_jabobian, "absdiff",
+                             EPSILON));
+  QVERIFY(arma::approx_equal(robot.anal_jabobian, matlab_robot.anal_jabobian, "absdiff",
+                             EPSILON));
+  QVERIFY(arma::approx_equal(robot.tension_vector, matlab_robot.tension_vector, "absdiff",
+                             EPSILON));
+}
+
+//--------- Kinematics ---------------//
+
+void LibcdprTest::testUpdateExternalLoads()
+{
+  // Setup dummy input
+  grabcdpr::PlatformVars platform;
+  grabcdpr::UpdatePlatformPose(grabnum::Vector3d({1, 2, 3}),
+                               grabnum::Vector3d({0.5, 1.0, 1.5}), params_.platform,
+                               platform);
+  grabnum::Matrix3d R(1.0);
+
+  // Load dummy input to Matlab workspace
+  addPlatform2WS(platform, "platform_v");
+
+  // Call C++ function implementation to be tested
+  grabcdpr::UpdateExternalLoads(R, params_.platform, platform);
+  // Call the corresponding MATLAB
+  matlab_ptr_->eval(
+    u"platform_v = CalcExternalLoadsStateSpace(platform_v, cdpr_p.platform, eye(3));");
+
+  // Get matlab results
+  grabcdpr::PlatformVars matlab_platform = getPlatformFromWS("platform_v");
+
+  // Check they are the same
+  QCOMPARE(platform.ext_load, matlab_platform.ext_load);
+  QCOMPARE(platform.ext_load_ss, matlab_platform.ext_load_ss);
+}
+
+void LibcdprTest::testCalCablesTensionStat()
+{
+  // Setup dummy input
+  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+                            params_.platform.rot_parametrization);
+  grabnum::Vector3d position({0.8084, 2.9613, 0}); // workspace center
+  grabnum::Vector3d orientation({0.0, 0.0, 0.0});  // FIND A FEASIBLE ORIENTATION
+  grabcdpr::UpdateIK0(position, orientation, params_, robot);
+  grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
+  // Load dummy input to Matlab workspace
+  addRobot2WS(robot, "cdpr_v");
+
+  // Call C++ function implementation to be tested
+  grabcdpr::CalCablesTensionStat(robot);
+  // Call the corresponding MATLAB
+  matlab_ptr_->eval(u"cdpr_v = CalcCablesTensionStat(cdpr_v);");
+
+  // Get matlab results
+  grabcdpr::RobotVars matlab_robot = getRobotFromWS("cdpr_v");
+
+  // Check they are the same
+  QVERIFY(arma::approx_equal(robot.tension_vector, matlab_robot.tension_vector, "absdiff",
+                             EPSILON));
+}
+
+void LibcdprTest::testCalcGsJacobians()
+{
+  // Setup dummy input
+  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+                            params_.platform.rot_parametrization);
+  grabnum::Vector3d position({0.8084, 2.9613, 0}); // workspace center
+  grabnum::Vector3d orientation({0.0, 0.0, 0.0});  // FIND A FEASIBLE ORIENTATION
+  grabcdpr::UpdateIK0(position, orientation, params_, robot);
+  grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
+  arma::mat Ja(robot.cables.size(), robot.cables.size(), arma::fill::randu);
+  arma::mat Ju(robot.cables.size(), POSE_DIM - robot.cables.size(), arma::fill::randu);
+  grabnum::Vector3d mg = params_.platform.mass * params_.platform.gravity_acc;
+  // Load dummy input to Matlab workspace
+  addRobot2WS(robot, "cdpr_v");
+  // Create variables
+  auto Ja_matlab =
+    factory_.createArray<double>({Ja.n_rows, Ja.n_cols}, Ja.begin(), Ja.end());
+  auto Ju_matlab =
+    factory_.createArray<double>({Ju.n_rows, Ju.n_cols}, Ju.begin(), Ju.end());
+  auto mg_matlab = factory_.createArray<double>({3, 1}, mg.Begin(), mg.End());
+  // Put variables in the MATLAB workspace
+  matlab_ptr_->setVariable(u"Ja", std::move(Ja_matlab));
+  matlab_ptr_->setVariable(u"Ju", std::move(Ju_matlab));
+  matlab_ptr_->setVariable(u"mg", std::move(mg_matlab));
+
+  // Call C++ function implementation to be tested
+  arma::mat Jq = grabcdpr::CalcGsJacobians(robot, Ja, Ju, mg);
+  // Call the corresponding MATLAB
+  matlab_ptr_->eval(u"J_q = CalcGsJacobians(cdpr_v, Ja, Ju, mg);");
+
+  // Get matlab results
+  matlab::data::TypedArray<double> J_q = matlab_ptr_->getVariable(u"J_q");
+  std::vector<double> J_q_std(J_q.begin(), J_q.end());
+  matlab::data::ArrayDimensions dims = J_q.getDimensions();
+  arma::mat matlab_J_q(J_q_std.data(), dims[0], dims[1]);
+
+  // Check they are the same
+  QVERIFY(arma::approx_equal(Jq, matlab_J_q, "absdiff", EPSILON));
+}
+
+void LibcdprTest::testCalcGeometricStatic()
+{
+  // Setup dummy input
+  arma::vec3 fixed_coord({0.5, 2.8, 0.1}); // pos
+  arma::vec3 var_coord({0.1, 0, 0.2});     // orient
+  VectorXi<POSE_DIM> mask({1, 1, 1, 0, 0, 0});
+  arma::mat fun_jacobian;
+  arma::vec fun_val;
+  // Load dummy input to Matlab workspace
+  auto parameters =
+    factory_.createArray<double>({3, 1}, fixed_coord.begin(), fixed_coord.end());
+  auto variables =
+    factory_.createArray<double>({3, 1}, var_coord.begin(), var_coord.end());
+  auto mask_matlab = factory_.createArray<int>({POSE_DIM, 1}, mask.Begin(), mask.End());
+  // Put variables in the MATLAB workspace
+  matlab_ptr_->setVariable(u"parameters", std::move(parameters));
+  matlab_ptr_->setVariable(u"variables", std::move(variables));
+  matlab_ptr_->setVariable(u"mask", std::move(mask_matlab));
+
+  // Call C++ function implementation to be tested
+  grabcdpr::calcGeometricStatic(params_, fixed_coord, var_coord, mask, fun_jacobian,
+                                fun_val);
+  // Call the corresponding MATLAB
+  matlab_ptr_->eval(u"[fun_val, fun_jacobian] = CalcWPGeometricStatic(cdpr_p, "
+                    u"parameters, variables, mask);");
+
+  // Get matlab results
+  matlab::data::TypedArray<double> J = matlab_ptr_->getVariable(u"fun_jacobian");
+  std::vector<double> J_std(J.begin(), J.end());
+  matlab::data::ArrayDimensions dims = J.getDimensions();
+  arma::mat matlab_fun_jacobian(J_std.data(), dims[0], dims[1]);
+  matlab::data::TypedArray<double> f = matlab_ptr_->getVariable(u"fun_val");
+  std::vector<double> f_std(f.begin(), f.end());
+  arma::vec matlab_fun_val(f_std.data(), f.getNumberOfElements());
+
+  // Check they are the same
+  QVERIFY(arma::approx_equal(fun_jacobian, matlab_fun_jacobian, "absdiff", EPSILON));
+  QVERIFY(arma::approx_equal(fun_val, matlab_fun_val, "absdiff", EPSILON));
 }
 
 QTEST_APPLESS_MAIN(LibcdprTest)

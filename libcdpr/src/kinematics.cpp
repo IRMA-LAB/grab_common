@@ -139,7 +139,7 @@ void UpdateJacobiansRow(const grabnum::Matrix3d H_mat, CableVars& cable)
 {
   cable.geom_jacob_row.SetBlock<1, 3>(1, 1, cable.vers_t.Transpose());
   cable.geom_jacob_row.SetBlock<1, 3>(
-    1, 4, cable.vers_t.Transpose() * grabnum::Skew(cable.pos_PA_glob));
+    1, 4, -cable.vers_t.Transpose() * grabnum::Skew(cable.pos_PA_glob));
 
   cable.anal_jacob_row = cable.geom_jacob_row;
   cable.anal_jacob_row.SetBlock<1, 3>(1, 4,
@@ -150,7 +150,7 @@ void UpdateJacobiansRow(const grabnum::MatrixXd<3, 4> H_mat, CableVarsQuat& cabl
 {
   cable.geom_jacob_row.SetBlock<1, 3>(1, 1, cable.vers_t.Transpose());
   cable.geom_jacob_row.SetBlock<1, 3>(
-    1, 4, cable.vers_t.Transpose() * grabnum::Skew(cable.pos_PA_glob));
+    1, 4, -cable.vers_t.Transpose() * grabnum::Skew(cable.pos_PA_glob));
 
   cable.anal_jacob_row.SetBlock<1, 3>(1, 1, cable.geom_jacob_row.GetBlock<1, 3>(1, 1));
   cable.anal_jacob_row.SetBlock<1, 4>(1, 4,
@@ -200,7 +200,7 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orien
     UpdateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
                        vars.cables[i]);
     vars.geom_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
-    vars.anal_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
+    vars.anal_jabobian.row(i) = arma::rowvec6(vars.cables[i].anal_jacob_row.Data());
   }
 }
 
@@ -219,7 +219,7 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& or
     UpdateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
                        vars.cables[i]);
     vars.geom_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
-    vars.anal_jabobian.row(i) = arma::rowvec7(vars.cables[i].geom_jacob_row.Data());
+    vars.anal_jabobian.row(i) = arma::rowvec7(vars.cables[i].anal_jacob_row.Data());
   }
 }
 
