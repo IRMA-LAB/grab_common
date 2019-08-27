@@ -438,11 +438,9 @@ void GoldSoloWhistleDrive::FaultReset()
 
 void GoldSoloWhistleDrive::ChangePosition(const int32_t target_position)
 {
-  static int32_t prev_target = 0;
-
-  if (input_pdos_.display_op_mode == CYCLIC_POSITION && prev_target == target_position)
+  if (input_pdos_.display_op_mode == CYCLIC_POSITION && prev_pos_target_ == target_position)
     return;
-  prev_target = target_position;
+  prev_pos_target_ = target_position;
 
   //  PrintCommand("ChangePosition");
   //  printf("\tTarget position: %d\n", target_position);
@@ -459,11 +457,9 @@ void GoldSoloWhistleDrive::ChangeDeltaPosition(const int32_t delta_position)
 
 void GoldSoloWhistleDrive::ChangeVelocity(const int32_t target_velocity)
 {
-  static int32_t prev_target = 0;
-
-  if (input_pdos_.display_op_mode == CYCLIC_VELOCITY && prev_target == target_velocity)
+  if (input_pdos_.display_op_mode == CYCLIC_VELOCITY && prev_vel_target_ == target_velocity)
     return;
-  prev_target = target_velocity;
+  prev_vel_target_ = target_velocity;
 
   //  PrintCommand("ChangeVelocity");
   //  printf("\tTarget velocity: %d\n", target_velocity);
@@ -480,11 +476,9 @@ void GoldSoloWhistleDrive::ChangeDeltaVelocity(const int32_t delta_velocity)
 
 void GoldSoloWhistleDrive::ChangeTorque(const int16_t target_torque)
 {
-  static int16_t prev_target = 0;
-
-  if (input_pdos_.display_op_mode == CYCLIC_TORQUE && prev_target == target_torque)
+  if (input_pdos_.display_op_mode == CYCLIC_TORQUE && prev_torque_target_ == target_torque)
     return;
-  prev_target = target_torque;
+  prev_torque_target_ = target_torque;
 
   //  PrintCommand("ChangeTorque");
   //  printf("\tTarget torque: %d\n", target_torque);
