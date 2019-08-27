@@ -1,4 +1,3 @@
-
 QT       += testlib
 QT       -= gui
 
@@ -20,18 +19,22 @@ HEADERS += \
     $$PWD/inc/cdpr_types.h \
     $$PWD/tools/json.hpp \
     $$PWD/tools/robotconfigjsonparser.h \
-    $$PWD/inc/statics.h
+    $$PWD/inc/statics.h \
+    $$PWD/../grabcommon.h
+
 
 SOURCES += \
     $$PWD/src/kinematics.cpp \
     $$PWD/src/diffkinematics.cpp \
     $$PWD/tools/robotconfigjsonparser.cpp \
     $$PWD/src/statics.cpp \
-    $$PWD/tests/libcdpr_test.cpp
+    $$PWD/tests/libcdpr_test.cpp \
+    $$PWD/../grabcommon.cpp
 
 INCLUDEPATH += \
     $$PWD/inc \
-    $$PWD/tools
+    $$PWD/tools \
+    $$PWD/..
 
 # Lib numeric
 unix:!macx: LIBS += -L$$PWD/../libnumeric/lib/ -lnumeric

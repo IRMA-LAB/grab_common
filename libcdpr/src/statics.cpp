@@ -15,9 +15,10 @@ arma::vec toArmaMat(VectorXd<POSE_QUAT_DIM> vect, bool copy /*= true*/)
   return arma::vec(vect.Data(), POSE_QUAT_DIM, copy);
 }
 
-arma::mat toArmaMat(Matrix3d vect, bool copy /*= true*/)
+arma::mat toArmaMat(Matrix3d mat, bool copy /*= true*/)
 {
-  return arma::mat(vect.Data(), 3, 3, copy);
+  // Data is filled column-by-column, that's why we need the transpose
+  return arma::mat(mat.Data(), 3, 3, copy).t();
 }
 
 namespace grabcdpr {
@@ -56,9 +57,16 @@ void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& param
 
 void CalCablesTensionStat(RobotVars& vars)
 {
-  arma::mat A = -vars.geom_jabobian * vars.geom_jabobian.t();
-  arma::vec b = -vars.geom_jabobian * toArmaMat(vars.platform.ext_load, false);
-  arma::solve(A, b, vars.tension_vector);
+  arma::mat A         = -vars.geom_jabobian * vars.geom_jabobian.t();
+  arma::vec b         = -vars.geom_jabobian * toArmaMat(vars.platform.ext_load);
+  vars.tension_vector = arma::solve(A, b);
+  // Tensions cannot be negative
+  if (vars.tension_vector.min() < 0.0)
+  {
+    PrintColor('y', "WARNING: negative cables tension! Values will be clamped to 0.");
+    vars.tension_vector =
+      arma::clamp(vars.tension_vector, 0.0, vars.tension_vector.max());
+  }
 }
 
 void CalCablesTensionStat(RobotVarsQuat& vars)
@@ -86,7 +94,7 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
   const ulong kNumCables = params.activeActuatorsNum();
   RobotVars vars(kNumCables, params.platform.rot_parametrization);
   UpdateIK0(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<3, 1>(4, 1), params, vars);
-  UpdateExternalLoads(grabnum::Matrix3d(0.0), params.platform, vars.platform);
+  UpdateExternalLoads(grabnum::Matrix3d(1.0), params.platform, vars.platform);
 
   arma::mat Ja(kNumCables, kNumCables, arma::fill::zeros);
   arma::mat Ju(kNumCables, POSE_DIM - kNumCables, arma::fill::zeros);
@@ -108,8 +116,8 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
         vars.platform.ext_load(i + 1); // index of grabnum vect starts at 1
     }
 
-  arma::vec tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
-  func_val                 = Ju.t() * tension_vector - Wu;
+  vars.tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
+  func_val            = Ju.t() * vars.tension_vector - Wu;
   fun_jacobian =
     CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc);
 }

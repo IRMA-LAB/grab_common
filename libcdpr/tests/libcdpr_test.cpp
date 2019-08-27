@@ -788,7 +788,7 @@ void LibcdprTest::testUpdateUpdateIKZeroOrd()
                              EPSILON));
 }
 
-//--------- Kinematics ---------------//
+//--------- Statics ---------------//
 
 void LibcdprTest::testUpdateExternalLoads()
 {
@@ -821,7 +821,7 @@ void LibcdprTest::testCalCablesTensionStat()
   // Setup dummy input
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
-  grabnum::Vector3d position({0.8084, 2.9613, 0}); // workspace center
+  grabnum::Vector3d position({0.1, 1.5, 0.2}); // some feasible position
   grabnum::Vector3d orientation({0.0, 0.0, 0.0});  // FIND A FEASIBLE ORIENTATION
   grabcdpr::UpdateIK0(position, orientation, params_, robot);
   grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
@@ -846,7 +846,7 @@ void LibcdprTest::testCalcGsJacobians()
   // Setup dummy input
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
-  grabnum::Vector3d position({0.8084, 2.9613, 0}); // workspace center
+  grabnum::Vector3d position({0.1, 1.5, 0.2}); // some feasible position
   grabnum::Vector3d orientation({0.0, 0.0, 0.0});  // FIND A FEASIBLE ORIENTATION
   grabcdpr::UpdateIK0(position, orientation, params_, robot);
   grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
@@ -884,8 +884,8 @@ void LibcdprTest::testCalcGsJacobians()
 void LibcdprTest::testCalcGeometricStatic()
 {
   // Setup dummy input
-  arma::vec3 fixed_coord({0.5, 2.8, 0.1}); // pos
-  arma::vec3 var_coord({0.1, 0, 0.2});     // orient
+  arma::vec3 fixed_coord({0.1, 1.5, 0.2}); // pos
+  arma::vec3 var_coord({0.0, 0, 0.0});     // orient
   VectorXi<POSE_DIM> mask({1, 1, 1, 0, 0, 0});
   arma::mat fun_jacobian;
   arma::vec fun_val;

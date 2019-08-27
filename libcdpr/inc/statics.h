@@ -2,6 +2,7 @@
 #define GRABCOMMON_LIBCDPR_STATICS_H
 
 #include "matrix_utilities.h"
+#include "grabcommon.h"
 
 #include "cdpr_types.h"
 #include "kinematics.h"
@@ -31,7 +32,7 @@ arma::vec toArmaMat(VectorXd<POSE_QUAT_DIM> vect, bool copy = true);
  * @param vect
  * @return
  */
-arma::mat toArmaMat(Matrix3d vect, bool copy = true);
+arma::mat toArmaMat(Matrix3d mat, bool copy = true);
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
