@@ -118,6 +118,7 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
 
   vars.tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
   func_val            = Ju.t() * vars.tension_vector - Wu;
+  vars.platform.h_mat = grabnum::Matrix3d(1.0);
   fun_jacobian =
     CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc);
 }
@@ -199,10 +200,11 @@ arma::mat CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma
     dJdq.tube(arma::span(0, 2), arma::span(i)) = dtdq;
     MatrixXd<3, POSE_DIM> dadql(0.0); // set diagonal to 0
     dadql.SetBlock<3, 3>(1, 4, -Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat);
-    // dJTo m-3xnxm (o->orient), matlab equivalent = dJdq(3:m,i,:)
+    // dJTo m-3xnxm (o->orient), matlab equivalent = dJdq(4:m,i,:)
     dJdq.tube(arma::span(3, m - 1), arma::span(i)) =
       toArmaMat(Skew(vars.cables[i].pos_PA_glob)) * dtdq -
-      arma::mat((Skew(vars.cables[i].vers_t) * dadql).Data(), 3, POSE_DIM);
+      arma::mat((Skew(vars.cables[i].vers_t) * dadql).Transpose().Data(), 3,
+                POSE_DIM); // note: transpose because data is copied column-by-column
   }
 
   J_sl.rows(arma::span(0, n - 1))     = dsdq;
@@ -268,7 +270,8 @@ arma::mat CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
   J_sl.rows(arma::span(n, 2 * n - 1)) = dldq;
   arma::mat dfdq(m, m, arma::fill::zeros);
   dfdq(arma::span(3, m - 1), arma::span(3, m - 1)) = arma::mat(
-    (Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat).Data(), 3, 4);
+    (Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat).Transpose().Data(),
+    3, 4); // note: transpose because data is copied column-by-column
   arma::mat dWa = dfdq.rows(arma::span(0, n - 1));
   arma::mat dWu = dfdq.rows(arma::span(n, m - 1));
 
