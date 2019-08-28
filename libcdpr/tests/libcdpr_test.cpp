@@ -1,4 +1,4 @@
-#include <QString>
+﻿#include <QString>
 #include <QtTest>
 
 #include <fstream>
@@ -35,6 +35,9 @@ class LibcdprTest: public QObject
   grabcdpr::PlatformVars getPlatformFromWS(const std::string& var_name);
   grabcdpr::RobotVars getRobotFromWS(const std::string& var_name);
 
+  arma::vec nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess,
+                                     const grabnum::VectorXi<POSE_DIM>& mask,
+                                     const uint8_t nmax = 100) const;
  private Q_SLOTS:
   void initTestCase();
 
@@ -57,6 +60,7 @@ class LibcdprTest: public QObject
   void testCalCablesTensionStat();
   void testCalcGsJacobians();
   void testCalcGeometricStatic();
+  void testNonLinsolveJacGeomStatic();
 };
 
 void LibcdprTest::addCable2WS(const grabcdpr::CableVars& cable,
@@ -463,6 +467,57 @@ grabcdpr::RobotVars LibcdprTest::getRobotFromWS(const std::string& var_name)
   return robot;
 }
 
+arma::vec
+LibcdprTest::nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess,
+                                      const grabnum::VectorXi<POSE_DIM>& mask,
+                                      const uint8_t nmax /*= 100*/) const
+{
+  // TODO: check how to properly implement this
+  static const double kFtol = 1e-4;
+  static const double kXtol = 1e-3;
+
+  // Distribute initial guess between fixed and variable coordinates (i.e. the solution of
+  // the iterative process)
+  arma::vec fixed_coord(mask.NonZeros().size(), arma::fill::none);
+  arma::vec var_coord(POSE_DIM - fixed_coord.n_elem, arma::fill::none);
+  ulong fixed_idx = 0;
+  ulong var_idx   = 0;
+  for (uint i = 1; i <= POSE_DIM; i++)
+    if (mask(i) == 1)
+      fixed_coord(fixed_idx++) = init_guess(i);
+    else
+      var_coord(var_idx++) = init_guess(i);
+
+  // First round to init function value and jacobian
+  arma::vec func_val;
+  arma::mat func_jacob;
+  grabcdpr::calcGeometricStatic(params_, fixed_coord, var_coord, mask, func_jacob,
+                                func_val);
+
+  // Init iteration variables
+  arma::vec s;
+  uint8_t iter = 0;
+  double err   = 1.0;
+  double cond  = 0.0;
+  // Start iterative process
+  while (iter < nmax && arma::norm(func_val) > kFtol && err > cond)
+  {
+    iter++;
+    auto start             = std::chrono::high_resolution_clock::now();
+    s = arma::solve(func_jacob, func_val);
+    auto elapsed           = std::chrono::high_resolution_clock::now() - start;
+    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()
+              << std::endl;
+    var_coord -= s;
+    grabcdpr::calcGeometricStatic(params_, fixed_coord, var_coord, mask, func_jacob,
+                                  func_val);
+    err  = arma::norm(s);
+    cond = kXtol * (1 + arma::norm(var_coord));
+  }
+
+  return var_coord;
+}
+
 //--------- Init ---------------//
 
 void LibcdprTest::initTestCase()
@@ -821,8 +876,8 @@ void LibcdprTest::testCalCablesTensionStat()
   // Setup dummy input
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
-  grabnum::Vector3d position({0.1, 1.5, 0.2}); // some feasible position
-  grabnum::Vector3d orientation({0.0, 0.0, 0.0});  // FIND A FEASIBLE ORIENTATION
+  grabnum::Vector3d position({0.1, 1.5, 0.2});    // some feasible position
+  grabnum::Vector3d orientation({0.0, 0.0, 0.0}); // FIND A FEASIBLE ORIENTATION
   grabcdpr::UpdateIK0(position, orientation, params_, robot);
   grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
   // Load dummy input to Matlab workspace
@@ -846,8 +901,8 @@ void LibcdprTest::testCalcGsJacobians()
   // Setup dummy input
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
-  grabnum::Vector3d position({0.1, 1.5, 0.2}); // some feasible position
-  grabnum::Vector3d orientation({0.0, 0.0, 0.0});  // FIND A FEASIBLE ORIENTATION
+  grabnum::Vector3d position({0.1, 1.5, 0.2});    // some feasible position
+  grabnum::Vector3d orientation({0.0, 0.0, 0.0}); // FIND A FEASIBLE ORIENTATION
   grabcdpr::UpdateIK0(position, orientation, params_, robot);
   grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
   arma::mat Ja(robot.cables.size(), robot.cables.size(), arma::fill::randu);
@@ -919,6 +974,43 @@ void LibcdprTest::testCalcGeometricStatic()
   // Check they are the same
   QVERIFY(arma::approx_equal(fun_jacobian, matlab_fun_jacobian, "absdiff", EPSILON));
   QVERIFY(arma::approx_equal(fun_val, matlab_fun_val, "absdiff", EPSILON));
+}
+
+void LibcdprTest::testNonLinsolveJacGeomStatic()
+{
+  // Setup dummy input
+  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  const grabnum::VectorXi<POSE_DIM> mask({1, 1, 1, 0, 0, 0});
+  // Load dummy input to Matlab workspace
+  auto p =
+    factory_.createArray<double>({3, 1}, init_guess.Begin(), init_guess.Begin() + 3);
+  auto v = factory_.createArray<double>({3, 1}, init_guess.Begin() + 4, init_guess.End());
+  auto mask_matlab = factory_.createArray<int>({POSE_DIM, 1}, mask.Begin(), mask.End());
+  // Put variables in the MATLAB workspace
+  matlab_ptr_->setVariable(u"p", std::move(p));
+  matlab_ptr_->setVariable(u"in_guess", std::move(v));
+  matlab_ptr_->setVariable(u"mask", std::move(mask_matlab));
+
+  // Call C++ function implementation to be tested
+  arma::vec3 orientation = nonLinsolveJacGeomStatic(init_guess, mask);
+  // Call the corresponding MATLAB
+  matlab_ptr_->eval(
+    u"fsolve_options_grad = "
+    u"optimoptions('fsolve','Algorithm','levenberg-marquardt','FunctionTolerance',1e-8,'"
+    u"MaxFunctionEvaluation',1000000,'MaxIterations',1000000,'OptimalityTolerance',1e-8,'"
+    u"display','none','StepTolerance',1e-8,'SpecifyObjectiveGradient',true,'UseParallel',"
+    u"true);");
+  matlab_ptr_->eval(u"orient = fsolve(@(v) CalcWPGeometricStatic(cdpr_p, p, v, "
+                    u"mask), in_guess, fsolve_options_grad);");
+
+  // Get matlab results
+  matlab::data::TypedArray<double> orient = matlab_ptr_->getVariable(u"orient");
+  std::vector<double> orient_std(orient.begin(), orient.end());
+  arma::vec matlab_orientation(orient_std.data(), orient.getNumberOfElements());
+
+  // Check they are the same
+  std::cout << orientation << "\n" << matlab_orientation << std::endl;
+  QVERIFY(arma::approx_equal(orientation, matlab_orientation, "absdiff", 1e-3));
 }
 
 QTEST_APPLESS_MAIN(LibcdprTest)
