@@ -1,7 +1,7 @@
 /**
  * @file matrix.h
  * @author Edoardo Idà, Simone Comari
- * @date 16 Jul 2019
+ * @date 30 Aug 2019
  * @brief File containing matrix class and utilities to be included in the GRAB numeric
  * library.
  *
@@ -16,16 +16,11 @@
 #include <algorithm>
 #include <cmath>
 #include <typeinfo>
+#include <stdexcept>
 
 #include "common.h"
 
-/**
- * Define whether the build target is a MCU or a device with a graphic interface.
- * @todo move this flag in the preprocessor flags
- */
-#define MCU_TARGET 0
-
-#if (MCU_TARGET == 0)
+#ifndef GRABNUM_MCU_TARGET
 #include <iomanip>
 #include <iostream>
 #endif

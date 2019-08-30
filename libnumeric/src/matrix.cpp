@@ -1,7 +1,7 @@
 /**
  * @file matrix.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 26 Mar 2019
+ * @date 30 Aug 2019
  * @brief File containing definitions and implementation of matrix class.
  */
 
@@ -227,11 +227,12 @@ Matrix<T, rows, cols>::SetFromBlock(const uint start_row, const uint start_col,
 template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetIdentity()
 {
-#if (MCU_TARGET == 0)
+#ifdef GRABNUM_PRINT_ERRORS
   if (!IsSquare())
   {
-    std::cerr << "WARNING: Matrix is not square! Pseudo-identity matrix is generated."
-              << std::endl;
+    std::cerr
+      << "WARNING: grabnum::Matrix is not square! Pseudo-identity matrix is generated."
+      << std::endl;
   }
 #endif
   for (uint row = 0; row < rows; ++row)

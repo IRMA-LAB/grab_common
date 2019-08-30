@@ -26,3 +26,7 @@ TEMPLATE = lib
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+
+# User's defines.
+#DEFINES += GRABNUM_MCU_TARGET
+#DEFINES += GRABNUM_PRINT_ERRORS

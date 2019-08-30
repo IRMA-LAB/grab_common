@@ -1,7 +1,7 @@
 /**
  * @file matrix_utilities.tcc
  * @author Edoardo Idà, Simone Comari
- * @date 27 Mar 2019
+ * @date 30 Aug 2019
  * @brief File containing definitions and implementation of matrix utilities.
  */
 
@@ -13,7 +13,7 @@
 
 namespace grabnum {
 
-#if (MCU_TARGET == 0)
+#ifndef GRABNUM_MCU_TARGET
 template <typename T, uint rows, uint cols>
 std::ostream& operator<<(std::ostream& stream, const Matrix<T, rows, cols>& matrix)
 {
