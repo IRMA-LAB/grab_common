@@ -37,7 +37,8 @@ class LibcdprTest: public QObject
 
   arma::vec nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess,
                                      const grabnum::VectorXi<POSE_DIM>& mask,
-                                     const uint8_t nmax = 100) const;
+                                     const uint8_t nmax = 100,
+                                     uint8_t* iter_out  = nullptr) const;
  private Q_SLOTS:
   void initTestCase();
 
@@ -467,10 +468,9 @@ grabcdpr::RobotVars LibcdprTest::getRobotFromWS(const std::string& var_name)
   return robot;
 }
 
-arma::vec
-LibcdprTest::nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess,
-                                      const grabnum::VectorXi<POSE_DIM>& mask,
-                                      const uint8_t nmax /*= 100*/) const
+arma::vec LibcdprTest::nonLinsolveJacGeomStatic(
+  const grabnum::VectorXd<POSE_DIM>& init_guess, const grabnum::VectorXi<POSE_DIM>& mask,
+  const uint8_t nmax /*= 100*/, uint8_t* iter_out /*= nullptr*/) const
 {
   // TODO: check how to properly implement this
   static const double kFtol = 1e-4;
@@ -503,17 +503,16 @@ LibcdprTest::nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_gu
   while (iter < nmax && arma::norm(func_val) > kFtol && err > cond)
   {
     iter++;
-    auto start             = std::chrono::high_resolution_clock::now();
     s = arma::solve(func_jacob, func_val);
-    auto elapsed           = std::chrono::high_resolution_clock::now() - start;
-    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()
-              << std::endl;
     var_coord -= s;
     grabcdpr::calcGeometricStatic(params_, fixed_coord, var_coord, mask, func_jacob,
                                   func_val);
     err  = arma::norm(s);
     cond = kXtol * (1 + arma::norm(var_coord));
   }
+
+  if (iter_out != nullptr)
+    *iter_out = iter;
 
   return var_coord;
 }
@@ -574,8 +573,11 @@ void LibcdprTest::testUpdatePlatformPose()
   matlab_ptr_->setVariable(u"pos_PG_loc", std::move(pos_PG_loc_matlab));
 
   // Call C++ function implementation to be tested
-  grabcdpr::UpdatePlatformPose(position, orientation, params_.platform.pos_PG_loc,
-                               platform);
+  QBENCHMARK
+  {
+    grabcdpr::UpdatePlatformPose(position, orientation, params_.platform.pos_PG_loc,
+                                 platform);
+  }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"platform_v = UpdatePlatformPose(position, orientation, "
                     u"RotationParametrizations.TILT_TORSION, pos_PG_loc, platform_v);");
@@ -604,7 +606,7 @@ void LibcdprTest::testUpdatePosA()
   addPlatform2WS(platform, "platform_v");
 
   // Call C++ function implementation to be tested
-  grabcdpr::UpdatePosA(params_.actuators[0], platform, cable);
+  QBENCHMARK { grabcdpr::UpdatePosA(params_.actuators[0], platform, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = "
                     u"UpdatePosA(cdpr_p.cable(1).pos_A_loc, cdpr_p.cable(1).pos_D_glob, "
@@ -628,7 +630,7 @@ void LibcdprTest::testCalcPulleyVersors()
   addCable2WS(cable, "cable_v");
 
   // Call C++ function implementation to be tested
-  grabcdpr::CalcPulleyVersors(params_.actuators[0].pulley, cable);
+  QBENCHMARK { grabcdpr::CalcPulleyVersors(params_.actuators[0].pulley, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = CalcPulleyVersors(cdpr_p.cable(1).vers_i, "
                     u"cdpr_p.cable(1).vers_j, cable_v);");
@@ -652,8 +654,11 @@ void LibcdprTest::testCalcSwivelAngle()
   matlab_ptr_->setVariable(u"pos_DA_glob", std::move(pos_DA_glob_matlab));
 
   // Call C++ function implementation to be tested
-  double swivel_angle =
-    grabcdpr::CalcSwivelAngle(params_.actuators[0].pulley, pos_DA_glob);
+  double swivel_angle;
+  QBENCHMARK
+  {
+    swivel_angle = grabcdpr::CalcSwivelAngle(params_.actuators[0].pulley, pos_DA_glob);
+  }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"swivel_angle = CalcSwivelAngle(cdpr_p.cable(1).vers_i, "
                     u"cdpr_p.cable(1).vers_j, pos_DA_glob);");
@@ -680,8 +685,12 @@ void LibcdprTest::testCalcTangentAngle()
   matlab_ptr_->setVariable(u"vers_u", std::move(vers_u_matlab));
 
   // Call C++ function implementation to be tested
-  double tan_angle =
-    grabcdpr::CalcTangentAngle(params_.actuators[0].pulley, vers_u, pos_DA_glob);
+  double tan_angle;
+  QBENCHMARK
+  {
+    tan_angle =
+      grabcdpr::CalcTangentAngle(params_.actuators[0].pulley, vers_u, pos_DA_glob);
+  }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"tan_angle = CalcTangentAngle(cdpr_p.cable(1).vers_k, "
                     u"cdpr_p.cable(1).swivel_pulley_r, vers_u, pos_DA_glob);");
@@ -705,7 +714,7 @@ void LibcdprTest::testCalcCableVectors()
   addCable2WS(cable, "cable_v");
 
   // Call C++ function implementation to be tested
-  grabcdpr::CalcCableVectors(params_.actuators[0].pulley, cable);
+  QBENCHMARK { grabcdpr::CalcCableVectors(params_.actuators[0].pulley, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = CalcCableVectors(cdpr_p.cable(1).swivel_pulley_r, "
                     u"cdpr_p.cable(1).vers_k, cable_v);");
@@ -732,7 +741,7 @@ void LibcdprTest::testUpdateJacobiansRow()
   matlab_ptr_->setVariable(u"h_mat", std::move(h_mat_matlab));
 
   // Call C++ function implementation to be tested
-  grabcdpr::UpdateJacobiansRow(h_mat, cable);
+  QBENCHMARK { grabcdpr::UpdateJacobiansRow(h_mat, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"[geometric, analitic] = CalcPlatformJacobianRow(cable_v.vers_rho,"
                     u"cable_v.pos_PA_glob, h_mat);");
@@ -764,7 +773,7 @@ void LibcdprTest::testUpdateCableZeroOrd()
   addCable2WS(cable, "cable_v");
 
   // Call C++ function implementation to be tested
-  grabcdpr::UpdateCableZeroOrd(params_.actuators[0], platform, cable);
+  QBENCHMARK { grabcdpr::UpdateCableZeroOrd(params_.actuators[0], platform, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = UpdateCableZeroOrd(cdpr_p.cable(1), "
                     u"platform_v, cable_v);");
@@ -806,7 +815,7 @@ void LibcdprTest::testUpdateUpdateIKZeroOrd()
   matlab_ptr_->setVariable(u"orientation", std::move(orientation_matlab));
 
   // Call C++ function implementation to be tested
-  grabcdpr::UpdateIK0(position, orientation, params_, robot);
+  QBENCHMARK { grabcdpr::UpdateIK0(position, orientation, params_, robot); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cdpr_v = UpdateIKZeroOrd(position, orientation, cdpr_p, cdpr_v);");
 
@@ -858,7 +867,7 @@ void LibcdprTest::testUpdateExternalLoads()
   addPlatform2WS(platform, "platform_v");
 
   // Call C++ function implementation to be tested
-  grabcdpr::UpdateExternalLoads(R, params_.platform, platform);
+  QBENCHMARK { grabcdpr::UpdateExternalLoads(R, params_.platform, platform); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"platform_v = CalcExternalLoadsStateSpace(platform_v, cdpr_p.platform, eye(3));");
@@ -884,7 +893,7 @@ void LibcdprTest::testCalCablesTensionStat()
   addRobot2WS(robot, "cdpr_v");
 
   // Call C++ function implementation to be tested
-  grabcdpr::CalCablesTensionStat(robot);
+  QBENCHMARK { grabcdpr::CalCablesTensionStat(robot); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cdpr_v = CalcCablesTensionStat(cdpr_v);");
 
@@ -922,7 +931,8 @@ void LibcdprTest::testCalcGsJacobians()
   matlab_ptr_->setVariable(u"mg", std::move(mg_matlab));
 
   // Call C++ function implementation to be tested
-  arma::mat Jq = grabcdpr::CalcGsJacobians(robot, Ja, Ju, mg);
+  arma::mat Jq;
+  QBENCHMARK { Jq = grabcdpr::CalcGsJacobians(robot, Ja, Ju, mg); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"J_q = CalcGsJacobians(cdpr_v, Ja, Ju, mg);");
 
@@ -956,8 +966,11 @@ void LibcdprTest::testCalcGeometricStatic()
   matlab_ptr_->setVariable(u"mask", std::move(mask_matlab));
 
   // Call C++ function implementation to be tested
-  grabcdpr::calcGeometricStatic(params_, fixed_coord, var_coord, mask, fun_jacobian,
-                                fun_val);
+  QBENCHMARK
+  {
+    grabcdpr::calcGeometricStatic(params_, fixed_coord, var_coord, mask, fun_jacobian,
+                                  fun_val);
+  }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"[fun_val, fun_jacobian] = CalcWPGeometricStatic(cdpr_p, "
                     u"parameters, variables, mask);");
@@ -979,7 +992,8 @@ void LibcdprTest::testCalcGeometricStatic()
 void LibcdprTest::testNonLinsolveJacGeomStatic()
 {
   // Setup dummy input
-  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+//    grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.1, -0.16, 0.2});
   const grabnum::VectorXi<POSE_DIM> mask({1, 1, 1, 0, 0, 0});
   // Load dummy input to Matlab workspace
   auto p =
@@ -992,7 +1006,8 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   matlab_ptr_->setVariable(u"mask", std::move(mask_matlab));
 
   // Call C++ function implementation to be tested
-  arma::vec3 orientation = nonLinsolveJacGeomStatic(init_guess, mask);
+  arma::vec3 orientation;
+  QBENCHMARK { orientation = nonLinsolveJacGeomStatic(init_guess, mask); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"fsolve_options_grad = "
@@ -1008,8 +1023,12 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   std::vector<double> orient_std(orient.begin(), orient.end());
   arma::vec matlab_orientation(orient_std.data(), orient.getNumberOfElements());
 
+  // Print iterations
+//  uint8_t iterations;
+//  orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
+//  printf("Iterations: %d\n", iterations);
+
   // Check they are the same
-  std::cout << orientation << "\n" << matlab_orientation << std::endl;
   QVERIFY(arma::approx_equal(orientation, matlab_orientation, "absdiff", 1e-3));
 }
 
