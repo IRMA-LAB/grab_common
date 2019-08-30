@@ -118,7 +118,6 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
 
   vars.tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
   func_val            = Ju.t() * vars.tension_vector - Wu;
-  vars.platform.h_mat = grabnum::Matrix3d(1.0);
   fun_jacobian =
     CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc);
 }
