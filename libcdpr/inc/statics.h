@@ -1,8 +1,8 @@
 #ifndef GRABCOMMON_LIBCDPR_STATICS_H
 #define GRABCOMMON_LIBCDPR_STATICS_H
 
-#include "matrix_utilities.h"
 #include "grabcommon.h"
+#include "matrix_utilities.h"
 
 #include "cdpr_types.h"
 #include "kinematics.h"
@@ -101,6 +101,10 @@ arma::mat CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma
                           const Vector3d& mg);
 arma::mat CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
                           const arma::mat& Ju, const Vector3d& mg);
+arma::mat CalcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
+                             const arma::mat& Ju, const Vector3d& mg);
+arma::mat CalcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,
+                             const arma::mat& Ju, const Vector3d& mg);
 
 } // end namespace grabcdpr
 

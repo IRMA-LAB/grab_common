@@ -472,7 +472,6 @@ arma::vec LibcdprTest::nonLinsolveJacGeomStatic(
   const grabnum::VectorXd<POSE_DIM>& init_guess, const grabnum::VectorXi<POSE_DIM>& mask,
   const uint8_t nmax /*= 100*/, uint8_t* iter_out /*= nullptr*/) const
 {
-  // TODO: check how to properly implement this
   static const double kFtol = 1e-4;
   static const double kXtol = 1e-3;
 
@@ -910,10 +909,11 @@ void LibcdprTest::testCalcGsJacobians()
   // Setup dummy input
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
-  grabnum::Vector3d position({0.1, 1.5, 0.2});    // some feasible position
-  grabnum::Vector3d orientation({0.0, 0.0, 0.0}); // FIND A FEASIBLE ORIENTATION
+  grabnum::Vector3d position({0.1, 1.5, 0.2});        // some feasible position
+  grabnum::Vector3d orientation({0.23, -0.16, 0.03}); // FIND A FEASIBLE ORIENTATION
   grabcdpr::UpdateIK0(position, orientation, params_, robot);
   grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
+  grabcdpr::CalCablesTensionStat(robot);
   arma::mat Ja(robot.cables.size(), robot.cables.size(), arma::fill::randu);
   arma::mat Ju(robot.cables.size(), POSE_DIM - robot.cables.size(), arma::fill::randu);
   grabnum::Vector3d mg = params_.platform.mass * params_.platform.gravity_acc;
@@ -992,8 +992,8 @@ void LibcdprTest::testCalcGeometricStatic()
 void LibcdprTest::testNonLinsolveJacGeomStatic()
 {
   // Setup dummy input
-//    grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
-  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.1, -0.16, 0.2});
+  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  //  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0, 0, 0});
   const grabnum::VectorXi<POSE_DIM> mask({1, 1, 1, 0, 0, 0});
   // Load dummy input to Matlab workspace
   auto p =
@@ -1024,8 +1024,8 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   arma::vec matlab_orientation(orient_std.data(), orient.getNumberOfElements());
 
   // Print iterations
-//  uint8_t iterations;
-//  orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
+  uint8_t iterations;
+  orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
 //  printf("Iterations: %d\n", iterations);
 
   // Check they are the same
