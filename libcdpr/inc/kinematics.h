@@ -353,6 +353,29 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orien
 void UpdateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& orientation,
                const RobotParams& params, RobotVarsQuat& vars);
 
+/**
+ * @brief SolveDK0
+ * @param cables_length
+ * @param swivel_angles
+ * @param init_guess_pose
+ * @param params
+ * @param nmax
+ * @param iter_out
+ * @return
+ */
+grabnum::VectorXd<POSE_DIM> SolveDK0(const std::vector<double>& cables_length,
+                                     const std::vector<double>& swivel_angles,
+                                     const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
+                                     const RobotParams& params, const uint8_t nmax = 100,
+                                     uint8_t* iter_out = nullptr);
+
+/**
+ * @brief UpdateDK0
+ * @param params
+ * @param[in, out] vars
+ */
+void UpdateDK0(const RobotParams& params, RobotVars &vars);
+
 /** @} */ // end of ZeroOrderKinematics group
 
 } // end namespace grabcdpr

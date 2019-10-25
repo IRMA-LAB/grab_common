@@ -6,6 +6,7 @@
  */
 
 #include "kinematics.h"
+#include "statics.h"
 
 namespace grabcdpr {
 
@@ -221,6 +222,101 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& or
     vars.geom_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
     vars.anal_jabobian.row(i) = arma::rowvec7(vars.cables[i].anal_jacob_row.Data());
   }
+}
+
+static void DK0OptimizationFunc(const RobotParams& params, const arma::vec& cables_length,
+                                const arma::vec& swivel_angles, const arma::vec6& pose,
+                                arma::mat& fun_jacobian, arma::vec& func_val)
+{
+  const ulong kNumCables = params.activeActuatorsNum();
+  RobotVars vars(kNumCables, params.platform.rot_parametrization);
+  UpdateIK0(fromArmaVec3(pose(arma::span(0, 2))),
+            fromArmaVec3(pose(arma::span(3, POSE_DIM - 1))), params, vars);
+  UpdateExternalLoads(grabnum::Matrix3d(1.0), params.platform, vars.platform);
+
+  arma::mat Ja = vars.geom_jabobian.cols(arma::span(0, kNumCables - 1));
+  arma::mat Ju = vars.geom_jabobian.cols(arma::span(POSE_DIM - kNumCables, POSE_DIM - 1));
+  arma::vec ext_load = toArmaVec(vars.platform.ext_load);
+  arma::vec Wa       = ext_load(arma::span(0, kNumCables - 1));
+  arma::vec Wu       = ext_load(arma::span(POSE_DIM - kNumCables, POSE_DIM - 1));
+
+  vars.tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
+  arma::mat J_sl, J_q;
+  CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc, J_q,
+                  J_sl);
+
+  func_val     = arma::zeros(2 * kNumCables);
+  fun_jacobian = arma::zeros(2 * kNumCables, POSE_DIM);
+  for (uint i = 0; i < kNumCables; ++i)
+  {
+    func_val(i)              = 10. * (vars.cables[i].swivel_ang - swivel_angles(i));
+    func_val(i + kNumCables) = 100. * (vars.cables[i].length - cables_length(i));
+  }
+  // TODO: complete implementation
+}
+
+grabnum::VectorXd<POSE_DIM> SolveDK0(const std::vector<double>& cables_length,
+                                     const std::vector<double>& swivel_angles,
+                                     const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
+                                     const RobotParams& params,
+                                     const uint8_t nmax /*= 100*/,
+                                     uint8_t* iter_out /*= nullptr*/)
+{
+  static const double kFtol = 1e-4;
+  static const double kXtol = 1e-3;
+
+  // First round to init function value and jacobian
+  arma::vec func_val;
+  arma::mat func_jacob;
+  arma::vec6 pose = toArmaVec(init_guess_pose);
+  grabcdpr::DK0OptimizationFunc(params, cables_length, swivel_angles, pose, func_jacob,
+                                func_val);
+
+  // Init iteration variables
+  arma::vec s;
+  uint8_t iter = 0;
+  double err   = 1.0;
+  double cond  = 0.0;
+  // Start iterative process
+  while (iter < nmax && arma::norm(func_val) > kFtol && err > cond)
+  {
+    iter++;
+    s = arma::solve(func_jacob, func_val);
+    pose -= s;
+    grabcdpr::DK0OptimizationFunc(params, cables_length, swivel_angles, pose, func_jacob,
+                                  func_val);
+    err  = arma::norm(s);
+    cond = kXtol * (1 + arma::norm(pose));
+  }
+
+  if (iter_out != nullptr)
+    *iter_out = iter;
+
+  grabnum::VectorXd<POSE_DIM> platform_pose(pose.begin(), pose.end());
+
+  return platform_pose;
+}
+
+void UpdateDK0(const RobotParams& params, RobotVars& vars)
+{
+  // Extract starting conditions from latest robot configuration
+  // Cable's variables are expected to be up-to-date
+  std::vector<double> cables_length(vars.cables.size(), 0);
+  std::vector<double> swivel_angles(vars.cables.size(), 0);
+  for (uint i = 0; i < vars.cables.size(); ++i)
+  {
+    cables_length[i] = vars.cables[i].length;
+    swivel_angles[i] = vars.cables[i].swivel_ang;
+  }
+  // While platform pose is expected to be the latest known/computed value, so not updated
+  grabnum::VectorXd<POSE_DIM> init_guess_pose = vars.platform.pose;
+
+  // Solve direct kinematics
+  grabnum::VectorXd<POSE_DIM> new_pose =
+    SolveDK0(cables_length, swivel_angles, init_guess_pose, params);
+  // Update inverse kinematics (?)
+  grabcdpr::UpdateIK0(new_pose.GetBlock<3, 1>(1, 1), new_pose.GetBlock<3, 1>(4, 1),
+                      params, vars);
 }
 
 } // end namespace grabcdpr
