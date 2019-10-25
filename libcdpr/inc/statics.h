@@ -14,25 +14,32 @@ using namespace grabnum;
  * @param vect
  * @return
  */
-arma::vec toArmaMat(Vector3d vect, bool copy = true);
+arma::vec toArmaVec(Vector3d vect, bool copy = true);
 /**
  * @brief toCvMat
  * @param vect
  * @return
  */
-arma::vec toArmaMat(VectorXd<POSE_DIM> vect, bool copy = true);
+arma::vec toArmaVec(VectorXd<POSE_DIM> vect, bool copy = true);
 /**
  * @brief toCvMat
  * @param vect
  * @return
  */
-arma::vec toArmaMat(VectorXd<POSE_QUAT_DIM> vect, bool copy = true);
+arma::vec toArmaVec(VectorXd<POSE_QUAT_DIM> vect, bool copy = true);
 /**
  * @brief toCvMat
  * @param vect
  * @return
  */
 arma::mat toArmaMat(Matrix3d mat, bool copy = true);
+
+/**
+ * @brief fromArmaVec3
+ * @param vect
+ * @return
+ */
+grabnum::Vector3d fromArmaVec3(const arma::vec3& vect);
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
@@ -97,10 +104,14 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
  * @param mg
  * @return
  */
-arma::mat CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
-                          const Vector3d& mg);
-arma::mat CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
-                          const arma::mat& Ju, const Vector3d& mg);
+void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
+                     const Vector3d& mg, arma::mat& J_q);
+void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
+                     const Vector3d& mg, arma::mat& J_q, arma::mat& J_sl);
+void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
+                     const Vector3d& mg, arma::mat& J_q);
+void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
+                     const Vector3d& mg, arma::mat& J_q, arma::mat& J_sl);
 arma::mat CalcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
                              const arma::mat& Ju, const Vector3d& mg);
 arma::mat CalcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,

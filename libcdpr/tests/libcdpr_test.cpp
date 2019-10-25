@@ -932,7 +932,7 @@ void LibcdprTest::testCalcGsJacobians()
 
   // Call C++ function implementation to be tested
   arma::mat Jq;
-  QBENCHMARK { Jq = grabcdpr::CalcGsJacobians(robot, Ja, Ju, mg); }
+  QBENCHMARK { grabcdpr::CalcGsJacobians(robot, Ja, Ju, mg, Jq); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"J_q = CalcGsJacobians(cdpr_v, Ja, Ju, mg);");
 

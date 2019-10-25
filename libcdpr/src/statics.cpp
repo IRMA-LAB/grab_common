@@ -1,16 +1,16 @@
 #include "statics.h"
 
-arma::vec toArmaMat(Vector3d vect, bool copy /*= true*/)
+arma::vec toArmaVec(Vector3d vect, bool copy /*= true*/)
 {
   return arma::vec(vect.Data(), 3, copy);
 }
 
-arma::vec toArmaMat(VectorXd<POSE_DIM> vect, bool copy /*= true*/)
+arma::vec toArmaVec(VectorXd<POSE_DIM> vect, bool copy /*= true*/)
 {
   return arma::vec(vect.Data(), POSE_DIM, copy);
 }
 
-arma::vec toArmaMat(VectorXd<POSE_QUAT_DIM> vect, bool copy /*= true*/)
+arma::vec toArmaVec(VectorXd<POSE_QUAT_DIM> vect, bool copy /*= true*/)
 {
   return arma::vec(vect.Data(), POSE_QUAT_DIM, copy);
 }
@@ -19,6 +19,11 @@ arma::mat toArmaMat(Matrix3d mat, bool copy /*= true*/)
 {
   // Data is filled column-by-column, that's why we need the transpose
   return arma::mat(mat.Data(), 3, 3, copy).t();
+}
+
+grabnum::Vector3d fromArmaVec3(const arma::vec3 &vect)
+{
+  return grabnum::Vector3d(vect.begin(), vect.end());
 }
 
 namespace grabcdpr {
@@ -58,7 +63,7 @@ void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& param
 void CalCablesTensionStat(RobotVars& vars)
 {
   arma::mat A         = -vars.geom_jabobian * vars.geom_jabobian.t();
-  arma::vec b         = -vars.geom_jabobian * toArmaMat(vars.platform.ext_load);
+  arma::vec b         = -vars.geom_jabobian * toArmaVec(vars.platform.ext_load);
   vars.tension_vector = arma::solve(A, b);
   // Tensions cannot be negative
   if (vars.tension_vector.min() < 0.0)
@@ -72,7 +77,7 @@ void CalCablesTensionStat(RobotVars& vars)
 void CalCablesTensionStat(RobotVarsQuat& vars)
 {
   arma::mat A = -vars.geom_jabobian * vars.geom_jabobian.t();
-  arma::vec b = -vars.geom_jabobian * toArmaMat(vars.platform.ext_load, false);
+  arma::vec b = -vars.geom_jabobian * toArmaVec(vars.platform.ext_load, false);
   arma::solve(A, b, vars.tension_vector);
 }
 
@@ -118,8 +123,8 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
 
   vars.tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
   func_val            = Ju.t() * vars.tension_vector - Wu;
-  fun_jacobian =
-    CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc);
+  CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc,
+                  fun_jacobian);
 }
 
 void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord,
@@ -164,17 +169,16 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
 
   arma::vec tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
   func_val                 = Ju.t() * tension_vector - Wu;
-  fun_jacobian =
-    CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc);
+  CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc,
+                  fun_jacobian);
 }
 
-arma::mat CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
-                          const Vector3d& mg)
+void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
+                     const Vector3d& mg, arma::mat& J_q)
 {
   static constexpr ulong m = POSE_DIM;  // DOF
   const ulong n            = Ja.n_cols; // num cables
 
-//  arma::mat J_sl(2 * n, m, arma::fill::zeros);
   grabnum::MatrixXd<m, m> dJT;     // init to zeros by default
   grabnum::MatrixXd<m, m> dJT_add; // init to zeros by default
   for (ulong i = 0; i < static_cast<ulong>(n); i++)
@@ -187,7 +191,52 @@ arma::mat CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma
       grabnum::Dot(vars.cables[i].pos_DA_glob, vars.cables[i].vers_u);
     grabnum::MatrixXd<1, m> dphidq =
       vars.cables[i].vers_n.Transpose() * dadq / Norm(vars.cables[i].pos_BA_glob);
-//    grabnum::MatrixXd<1, m> dldq = vars.cables[i].vers_t.Transpose() * dadq;
+    grabnum::MatrixXd<3, m> dtdq =
+      sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w * dsdq +
+      vars.cables[i].vers_n * dphidq; // 3xm
+    dadq.SetBlock<3, 3>(1, 1, grabnum::Matrix3d(0.0));
+
+    dJT_add.SetBlock<3, m>(1, 1, dtdq);
+    dJT_add.SetBlock<m - 3, m>(
+      4, 1,
+      (Skew(vars.cables[i].pos_PA_glob) * dtdq - Skew(vars.cables[i].vers_t) * dadq));
+    dJT += (dJT_add * vars.tension_vector(i));
+  }
+
+  grabnum::MatrixXd<m, m> dfdq; // init to zeros by default
+  dfdq.SetBlock<3, m - 3>(
+    4, 4, Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat);
+  arma::mat dfdq_arma = arma::mat(dfdq.Data(), m, m).t();
+
+  // J_q = (m-n)xm
+  arma::mat dJT_arma = arma::mat(dJT.Data(), m, m).t();
+  J_q =
+    dJT_arma(arma::span(n, m - 1), arma::span(n, m - 1)) +
+    Ju.t() * arma::solve(Ja.t(), dfdq_arma(arma::span(0, n - 1), arma::span(n, m - 1)) -
+                                   dJT_arma(arma::span(0, n - 1), arma::span(n, m - 1))) -
+    dfdq_arma(arma::span(n, m - 1), arma::span(n, m - 1));
+}
+
+void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
+                     const Vector3d& mg, arma::mat& J_q, arma::mat& J_sl)
+{
+  static constexpr ulong m = POSE_DIM;  // DOF
+  const ulong n            = Ja.n_cols; // num cables
+
+  J_sl = arma::mat(2 * n, m, arma::fill::zeros);
+  grabnum::MatrixXd<m, m> dJT;     // init to zeros by default
+  grabnum::MatrixXd<m, m> dJT_add; // init to zeros by default
+  for (ulong i = 0; i < static_cast<ulong>(n); i++)
+  {
+    grabnum::MatrixXd<3, m> dadq(1.0); // set diagonal to 1
+    dadq.SetBlock<3, m - 3>(1, 4,
+                            -Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat);
+    grabnum::MatrixXd<1, m> dsdq =
+      vars.cables[i].vers_w.Transpose() * dadq /
+      grabnum::Dot(vars.cables[i].pos_DA_glob, vars.cables[i].vers_u);
+    grabnum::MatrixXd<1, m> dphidq =
+      vars.cables[i].vers_n.Transpose() * dadq / Norm(vars.cables[i].pos_BA_glob);
+    grabnum::MatrixXd<1, m> dldq = vars.cables[i].vers_t.Transpose() * dadq;
     grabnum::MatrixXd<3, m> dtdq =
       sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w * dsdq +
       vars.cables[i].vers_n * dphidq; // 3xm
@@ -199,8 +248,8 @@ arma::mat CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma
       (Skew(vars.cables[i].pos_PA_glob) * dtdq - Skew(vars.cables[i].vers_t) * dadq));
     dJT += (dJT_add * vars.tension_vector(i));
 
-//    J_sl.row(i)     = arma::rowvec6(dsdq.Data());
-//    J_sl.row(n + i) = arma::rowvec6(dldq.Data());
+    J_sl.row(i)     = arma::rowvec6(dsdq.Data());
+    J_sl.row(n + i) = arma::rowvec6(dldq.Data());
   }
 
   grabnum::MatrixXd<m, m> dfdq; // init to zeros by default
@@ -210,22 +259,19 @@ arma::mat CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma
 
   // J_q = (m-n)xm
   arma::mat dJT_arma = arma::mat(dJT.Data(), m, m).t();
-  arma::mat J_q =
+  J_q =
     dJT_arma(arma::span(n, m - 1), arma::span(n, m - 1)) +
     Ju.t() * arma::solve(Ja.t(), dfdq_arma(arma::span(0, n - 1), arma::span(n, m - 1)) -
                                    dJT_arma(arma::span(0, n - 1), arma::span(n, m - 1))) -
     dfdq_arma(arma::span(n, m - 1), arma::span(n, m - 1));
-
-  return J_q;
 }
 
-arma::mat CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
-                          const arma::mat& Ju, const Vector3d& mg)
+void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
+                     const Vector3d& mg, arma::mat& J_q)
 {
   static constexpr ulong m = POSE_QUAT_DIM; // DOF
   const ulong n            = Ja.n_cols;     // num cables
 
-//  arma::mat J_sl(2 * n, m, arma::fill::zeros);
   grabnum::MatrixXd<m, m> dJT;     // init to zeros by default
   grabnum::MatrixXd<m, m> dJT_add; // init to zeros by default
   for (ulong i = 0; i < static_cast<ulong>(n); i++)
@@ -238,7 +284,49 @@ arma::mat CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
       grabnum::Dot(vars.cables[i].pos_DA_glob, vars.cables[i].vers_u);
     grabnum::MatrixXd<1, m> dphidq =
       vars.cables[i].vers_n.Transpose() * dadq / Norm(vars.cables[i].pos_BA_glob);
-//    grabnum::MatrixXd<1, m> dldq = vars.cables[i].vers_t.Transpose() * dadq;
+    grabnum::MatrixXd<3, m> dtdq =
+      sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w * dsdq +
+      vars.cables[i].vers_n * dphidq; // 3xm
+    dadq.SetBlock<3, 3>(1, 1, grabnum::Matrix3d(0.0));
+
+    dJT_add.SetBlock<3, m>(1, 1, dtdq);
+    dJT += (dJT_add * vars.tension_vector(i));
+  }
+
+  grabnum::MatrixXd<m, m> dfdq; // init to zeros by default
+  dfdq.SetBlock<3, m - 3>(
+    4, 4, Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat);
+  arma::mat dfdq_arma = arma::mat(dfdq.Data(), m, m).t();
+
+  // J_q = (m-n)xm
+  arma::mat dJT_arma = arma::mat(dJT.Data(), m, m).t();
+  J_q =
+    dJT_arma(arma::span(n, m - 1), arma::span(n, m - 1)) +
+    Ju.t() * arma::solve(Ja.t(), dfdq_arma(arma::span(0, n - 1), arma::span(n, m - 1)) -
+                                   dJT_arma(arma::span(0, n - 1), arma::span(n, m - 1))) -
+    dfdq_arma(arma::span(n, m - 1), arma::span(n, m - 1));
+}
+
+void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
+                     const Vector3d& mg, arma::mat& J_q, arma::mat& J_sl)
+{
+  static constexpr ulong m = POSE_QUAT_DIM; // DOF
+  const ulong n            = Ja.n_cols;     // num cables
+
+  J_sl = arma::mat(2 * n, m, arma::fill::zeros);
+  grabnum::MatrixXd<m, m> dJT;     // init to zeros by default
+  grabnum::MatrixXd<m, m> dJT_add; // init to zeros by default
+  for (ulong i = 0; i < static_cast<ulong>(n); i++)
+  {
+    grabnum::MatrixXd<3, m> dadq(1.0); // set diagonal to 1
+    dadq.SetBlock<3, m - 3>(1, 4,
+                            -Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat);
+    grabnum::MatrixXd<1, m> dsdq =
+      vars.cables[i].vers_w.Transpose() * dadq /
+      grabnum::Dot(vars.cables[i].pos_DA_glob, vars.cables[i].vers_u);
+    grabnum::MatrixXd<1, m> dphidq =
+      vars.cables[i].vers_n.Transpose() * dadq / Norm(vars.cables[i].pos_BA_glob);
+    grabnum::MatrixXd<1, m> dldq = vars.cables[i].vers_t.Transpose() * dadq;
     grabnum::MatrixXd<3, m> dtdq =
       sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w * dsdq +
       vars.cables[i].vers_n * dphidq; // 3xm
@@ -252,8 +340,8 @@ arma::mat CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
     //      dadq));
     dJT += (dJT_add * vars.tension_vector(i));
 
-//    J_sl.row(i)     = arma::rowvec7(dsdq.Data());
-//    J_sl.row(n + i) = arma::rowvec7(dldq.Data());
+    J_sl.row(i)     = arma::rowvec7(dsdq.Data());
+    J_sl.row(n + i) = arma::rowvec7(dldq.Data());
   }
 
   grabnum::MatrixXd<m, m> dfdq; // init to zeros by default
@@ -263,13 +351,11 @@ arma::mat CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
 
   // J_q = (m-n)xm
   arma::mat dJT_arma = arma::mat(dJT.Data(), m, m).t();
-  arma::mat J_q =
+  J_q =
     dJT_arma(arma::span(n, m - 1), arma::span(n, m - 1)) +
     Ju.t() * arma::solve(Ja.t(), dfdq_arma(arma::span(0, n - 1), arma::span(n, m - 1)) -
                                    dJT_arma(arma::span(0, n - 1), arma::span(n, m - 1))) -
     dfdq_arma(arma::span(n, m - 1), arma::span(n, m - 1));
-
-  return J_q;
 }
 
 arma::mat CalcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
@@ -297,8 +383,8 @@ arma::mat CalcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
         .Data());
     dldq.row(i) = arma::rowvec6((vars.cables[i].vers_t.Transpose() * dadq).Data());
     arma::mat dtdq =
-      toArmaMat(sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w) * dsdq.row(i) +
-      toArmaMat(vars.cables[i].vers_n) * dphidq.row(i); // 3xm
+      toArmaVec(sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w) * dsdq.row(i) +
+      toArmaVec(vars.cables[i].vers_n) * dphidq.row(i); // 3xm
     // dJTp 3xnxm (p->pose), matlab equivalent = dJdq(1:3,i,:)
     dJdq.tube(arma::span(0, 2), arma::span(i)) = dtdq;
     MatrixXd<3, POSE_DIM> dadql(0.0); // set diagonal to 0
@@ -357,8 +443,8 @@ arma::mat CalcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,
         .Data());
     dldq.row(i) = arma::rowvec6((vars.cables[i].vers_t.Transpose() * dadq).Data());
     arma::mat dtdq =
-      toArmaMat(sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w) * dsdq.row(i) +
-      toArmaMat(vars.cables[i].vers_n, false) * dphidq.row(i); // 3xm
+      toArmaVec(sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w) * dsdq.row(i) +
+      toArmaVec(vars.cables[i].vers_n, false) * dphidq.row(i); // 3xm
     // dJTp 3xnxm (p->pose), matlab equivalent = dJdq(1:3,i,:)
     dJdq.tube(arma::span(0, 2), arma::span(i)) = dtdq;
     MatrixXd<3, POSE_QUAT_DIM> dadql(0.0); // set diagonal to 0
