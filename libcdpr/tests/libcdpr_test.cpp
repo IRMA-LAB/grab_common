@@ -55,6 +55,7 @@ class LibcdprTest: public QObject
   void testUpdateJacobiansRow();
   void testUpdateCableZeroOrd();
   void testUpdateUpdateIKZeroOrd();
+  void testUpdateDK0();
 
   // Statics
   void testUpdateExternalLoads();
@@ -1026,10 +1027,40 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   // Print iterations
   uint8_t iterations;
   orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
-//  printf("Iterations: %d\n", iterations);
+  //  printf("Iterations: %d\n", iterations);
 
   // Check they are the same
   QVERIFY(arma::approx_equal(orientation, matlab_orientation, "absdiff", 1e-3));
+}
+
+void LibcdprTest::testUpdateDK0()
+{
+  // Setup dummy input
+  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  const grabnum::VectorXi<POSE_DIM> mask({1, 1, 1, 0, 0, 0});
+  arma::vec3 true_orientation = nonLinsolveJacGeomStatic(init_guess, mask);
+  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+                            params_.platform.rot_parametrization);
+  grabnum::Vector3d position = init_guess.GetBlock<3,1>(1,1);
+  grabnum::Vector3d orientation(true_orientation.begin(), true_orientation.end());
+  grabcdpr::UpdateIK0(position, orientation, params_, robot);
+
+  // Perform fast direct kinematics
+  QBENCHMARK{ grabcdpr::UpdateDK0(params_, robot); }
+
+  // Verify roundtrip
+  QVERIFY(position.IsApprox(robot.platform.position));
+  QVERIFY(orientation.IsApprox(robot.platform.orientation));
+
+  // Reset to original pose
+  grabcdpr::UpdateIK0(position, orientation, params_, robot);
+
+  // Perform robust direct kinematics
+  QBENCHMARK{ grabcdpr::UpdateDK0(params_, robot, true); }
+
+  // Verify roundtrip
+  QVERIFY(position.IsApprox(robot.platform.position));
+  QVERIFY(orientation.IsApprox(robot.platform.orientation));
 }
 
 QTEST_APPLESS_MAIN(LibcdprTest)

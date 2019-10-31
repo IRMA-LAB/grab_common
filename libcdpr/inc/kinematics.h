@@ -1,7 +1,7 @@
 /**
  * @file kinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 01 Aug 2019
+ * @date 31 Oct 2019
  * @brief File containing kinematics-related functions to be included in the GRAB CDPR
  * library.
  */
@@ -9,9 +9,13 @@
 #ifndef GRABCOMMON_LIBCDPR_KINEMATICS_H
 #define GRABCOMMON_LIBCDPR_KINEMATICS_H
 
-#include "cdpr_types.h"
 #include "matrix_utilities.h"
 #include "rotations.h"
+
+#include "cdpr_types.h"
+#include "statics.h"
+
+using namespace grabnum;
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
@@ -41,9 +45,8 @@ namespace grabcdpr {
  * @param[out] platform A pointer to the platform variables structure to be updated.
  * @note See @ref legend for symbols reference.
  */
-void UpdatePlatformPose(const grabnum::Vector3d& position,
-                        const grabnum::Vector3d& orientation,
-                        const grabnum::Vector3d& pos_PG_loc, PlatformVars& platform);
+void UpdatePlatformPose(const Vector3d& position, const Vector3d& orientation,
+                        const Vector3d& pos_PG_loc, PlatformVars& platform);
 /**
  * @brief Update platform-related zero-order quantities (explicit).
  *
@@ -62,9 +65,8 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
  * @param[out] platform A pointer to the platform variables structure to be updated.
  * @note See @ref legend for symbols reference.
  */
-void UpdatePlatformPose(const grabnum::Vector3d& position,
-                        const grabgeom::Quaternion& orientation,
-                        const grabnum::Vector3d& pos_PG_loc, PlatformQuatVars& platform);
+void UpdatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& orientation,
+                        const Vector3d& pos_PG_loc, PlatformQuatVars& platform);
 /**
  * @brief Update platform-related zero-order quantities (implicit).
  * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
@@ -74,8 +76,7 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
  * @param[out] platform A pointer to the platform variables structure to be updated.
  * @see UpdatePlatformPose()
  */
-void UpdatePlatformPose(const grabnum::Vector3d& position,
-                        const grabnum::Vector3d& orientation,
+void UpdatePlatformPose(const Vector3d& position, const Vector3d& orientation,
                         const PlatformParams& params, PlatformVars& platform);
 /**
  * @brief Update platform-related zero-order quantities (implicit).
@@ -86,8 +87,7 @@ void UpdatePlatformPose(const grabnum::Vector3d& position,
  * @param[out] platform A pointer to the platform variables structure to be updated.
  * @see UpdatePlatformPose()
  */
-void UpdatePlatformPose(const grabnum::Vector3d& position,
-                        const grabgeom::Quaternion& orientation,
+void UpdatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& orientation,
                         const PlatformParams& params, PlatformQuatVars& platform);
 
 /**
@@ -167,7 +167,7 @@ void CalcPulleyVersors(const PulleyParams& params, CableVarsBase& cable);
  * constraint
  * @f[ \hat{\mathbf{w}}_i \cdot \boldsymbol{\rho}^*_i = 0 @f]
  */
-double CalcSwivelAngle(const PulleyParams& params, const grabnum::Vector3d& pos_DA_glob);
+double CalcSwivelAngle(const PulleyParams& params, const Vector3d& pos_DA_glob);
 /**
  * @brief Calculate pulley swivel angle @f$\sigma_i@f$.
  * @param[in] params Swivel pulley parameters.
@@ -199,8 +199,8 @@ double CalcSwivelAngle(const PulleyParams& params, const CableVarsBase& cable);
  * constraint
  * @f[ \hat{\mathbf{n}}_i \cdot \boldsymbol{\rho}_i = 0 @f]
  */
-double CalcTangentAngle(const PulleyParams& params, const grabnum::Vector3d& vers_u,
-                        const grabnum::Vector3d& pos_DA_glob);
+double CalcTangentAngle(const PulleyParams& params, const Vector3d& vers_u,
+                        const Vector3d& pos_DA_glob);
 /**
  * @brief Calculate pulley tangent angle @f$\psi_i@f$.
  * @param[in] params Swivel pulley parameters.
@@ -241,8 +241,8 @@ double CalcTangentAngle(const PulleyParams& params, const CableVarsBase& cable);
  * together with the fact that, by definition,
  * @f$ \hat{\mathbf{w}}_i \perp \hat{\mathbf{t}}_i \perp \hat{\mathbf{n}}_i @f$.
  */
-void CalcCableVectors(const PulleyParams& params, const grabnum::Vector3d& vers_u,
-                      const grabnum::Vector3d& pos_DA_glob, const double tan_ang,
+void CalcCableVectors(const PulleyParams& params, const Vector3d& vers_u,
+                      const Vector3d& pos_DA_glob, const double tan_ang,
                       CableVarsBase& cable);
 /**
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\mathbf{t}}_i@f$ and
@@ -268,7 +268,7 @@ void CalcCableVectors(const PulleyParams& params, CableVarsBase& cable);
  * constraint
  * @f[ \boldsymbol{\rho}_i \cdot \boldsymbol{\rho}_i = l_i^2 @f]
  */
-double CalcCableLen(const grabnum::Vector3d& pos_BA_glob);
+double CalcCableLen(const Vector3d& pos_BA_glob);
 
 /**
  * @brief Calculate motor counts @f$q_i@f$.
@@ -305,13 +305,13 @@ double CalcMotorCounts(ActuatorParams& params, const CableVarsBase& cable);
  * @param H_mat
  * @param cable
  */
-void UpdateJacobiansRow(const grabnum::Matrix3d H_mat, CableVars& cable);
+void UpdateJacobiansRow(const Matrix3d H_mat, CableVars& cable);
 /**
  * @brief UpdateJacobiansRow
  * @param H_mat
  * @param cable
  */
-void UpdateJacobiansRow(const grabnum::MatrixXd<3, 4> H_mat, CableVarsQuat& cable);
+void UpdateJacobiansRow(const MatrixXd<3, 4> H_mat, CableVarsQuat& cable);
 
 /**
  * @brief Update all zero-order variables of a single cable at once.
@@ -339,7 +339,7 @@ void UpdateCableZeroOrd(const ActuatorParams& params, const PlatformQuatVars& pl
  * @param[in] params A pointer to the robot parameters structure.
  * @param[out] vars A pointer to the robot variables structure to be updated.
  */
-void UpdateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orientation,
+void UpdateIK0(const Vector3d& position, const Vector3d& orientation,
                const RobotParams& params, RobotVars& vars);
 /**
  * @brief Update all robots zero-order variables at once (inverse kinematics problem) when
@@ -350,8 +350,48 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orien
  * @param[in] params A pointer to the robot parameters structure.
  * @param[out] vars A pointer to the robot variables structure to be updated.
  */
-void UpdateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& orientation,
+void UpdateIK0(const Vector3d& position, const grabgeom::Quaternion& orientation,
                const RobotParams& params, RobotVarsQuat& vars);
+
+/**
+ * @brief CalcDK0Jacobians
+ * @param vars
+ * @param Ja
+ * @param J_sl
+ */
+void CalcDK0Jacobians(const RobotVars& vars, const arma::mat& Ja, arma::mat& J_sl);
+/**
+ * @brief CalcDK0Jacobians
+ * @param vars
+ * @param Ja
+ * @param J_sl
+ */
+void CalcDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja, arma::mat& J_sl);
+
+/**
+ * @brief CalcRobustDK0Jacobians
+ * @param vars
+ * @param Ja
+ * @param Ju
+ * @param mg
+ * @param J_q
+ * @param J_sl
+ */
+void CalcRobustDK0Jacobians(const RobotVars& vars, const arma::mat& Ja,
+                            const arma::mat& Ju, const Vector3d& mg, arma::mat& J_q,
+                            arma::mat& J_sl);
+/**
+ * @brief CalcRobustDK0Jacobians
+ * @param vars
+ * @param Ja
+ * @param Ju
+ * @param mg
+ * @param J_q
+ * @param J_sl
+ */
+void CalcRobustDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
+                            const arma::mat& Ju, const Vector3d& mg, arma::mat& J_q,
+                            arma::mat& J_sl);
 
 /**
  * @brief SolveDK0
@@ -363,18 +403,19 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& or
  * @param iter_out
  * @return
  */
-grabnum::VectorXd<POSE_DIM> SolveDK0(const std::vector<double>& cables_length,
-                                     const std::vector<double>& swivel_angles,
-                                     const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
-                                     const RobotParams& params, const uint8_t nmax = 100,
-                                     uint8_t* iter_out = nullptr);
+VectorXd<POSE_DIM> SolveDK0(const std::vector<double>& cables_length,
+                            const std::vector<double>& swivel_angles,
+                            const VectorXd<POSE_DIM>& init_guess_pose,
+                            const RobotParams& params, const bool use_gs_jacob = false,
+                            const uint8_t nmax = 100, uint8_t* iter_out = nullptr);
 
 /**
  * @brief UpdateDK0
  * @param params
  * @param[in, out] vars
  */
-void UpdateDK0(const RobotParams& params, RobotVars &vars);
+void UpdateDK0(const RobotParams& params, RobotVars& vars,
+               const bool use_gs_jacob = false);
 
 /** @} */ // end of ZeroOrderKinematics group
 

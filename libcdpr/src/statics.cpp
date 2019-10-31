@@ -1,3 +1,10 @@
+/**
+ * @file statics.cpp
+ * @author Edoardo Idà, Simone Comari
+ * @date 31 Oct 2019
+ * @brief File containing definitions of functions declared in statics.h.
+ */
+
 #include "statics.h"
 
 arma::vec toArmaVec(Vector3d vect, bool copy /*= true*/)
@@ -21,7 +28,7 @@ arma::mat toArmaMat(Matrix3d mat, bool copy /*= true*/)
   return arma::mat(mat.Data(), 3, 3, copy).t();
 }
 
-grabnum::Vector3d fromArmaVec3(const arma::vec3 &vect)
+grabnum::Vector3d fromArmaVec3(const arma::vec3& vect)
 {
   return grabnum::Vector3d(vect.begin(), vect.end());
 }
@@ -208,7 +215,7 @@ void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat
     4, 4, Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat);
   arma::mat dfdq_arma = arma::mat(dfdq.Data(), m, m).t();
 
-  // J_q = (m-n)xm
+  // J_q = (m-n)x(m-n)
   arma::mat dJT_arma = arma::mat(dJT.Data(), m, m).t();
   J_q =
     dJT_arma(arma::span(n, m - 1), arma::span(n, m - 1)) +
@@ -257,7 +264,7 @@ void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat
     4, 4, Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat);
   arma::mat dfdq_arma = arma::mat(dfdq.Data(), m, m).t();
 
-  // J_q = (m-n)xm
+  // J_q = (m-n)x(m-n)
   arma::mat dJT_arma = arma::mat(dJT.Data(), m, m).t();
   J_q =
     dJT_arma(arma::span(n, m - 1), arma::span(n, m - 1)) +
@@ -396,26 +403,26 @@ arma::mat CalcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
                 POSE_DIM); // note: transpose because data is copied column-by-column
   }
 
-  J_sl.rows(arma::span(0, n - 1))     = dsdq;
-  J_sl.rows(arma::span(n, 2 * n - 1)) = dldq;
+  J_sl.head_rows(n) = dsdq;
+  J_sl.tail_rows(n) = dldq;
   arma::mat dfdq(m, m, arma::fill::zeros);
   dfdq(arma::span(3, m - 1), arma::span(3, m - 1)) =
     toArmaMat(Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat);
-  arma::mat dWa = dfdq.rows(arma::span(0, n - 1));
-  arma::mat dWu = dfdq.rows(arma::span(n, m - 1));
+  arma::mat dWa = dfdq.head_rows(n);
+  arma::mat dWu = dfdq.tail_rows(m - n);
 
   arma::mat j0u(m - n, m, arma::fill::zeros);
   arma::mat j0a(n, m, arma::fill::zeros);
   for (ulong i = 0; i < m; i++)
   {
     // Matlab equivalent = dJdq(1:n,:,i)
-    j0a.col(i) = dJdq.slice(i).rows(arma::span(0, n - 1)) * vars.tension_vector;
+    j0a.col(i) = dJdq.slice(i).head_rows(n) * vars.tension_vector;
     // Matlab equivalent = dJdq(n+1:end,:,i)
-    j0u.col(i) = dJdq.slice(i).rows(arma::span(n, m - 1)) * vars.tension_vector;
+    j0u.col(i) = dJdq.slice(i).tail_rows(m - n) * vars.tension_vector;
   }
 
   arma::mat J_q = j0u + Ju.t() * arma::solve(Ja.t(), dWa - j0a) - dWu;
-  return J_q.cols(arma::span(3, m - 1));
+  return J_q.tail_cols(m - n);
 }
 
 arma::mat CalcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,
@@ -455,27 +462,27 @@ arma::mat CalcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,
       arma::mat((Skew(vars.cables[i].vers_t) * dadql).Data(), 3, POSE_QUAT_DIM);
   }
 
-  J_sl.rows(arma::span(0, n - 1))     = dsdq;
-  J_sl.rows(arma::span(n, 2 * n - 1)) = dldq;
+  J_sl.head_rows(n) = dsdq;
+  J_sl.tail_rows(n) = dldq;
   arma::mat dfdq(m, m, arma::fill::zeros);
   dfdq(arma::span(3, m - 1), arma::span(3, m - 1)) = arma::mat(
     (Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat).Transpose().Data(),
     3, 4); // note: transpose because data is copied column-by-column
-  arma::mat dWa = dfdq.rows(arma::span(0, n - 1));
-  arma::mat dWu = dfdq.rows(arma::span(n, m - 1));
+  arma::mat dWa = dfdq.head_rows(n);
+  arma::mat dWu = dfdq.tail_rows(m - n);
 
   arma::mat j0u(m - n, m, arma::fill::zeros);
   arma::mat j0a(n, m, arma::fill::zeros);
   for (ulong i = 0; i < m; i++)
   {
     // Matlab equivalent = dJdq(1:n,:,i)
-    j0a.col(i) = dJdq.slice(i).rows(arma::span(0, n - 1)) * vars.tension_vector;
+    j0a.col(i) = dJdq.slice(i).head_rows(n) * vars.tension_vector;
     // Matlab equivalent = dJdq(n+1:end,:,i)
-    j0u.col(i) = dJdq.slice(i).rows(arma::span(n, m - 1)) * vars.tension_vector;
+    j0u.col(i) = dJdq.slice(i).tail_rows(m - n) * vars.tension_vector;
   }
 
   arma::mat J_q = j0u + Ju.t() * arma::solve(Ja.t(), dWa - j0a) - dWu;
-  return J_q.cols(arma::span(3, m - 1));
+  return J_q.tail_cols(m - n);
 }
 
 } // namespace grabcdpr
