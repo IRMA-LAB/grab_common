@@ -526,10 +526,10 @@ void LibcdprTest::initTestCase()
 
   // Load robot parameters
   RobotConfigJsonParser parser;
-  parser.ParseFile("/home/simo/repos/cable_robot/config/config1.json", &params_);
+  parser.ParseFile(SRCDIR "../../../config/config1.json", &params_);
   // Load same robot parameters in matlab workspace
   matlab_ptr_->eval(
-    u"cdpr_p = CdprParameter('/home/simo/repos/cable_robot/config', 'config1.json');");
+    u"cdpr_p = CdprParameter('" SRCDIR u"../../../config', 'config1.json');");
 }
 
 //--------- Tools ---------------//
@@ -1044,6 +1044,9 @@ void LibcdprTest::testUpdateDK0()
   grabnum::Vector3d position = init_guess.GetBlock<3,1>(1,1);
   grabnum::Vector3d orientation(true_orientation.begin(), true_orientation.end());
   grabcdpr::UpdateIK0(position, orientation, params_, robot);
+  // Perturbate pose
+  robot.platform.pose += grabnum::VectorXd<POSE_DIM>(
+    {0.01, -0.02, 0.001, 0.001, 0.002, - 0.008});
 
   // Perform fast direct kinematics
   QBENCHMARK{ grabcdpr::UpdateDK0(params_, robot); }

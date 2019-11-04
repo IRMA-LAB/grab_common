@@ -365,6 +365,16 @@ struct PlatformVars: PlatformVarsBase
   }
 
   /**
+   * @brief Set platform pose.
+   * @param[in] pose Platform pose, including both position and orientation.
+   * @see UpdatePose()
+   */
+  void SetPose(const grabnum::VectorXd<POSE_DIM> pose)
+  {
+    UpdatePose(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<3, 1>(4, 1));
+  }
+
+  /**
    * @brief Update platform pose with position and angles.
    * @param[in] _position [m] Platform global position @f$\mathbf{p}_P@f$.
    * @param[in] _orientation [rad] Platform global orientation expressed by angles
@@ -598,6 +608,18 @@ struct PlatformQuatVars: PlatformVarsBase
   {
     Update(_position, _velocity, _acceleration, _orientation, _orientation_dot,
            _orientation_ddot);
+  }
+
+  /**
+   * @brief Set platform pose.
+   * @param[in] pose Platform pose, including both position and orientation expressed in
+   * quaternion.
+   * @see UpdatePose()
+   */
+  void SetPose(const grabnum::VectorXd<POSE_QUAT_DIM> pose)
+  {
+    grabgeom::Quaternion quaternion(pose.GetBlock<4, 1>(4, 1));
+    UpdatePose(pose.GetBlock<3, 1>(1, 1), quaternion);
   }
 
   /**
