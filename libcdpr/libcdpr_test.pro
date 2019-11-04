@@ -12,6 +12,7 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 HEADERS += \
     $$PWD/inc/kinematics.h \
@@ -49,13 +50,14 @@ DEPENDPATH += $$PWD/../libgeom
 unix:!macx: PRE_TARGETDEPS += $$PWD/../libgeom/lib/libgeom.a
 
 # Armadillo lib
+DEFINES += ARMA_DONT_PRINT_ERRORS
 LIBS += -llapack -lblas -larmadillo
 
 # Matlab engine
-HEADERS += /usr/local/MATLAB/R2019a/extern/include/MatlabEngine.hpp \
-           /usr/local/MATLAB/R2019a/extern/include/MatlabDataArray.hpp
-unix:!macx: LIBS += -L/usr/local/MATLAB/R2019a/extern/bin/glnxa64/ -lMatlabEngine
-unix:!macx: LIBS += -L/usr/local/MATLAB/R2019a/extern/bin/glnxa64/ -lMatlabDataArray
-INCLUDEPATH += /usr/local/MATLAB/R2019a/extern/bin/glnxa64 \
-           /usr/local/MATLAB/R2019a/extern/include/
-DEPENDPATH += /usr/local/MATLAB/R2019a/extern/bin/glnxa64
+HEADERS += /usr/local/MATLAB/R2019b/extern/include/MatlabEngine.hpp \
+           /usr/local/MATLAB/R2019b/extern/include/MatlabDataArray.hpp
+unix:!macx: LIBS += -L/usr/local/MATLAB/R2019b/extern/bin/glnxa64/ -lMatlabEngine
+unix:!macx: LIBS += -L/usr/local/MATLAB/R2019b/extern/bin/glnxa64/ -lMatlabDataArray
+INCLUDEPATH += /usr/local/MATLAB/R2019b/extern/bin/glnxa64 \
+           /usr/local/MATLAB/R2019b/extern/include/
+DEPENDPATH += /usr/local/MATLAB/R2019b/extern/bin/glnxa64

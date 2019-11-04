@@ -45,4 +45,5 @@ DEPENDPATH += $$PWD/../libgeom
 unix:!macx: PRE_TARGETDEPS += $$PWD/../libgeom/lib/libgeom.a
 
 # Armadillo lib
+DEFINES += ARMA_DONT_PRINT_ERRORS
 LIBS += -llapack -lblas -larmadillo
