@@ -420,13 +420,12 @@ static void RobustDK0OptimizationFunc(const RobotParams& params,
   fun_jacobian.tail_rows(kNumUncontrolledDof) = J_q; // (statics)
 }
 
-grabnum::VectorXd<POSE_DIM> SolveDK0(const std::vector<double>& cables_length,
-                                     const std::vector<double>& swivel_angles,
-                                     const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
-                                     const RobotParams& params,
-                                     const bool use_gs_jacob /*=false*/,
-                                     const uint8_t nmax /*= 100*/,
-                                     uint8_t* iter_out /*= nullptr*/)
+bool SolveDK0(const std::vector<double>& cables_length,
+              const std::vector<double>& swivel_angles,
+              const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
+              const RobotParams& params, VectorXd<POSE_DIM> &platform_pose,
+              const bool use_gs_jacob /*=false*/, const uint8_t nmax /*= 100*/,
+              uint8_t* iter_out /*= nullptr*/)
 {
   static const double kFtol = 1e-6;
   static const double kXtol = 1e-6;
@@ -448,8 +447,10 @@ grabnum::VectorXd<POSE_DIM> SolveDK0(const std::vector<double>& cables_length,
   double err   = 1.0;
   double cond  = 0.0;
   // Start iterative process
-  while (iter < nmax && arma::norm(func_val) > kFtol && err > cond)
+  while (arma::norm(func_val) > kFtol && err > cond)
   {
+    if (iter >= nmax)
+      return false;
     iter++;
     s = arma::solve(func_jacob, func_val);
     pose -= s;
@@ -466,9 +467,9 @@ grabnum::VectorXd<POSE_DIM> SolveDK0(const std::vector<double>& cables_length,
   if (iter_out != nullptr)
     *iter_out = iter;
 
-  grabnum::VectorXd<POSE_DIM> platform_pose(pose.begin(), pose.end());
+  platform_pose.Fill(pose.begin(), pose.end());
 
-  return platform_pose;
+  return true;
 }
 
 void UpdateDK0(const RobotParams& params, RobotVars& vars,

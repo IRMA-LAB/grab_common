@@ -403,11 +403,12 @@ void CalcRobustDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
  * @param iter_out
  * @return
  */
-VectorXd<POSE_DIM> SolveDK0(const std::vector<double>& cables_length,
-                            const std::vector<double>& swivel_angles,
-                            const VectorXd<POSE_DIM>& init_guess_pose,
-                            const RobotParams& params, const bool use_gs_jacob = false,
-                            const uint8_t nmax = 100, uint8_t* iter_out = nullptr);
+bool SolveDK0(const std::vector<double>& cables_length,
+              const std::vector<double>& swivel_angles,
+              const VectorXd<POSE_DIM>& init_guess_pose,
+              const RobotParams& params, VectorXd<POSE_DIM>& platform_pose,
+              const bool use_gs_jacob = false, const uint8_t nmax = 100,
+              uint8_t* iter_out = nullptr);
 
 /**
  * @brief UpdateDK0
