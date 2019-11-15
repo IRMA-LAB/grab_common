@@ -44,13 +44,13 @@ void LibgrabrtTest::testCPUSetBuilders()
   QCOMPARE(CPU_COUNT(&cpu_set), 1);
   QVERIFY(CPU_ISSET(c, &cpu_set));
 
-  const std::vector<size_t> cores = {2, 1, 1, 2};
+  const std::vector<int8_t> cores = {2, 1, 1, 2};
   cpu_set = grabrt::BuildCPUSet(cores);
   QCOMPARE(CPU_COUNT(&cpu_set), 2);
   for (auto const& val : cores)
     QVERIFY(CPU_ISSET(val, &cpu_set));
 
-  const std::vector<size_t> cores2 = {2, 1, 3, 0};
+  const std::vector<int8_t> cores2 = {2, 1, 3, 0};
   cpu_set = grabrt::BuildCPUSet(cores2);
   QCOMPARE(CPU_COUNT(&cpu_set), static_cast<int>(cores2.size()));
   for (auto const& val : cores2)
@@ -110,7 +110,7 @@ void LibgrabrtTest::testNewThread()
   grabrt::Thread t("TestSubThread");
   t.DispAttr();
   grabrt::DisplayThreadAffinitySet();
-  t.SetCPUs(std::vector<size_t>{2, 3});
+  t.SetCPUs(std::vector<int8_t>{2, 3});
   t.SetSchedAttr(SCHED_RR, 25);
   t.DispAttr();
   QCOMPARE(t.GetPID(), 0UL);
