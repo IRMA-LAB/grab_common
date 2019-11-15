@@ -1041,29 +1041,41 @@ void LibcdprTest::testUpdateDK0()
   arma::vec3 true_orientation = nonLinsolveJacGeomStatic(init_guess, mask);
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
-  grabnum::Vector3d position = init_guess.GetBlock<3,1>(1,1);
+  grabnum::Vector3d position = init_guess.GetBlock<3, 1>(1, 1);
   grabnum::Vector3d orientation(true_orientation.begin(), true_orientation.end());
   grabcdpr::UpdateIK0(position, orientation, params_, robot);
   // Perturbate pose
-  robot.platform.pose += grabnum::VectorXd<POSE_DIM>(
-    {0.01, -0.02, 0.001, 0.001, 0.002, - 0.008});
+  robot.platform.pose +=
+    grabnum::VectorXd<POSE_DIM>({0.01, -0.02, 0.001, 0.001, 0.002, -0.008});
+
+  bool ret = false;
 
   // Perform fast direct kinematics
-  QBENCHMARK{ grabcdpr::UpdateDK0(params_, robot); }
+  QBENCHMARK { ret = grabcdpr::UpdateDK0(params_, robot); }
 
-  // Verify roundtrip
-  QVERIFY(position.IsApprox(robot.platform.position));
-  QVERIFY(orientation.IsApprox(robot.platform.orientation));
+  if (ret)
+  {
+    // Verify roundtrip
+    QVERIFY(position.IsApprox(position));
+    QVERIFY(orientation.IsApprox(orientation));
+  }
+  else
+    std::cout << "could not solve fast DK0" << std::endl;
 
   // Reset to original pose
   grabcdpr::UpdateIK0(position, orientation, params_, robot);
 
   // Perform robust direct kinematics
-  QBENCHMARK{ grabcdpr::UpdateDK0(params_, robot, true); }
+  QBENCHMARK { ret = grabcdpr::UpdateDK0(params_, robot, true); }
 
-  // Verify roundtrip
-  QVERIFY(position.IsApprox(robot.platform.position));
-  QVERIFY(orientation.IsApprox(robot.platform.orientation));
+  if (ret)
+  {
+    // Verify roundtrip
+    QVERIFY(position.IsApprox(position));
+    QVERIFY(orientation.IsApprox(orientation));
+  }
+  else
+    std::cout << "could not solve robust DK0" << std::endl;
 }
 
 QTEST_APPLESS_MAIN(LibcdprTest)

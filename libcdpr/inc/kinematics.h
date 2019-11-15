@@ -1,7 +1,7 @@
 /**
  * @file kinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 31 Oct 2019
+ * @date 07 Nov 2019
  * @brief File containing kinematics-related functions to be included in the GRAB CDPR
  * library.
  */
@@ -399,6 +399,8 @@ void CalcRobustDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
  * @param swivel_angles
  * @param init_guess_pose
  * @param params
+ * @param platform_pose
+ * @param use_gs_jacob
  * @param nmax
  * @param iter_out
  * @return
@@ -413,9 +415,11 @@ bool SolveDK0(const std::vector<double>& cables_length,
 /**
  * @brief UpdateDK0
  * @param params
- * @param[in, out] vars
+ * @param vars
+ * @param use_gs_jacob
+ * @return
  */
-void UpdateDK0(const RobotParams& params, RobotVars& vars,
+bool UpdateDK0(const RobotParams& params, RobotVars& vars,
                const bool use_gs_jacob = false);
 
 /** @} */ // end of ZeroOrderKinematics group

@@ -1,7 +1,7 @@
 /**
  * @file kinematics.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 31 Oct 2019
+ * @date 07 Nov 2019
  * @brief File containing definitions of functions declared in kinematics.h.
  */
 
@@ -391,17 +391,17 @@ static void RobustDK0OptimizationFunc(const RobotParams& params,
                                       const arma::vec6& pose, arma::mat& fun_jacobian,
                                       arma::vec& func_val)
 {
-  const ulong kNumCables = params.activeActuatorsNum();  // = num. controlled DOF
+  const ulong kNumCables          = params.activeActuatorsNum(); // = num. controlled DOF
   const ulong kNumUncontrolledDof = POSE_DIM - kNumCables;
   RobotVars vars(kNumCables, params.platform.rot_parametrization);
   UpdateIK0(fromArmaVec3(pose.head(3)), fromArmaVec3(pose.tail(3)), params, vars);
   UpdateExternalLoads(grabnum::Matrix3d(1.0), params.platform, vars.platform);
 
-  arma::mat Ja       = vars.geom_jabobian.head_cols(kNumCables);
-  arma::mat Ju       = vars.geom_jabobian.tail_cols(kNumUncontrolledDof);
-  arma::vec ext_load = toArmaVec(vars.platform.ext_load);
-  arma::vec Wa       = ext_load.head(kNumCables);
-  arma::vec Wu       = ext_load.tail(kNumUncontrolledDof);
+  arma::mat Ja        = vars.geom_jabobian.head_cols(kNumCables);
+  arma::mat Ju        = vars.geom_jabobian.tail_cols(kNumUncontrolledDof);
+  arma::vec ext_load  = toArmaVec(vars.platform.ext_load);
+  arma::vec Wa        = ext_load.head(kNumCables);
+  arma::vec Wu        = ext_load.tail(kNumUncontrolledDof);
   vars.tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
   arma::mat J_sl, J_q;
   CalcRobustDK0Jacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc,
@@ -423,7 +423,7 @@ static void RobustDK0OptimizationFunc(const RobotParams& params,
 bool SolveDK0(const std::vector<double>& cables_length,
               const std::vector<double>& swivel_angles,
               const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
-              const RobotParams& params, VectorXd<POSE_DIM> &platform_pose,
+              const RobotParams& params, VectorXd<POSE_DIM>& platform_pose,
               const bool use_gs_jacob /*=false*/, const uint8_t nmax /*= 100*/,
               uint8_t* iter_out /*= nullptr*/)
 {
@@ -450,7 +450,7 @@ bool SolveDK0(const std::vector<double>& cables_length,
   while (arma::norm(func_val) > kFtol && err > cond)
   {
     if (iter >= nmax)
-      return false;
+      return false; // did not converge
     iter++;
     s = arma::solve(func_jacob, func_val);
     pose -= s;
@@ -472,7 +472,7 @@ bool SolveDK0(const std::vector<double>& cables_length,
   return true;
 }
 
-void UpdateDK0(const RobotParams& params, RobotVars& vars,
+bool UpdateDK0(const RobotParams& params, RobotVars& vars,
                const bool use_gs_jacob /*=false*/)
 {
   // Extract starting conditions from latest robot configuration
@@ -488,11 +488,17 @@ void UpdateDK0(const RobotParams& params, RobotVars& vars,
   grabnum::VectorXd<POSE_DIM> init_guess_pose = vars.platform.pose;
 
   // Solve direct kinematics
-  grabnum::VectorXd<POSE_DIM> new_pose =
-    SolveDK0(cables_length, swivel_angles, init_guess_pose, params, use_gs_jacob);
-  // Update inverse kinematics (?)
-  grabcdpr::UpdateIK0(new_pose.GetBlock<3, 1>(1, 1), new_pose.GetBlock<3, 1>(4, 1),
-                      params, vars);
+  grabnum::VectorXd<POSE_DIM> new_pose;
+  if (SolveDK0(cables_length, swivel_angles, init_guess_pose, params, new_pose,
+               use_gs_jacob))
+  {
+    // Update inverse kinematics
+    grabcdpr::UpdateIK0(new_pose.GetBlock<3, 1>(1, 1), new_pose.GetBlock<3, 1>(4, 1),
+                        params, vars);
+    return true;
+  }
+  // Could not solve optimization (failed direct kinematics)
+  return false;
 }
 
 } // end namespace grabcdpr
