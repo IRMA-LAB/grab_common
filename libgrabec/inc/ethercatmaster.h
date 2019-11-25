@@ -77,12 +77,12 @@ class EthercatMaster
    * @brief Get a reference to real-time thread mutex.
    * @return A reference to real-time thread mutex.
    */
-  pthread_mutex_t& RtMutex() { return mutex_; }
+  pthread_mutex_t& Mutex() { return mutex_; }
   /**
    * @brief Get a constant reference to real-time thread mutex.
    * @return A constant reference to real-time thread mutex.
    */
-  const pthread_mutex_t& RtMutex() const { return mutex_; }
+  const pthread_mutex_t& Mutex() const { return mutex_; }
   /**
    * @brief Get real-time thread cycle time in nanoseconds.
    * @return Real-time thread cycle time in nanoseconds.
