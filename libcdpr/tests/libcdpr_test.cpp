@@ -526,10 +526,10 @@ void LibcdprTest::initTestCase()
 
   // Load robot parameters
   RobotConfigJsonParser parser;
-  parser.ParseFile(SRCDIR "../../../config/config1.json", &params_);
+  parser.ParseFile(SRCDIR "cdpr_matlab/config/my_config_1.json", &params_);
   // Load same robot parameters in matlab workspace
   matlab_ptr_->eval(
-    u"cdpr_p = CdprParameter('" SRCDIR u"../../../config', 'config1.json');");
+    u"cdpr_p = CdprParameter('" SRCDIR u"cdpr_matlab/config', 'my_config_1.json');");
 }
 
 //--------- Tools ---------------//
