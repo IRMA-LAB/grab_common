@@ -947,10 +947,10 @@ struct WinchParams
     1048576; /**< motor encoder resolution in counts per revolution. */
 
   /**
-   * @brief CountsToLengthFactor
-   * @return
+   * @brief Returns the counts-to-meters factor for this particular winch.
+   * @return counts-to-meters factor for this particular winch.
    */
-  double CountsToLengthFactor() const
+  double CountsToMetersFactor() const
   {
     static double tau =
       sqrt(pow(M_PI * drum_diameter, 2.0) + pow(drum_pitch, 2.0) - drum_diameter * 0.1) /

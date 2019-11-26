@@ -131,7 +131,7 @@ double CalcMotorCounts(const double tau, const double cable_len,
 
 double CalcMotorCounts(ActuatorParams& params, const CableVarsBase& cable)
 {
-  return CalcMotorCounts(params.winch.CountsToLengthFactor(), cable.length,
+  return CalcMotorCounts(params.winch.CountsToMetersFactor(), cable.length,
                          params.pulley.radius, cable.tan_ang);
 }
 

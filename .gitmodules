@@ -1,0 +1,3 @@
+[submodule "libcdpr/cdpr_matlab"]
+	path = libcdpr/cdpr_matlab
+	url = git@github.com:UNIBO-GRABLab/cdpr_matlab.git

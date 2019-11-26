@@ -392,6 +392,10 @@ class GoldSoloWhistleDrive:
 
   GoldSoloWhistleDriveStates drive_state_; /**< physical drive state */
 
+  int32_t prev_pos_target_ = 0;
+  int32_t prev_vel_target_ = 0;
+  int16_t prev_torque_target_ = 0;
+
   /**
    * @brief InitFun
    */
