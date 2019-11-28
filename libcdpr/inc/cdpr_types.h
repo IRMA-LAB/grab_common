@@ -66,16 +66,16 @@
  * <table>
  * <caption id="cable_vars">CDPR time-varying cable variables</caption>
  * <tr><th>Name     <th>Symbol     <th>Expression  <th>Description
- * <tr><td> _Number of cables_  <td> @f$N@f$ <td> - <td> Number of cables attached to the
+ * <tr><td> _Number of cables_ <td> @f$N@f$ <td> - <td> Number of cables attached to the
  * platform.
- * <tr><td> _Cable length_  <td> @f$l_i@f$ <td> @f$\|A_i - B_i\|@f$ <td> Length of _i-th_
- * cable from point @f$B_i@f$ to point @f$A_i@f$, including winding around swivel pulley.
- * <tr><td> _Motor counts_ <td>@f$q_i@f$ <td> - <td> Motor counts (i.e. position) of
- * _i-th_ motor.
- * <tr><td> _Swivel angle_ <td>@f$\sigma_i@f$ <td> - <td> _i-th_ pulley swivel angle, i.e.
- * the angle between @f$\hat{\mathbf{x}}_i@f$ and @f$\hat{\mathbf{u}}_i@f$.
- * <tr><td> _Tangent angle_ <td>@f$\psi_i@f$ <td> - <td> _i-th_ pulley tangent angle, i.e.
- * the angle between @f$\hat{\mathbf{u}}_i@f$ and @f$\hat{\mathbf{n}}_i@f$.
+ * <tr><td> _Cable length_ <td> @f$l_i@f$ <td> @f$\|A_i - B_i\| + \widearc{D_iB_i}@f$
+ * <td> Length of _i-th_ cable from point @f$D_i@f$ to point @f$A_i@f$, including winding
+ * around swivel pulley. <tr><td> _Motor counts_ <td>@f$q_i@f$ <td> - <td> Motor counts
+ * (i.e. position) of _i-th_ motor. <tr><td> _Swivel angle_ <td>@f$\sigma_i@f$ <td> - <td>
+ * _i-th_ pulley swivel angle, i.e. the angle between @f$\hat{\mathbf{x}}_i@f$ and
+ * @f$\hat{\mathbf{u}}_i@f$. <tr><td> _Tangent angle_ <td>@f$\psi_i@f$ <td> - <td> _i-th_
+ * pulley tangent angle, i.e. the angle between @f$\hat{\mathbf{u}}_i@f$ and
+ * @f$\hat{\mathbf{n}}_i@f$.
  * </table>
  *
  * <table>
@@ -398,19 +398,19 @@ struct PlatformVars: PlatformVarsBase
     {
       case EULER_ZYZ:
         rot_mat = grabgeom::EulerZYZ2Rot(orientation);
-        h_mat = grabgeom::HtfZYZ(_orientation);
+        h_mat   = grabgeom::HtfZYZ(_orientation);
         break;
       case TAIT_BRYAN:
         rot_mat = grabgeom::EulerXYZ2Rot(orientation);
-        h_mat = grabgeom::HtfXYZ(_orientation);
+        h_mat   = grabgeom::HtfXYZ(_orientation);
         break;
       case RPY:
         rot_mat = grabgeom::RPY2Rot(orientation);
-        h_mat = grabgeom::HtfRPY(_orientation);
+        h_mat   = grabgeom::HtfRPY(_orientation);
         break;
       case TILT_TORSION:
         rot_mat = grabgeom::TiltTorsion2Rot(orientation);
-        h_mat = grabgeom::HtfTiltTorsion(_orientation);
+        h_mat   = grabgeom::HtfTiltTorsion(_orientation);
         break;
       default:
         // This should never happen
@@ -452,7 +452,7 @@ struct PlatformVars: PlatformVarsBase
   {
     velocity        = _velocity;
     orientation_dot = _orientation_dot;
-    angular_vel = h_mat * orientation_dot;
+    angular_vel     = h_mat * orientation_dot;
   }
 
   /**
@@ -795,7 +795,10 @@ struct CableVarsBase
   grabnum::Vector3d vers_w_dot; /**< versor @f$\dot{\hat{\mathbf{w}}}_i@f$. */
   grabnum::Vector3d vers_n_dot; /**< versor @f$\dot{\hat{\mathbf{n}}}_i@f$. */
   grabnum::Vector3d vers_t_dot; /**< versor @f$\dot{\hat{\mathbf{t}}}_i@f$. */
-  /** @} */                     // end of FirstOrderKinematics group
+
+  grabnum::MatrixXd<1, POSE_DIM>
+    geom_jacob_d_row; /**< _i-th_ row of geometric jacobian derivatoves. */
+  /** @} */           // end of FirstOrderKinematics group
 
   /** @addtogroup SecondOrderKinematics
    * @{
@@ -818,6 +821,13 @@ struct CableVars: CableVarsBase
    */
   grabnum::MatrixXd<1, POSE_DIM> anal_jacob_row; /**< _i-th_ row of analitic jacobian. */
   /** @} */                                      // end of ZeroOrderKinematics group
+
+  /** @addtogroup FirstOrderKinematics
+   * @{
+   */
+  grabnum::MatrixXd<1, POSE_DIM>
+    anal_jacob_d_row; /**< _i-th_ row of analitic jacobian derivatives. */
+  /** @} */           // end of FirstOrderKinematics group
 };
 
 struct CableVarsQuat: CableVarsBase
@@ -828,6 +838,13 @@ struct CableVarsQuat: CableVarsBase
   grabnum::MatrixXd<1, POSE_QUAT_DIM>
     anal_jacob_row; /**< _i-th_ row of analitic jacobian. */
   /** @} */         // end of ZeroOrderKinematics group
+
+  /** @addtogroup FirstOrderKinematics
+   * @{
+   */
+  grabnum::MatrixXd<1, POSE_QUAT_DIM>
+    anal_jacob_d_row; /**< _i-th_ row of analitic jacobian derivatives. */
+  /** @} */           // end of FirstOrderKinematics group
 };
 
 /**
@@ -929,6 +946,18 @@ struct PulleyParams
    * @return
    */
   inline double PulleyAngleFactorDeg() const { return transmission_ratio * 180. / M_PI; }
+
+  /**
+   * @brief Fix versors to ensure orthogonality and being unit vectors.
+   */
+  void OrthogonalizeVersors()
+  {
+    vers_k = vers_k / grabnum::Norm(vers_k);
+    vers_i = grabnum::Cross(vers_j, vers_k);
+    vers_i = vers_i / grabnum::Norm(vers_i);
+    vers_j = grabnum::Cross(vers_k, vers_i);
+    vers_j = vers_j / grabnum::Norm(vers_j);
+  }
 };
 
 /**

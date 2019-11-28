@@ -145,7 +145,7 @@ void LibcdprTest::addCable2WS(const grabcdpr::CableVars& cable,
   auto var_name_u = convertUTF8StringToUTF16String(var_name);
   matlab_ptr_->eval(var_name_u + u" = CableVar();");
   // Fill fields one by one
-  matlab_ptr_->eval(var_name_u + u".length = length;");
+  matlab_ptr_->eval(var_name_u + u".complete_length = length;");
   matlab_ptr_->eval(var_name_u + u".swivel_ang = swivel_ang;");
   matlab_ptr_->eval(var_name_u + u".tan_ang = tan_ang;");
   matlab_ptr_->eval(var_name_u + u".pos_PA_glob = pos_PA_glob;");
@@ -155,9 +155,9 @@ void LibcdprTest::addCable2WS(const grabcdpr::CableVars& cable,
   matlab_ptr_->eval(var_name_u + u".vers_u = vers_u;");
   matlab_ptr_->eval(var_name_u + u".vers_w = vers_w;");
   matlab_ptr_->eval(var_name_u + u".vers_n = vers_n;");
-  matlab_ptr_->eval(var_name_u + u".vers_rho = vers_t;");
+  matlab_ptr_->eval(var_name_u + u".vers_t = vers_t;");
   matlab_ptr_->eval(var_name_u + u".geometric_jacobian_row = geom_jacob_row;");
-  matlab_ptr_->eval(var_name_u + u".speed = speed;");
+  matlab_ptr_->eval(var_name_u + u".complete_speed = speed;");
   matlab_ptr_->eval(var_name_u + u".swivel_ang_vel = swivel_ang_vel;");
   matlab_ptr_->eval(var_name_u + u".tan_ang_vel = tan_ang_vel;");
   matlab_ptr_->eval(var_name_u + u".vel_OA_glob = vel_OA_glob;");
@@ -165,8 +165,8 @@ void LibcdprTest::addCable2WS(const grabcdpr::CableVars& cable,
   matlab_ptr_->eval(var_name_u + u".vers_u_deriv = vers_u_dot;");
   matlab_ptr_->eval(var_name_u + u".vers_w_deriv = vers_w_dot;");
   matlab_ptr_->eval(var_name_u + u".vers_n_deriv = vers_n_dot;");
-  matlab_ptr_->eval(var_name_u + u".vers_rho_deriv = vers_t_dot;");
-  matlab_ptr_->eval(var_name_u + u".acceleration = acceleration;");
+  matlab_ptr_->eval(var_name_u + u".vers_t_deriv = vers_t_dot;");
+  matlab_ptr_->eval(var_name_u + u".complete_acceleration = acceleration;");
   matlab_ptr_->eval(var_name_u + u".swivel_ang_acc = swivel_ang_acc;");
   matlab_ptr_->eval(var_name_u + u".tan_ang_acc = tan_ang_acc;");
   matlab_ptr_->eval(var_name_u + u".acc_OA_glob = acc_OA_glob;");
@@ -310,7 +310,7 @@ grabcdpr::CableVars LibcdprTest::getCableFromWS(const std::string& var_name)
   matlab::data::TypedArray<double> vers_n =
     matlab_ptr_->getProperty(cable_matlab, u"vers_n");
   matlab::data::TypedArray<double> vers_t =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_rho");
+    matlab_ptr_->getProperty(cable_matlab, u"vers_t");
   matlab::data::TypedArray<double> vel_OA_glob =
     matlab_ptr_->getProperty(cable_matlab, u"vel_OA_glob");
   matlab::data::TypedArray<double> vel_BA_glob =
@@ -322,7 +322,7 @@ grabcdpr::CableVars LibcdprTest::getCableFromWS(const std::string& var_name)
   matlab::data::TypedArray<double> vers_n_dot =
     matlab_ptr_->getProperty(cable_matlab, u"vers_n_deriv");
   matlab::data::TypedArray<double> vers_t_dot =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_rho_deriv");
+    matlab_ptr_->getProperty(cable_matlab, u"vers_t_deriv");
   matlab::data::TypedArray<double> acc_OA_glob =
     matlab_ptr_->getProperty(cable_matlab, u"acc_OA_glob");
   matlab::data::TypedArray<double> geom_jacob_row =
@@ -332,13 +332,13 @@ grabcdpr::CableVars LibcdprTest::getCableFromWS(const std::string& var_name)
 
   // Build corresponding cable structure
   grabcdpr::CableVars cable;
-  cable.length         = matlab_ptr_->getProperty(cable_matlab, u"length")[0];
+  cable.length         = matlab_ptr_->getProperty(cable_matlab, u"complete_length")[0];
   cable.swivel_ang     = matlab_ptr_->getProperty(cable_matlab, u"swivel_ang")[0];
   cable.tan_ang        = matlab_ptr_->getProperty(cable_matlab, u"tan_ang")[0];
-  cable.speed          = matlab_ptr_->getProperty(cable_matlab, u"speed")[0];
+  cable.speed          = matlab_ptr_->getProperty(cable_matlab, u"complete_speed")[0];
   cable.swivel_ang_vel = matlab_ptr_->getProperty(cable_matlab, u"swivel_ang_vel")[0];
   cable.tan_ang_vel    = matlab_ptr_->getProperty(cable_matlab, u"tan_ang_vel")[0];
-  cable.acceleration   = matlab_ptr_->getProperty(cable_matlab, u"acceleration")[0];
+  cable.acceleration   = matlab_ptr_->getProperty(cable_matlab, u"complete_acceleration")[0];
   cable.swivel_ang_acc = matlab_ptr_->getProperty(cable_matlab, u"swivel_ang_acc")[0];
   cable.tan_ang_acc    = matlab_ptr_->getProperty(cable_matlab, u"tan_ang_acc")[0];
   cable.pos_PA_glob.Fill(pos_PA_glob.begin(), pos_PA_glob.end());
@@ -610,7 +610,7 @@ void LibcdprTest::testUpdatePosA()
   QBENCHMARK { grabcdpr::UpdatePosA(params_.actuators[0], platform, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = "
-                    u"UpdatePosA(cdpr_p.cable(1).pos_A_loc, cdpr_p.cable(1).pos_D_glob, "
+                    u"UpdatePosA(cdpr_p.cable(1).pos_PA_loc, cdpr_p.cable(1).pos_OD_glob,"
                     u"platform_v.position, platform_v.rot_mat, cable_v);");
 
   // Get matlab results
@@ -744,7 +744,7 @@ void LibcdprTest::testUpdateJacobiansRow()
   // Call C++ function implementation to be tested
   QBENCHMARK { grabcdpr::UpdateJacobiansRow(h_mat, cable); }
   // Call the corresponding MATLAB
-  matlab_ptr_->eval(u"[geometric, analitic] = CalcPlatformJacobianRow(cable_v.vers_rho,"
+  matlab_ptr_->eval(u"[geometric, analitic] = CalcPlatformJacobianRow(cable_v.vers_t,"
                     u"cable_v.pos_PA_glob, h_mat);");
 
   // Get matlab results
@@ -858,27 +858,28 @@ void LibcdprTest::testUpdateUpdateIKZeroOrd()
 void LibcdprTest::testUpdateExternalLoads()
 {
   // Setup dummy input
-  grabcdpr::PlatformVars platform;
+  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+                            params_.platform.rot_parametrization);
   grabcdpr::UpdatePlatformPose(grabnum::Vector3d({1, 2, 3}),
                                grabnum::Vector3d({0.5, 1.0, 1.5}), params_.platform,
-                               platform);
+                               robot.platform);
   grabnum::Matrix3d R(1.0);
 
   // Load dummy input to Matlab workspace
-  addPlatform2WS(platform, "platform_v");
+  addRobot2WS(robot, "cdpr_v");
 
   // Call C++ function implementation to be tested
-  QBENCHMARK { grabcdpr::UpdateExternalLoads(R, params_.platform, platform); }
+  QBENCHMARK { grabcdpr::UpdateExternalLoads(R, params_.platform, robot.platform); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
-    u"platform_v = CalcExternalLoadsStateSpace(platform_v, cdpr_p.platform, eye(3));");
+    u"cdpr_v = CalcExternalLoadsStateSpace(cdpr_v, cdpr_p);");
 
   // Get matlab results
-  grabcdpr::PlatformVars matlab_platform = getPlatformFromWS("platform_v");
+  grabcdpr::RobotVars matlab_platform = getRobotFromWS("cdpr_v");
 
   // Check they are the same
-  QCOMPARE(platform.ext_load, matlab_platform.ext_load);
-  QCOMPARE(platform.ext_load_ss, matlab_platform.ext_load_ss);
+  QCOMPARE(robot.platform.ext_load, matlab_platform.platform.ext_load);
+  QCOMPARE(robot.platform.ext_load_ss, matlab_platform.platform.ext_load_ss);
 }
 
 void LibcdprTest::testCalCablesTensionStat()

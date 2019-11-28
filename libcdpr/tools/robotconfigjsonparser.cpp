@@ -193,38 +193,38 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
   std::string field, subfield;
   for (auto& actuator : actuators)
   {
-    grabcdpr::ActuatorParams temp;
+    grabcdpr::ActuatorParams actuator_params;
     try
     {
-      field                         = "active";
-      temp.active                   = actuator[field];
-      field                         = "winch";
-      subfield                      = "transmission_ratio";
-      temp.winch.transmission_ratio = actuator[field][subfield];
-      subfield                      = "l0";
-      temp.winch.l0                 = actuator[field][subfield];
+      field                                    = "active";
+      actuator_params.active                   = actuator[field];
+      field                                    = "winch";
+      subfield                                 = "transmission_ratio";
+      actuator_params.winch.transmission_ratio = actuator[field][subfield];
+      subfield                                 = "l0";
+      actuator_params.winch.l0                 = actuator[field][subfield];
 
       for (uint8_t i = 0; i < 3; i++)
       {
-        field                        = "winch";
-        subfield                     = "pos_PA_loc";
-        temp.winch.pos_PA_loc(i + 1) = actuator[field][subfield].at(i).at(0);
+        field                                   = "winch";
+        subfield                                = "pos_PA_loc";
+        actuator_params.winch.pos_PA_loc(i + 1) = actuator[field][subfield].at(i).at(0);
 
-        field                          = "pulley";
-        subfield                       = "pos_OD_glob";
-        temp.pulley.pos_OD_glob(i + 1) = actuator[field][subfield].at(i).at(0);
-        subfield                       = "vers_i";
-        temp.pulley.vers_i(i + 1)      = actuator[field][subfield].at(i).at(0);
-        subfield                       = "vers_j";
-        temp.pulley.vers_j(i + 1)      = actuator[field][subfield].at(i).at(0);
-        subfield                       = "vers_k";
-        temp.pulley.vers_k(i + 1)      = actuator[field][subfield].at(i).at(0);
+        field                                     = "pulley";
+        subfield                                  = "pos_OD_glob";
+        actuator_params.pulley.pos_OD_glob(i + 1) = actuator[field][subfield].at(i).at(0);
+        subfield                                  = "vers_i";
+        actuator_params.pulley.vers_i(i + 1)      = actuator[field][subfield].at(i).at(0);
+        subfield                                  = "vers_j";
+        actuator_params.pulley.vers_j(i + 1)      = actuator[field][subfield].at(i).at(0);
+        subfield                                  = "vers_k";
+        actuator_params.pulley.vers_k(i + 1)      = actuator[field][subfield].at(i).at(0);
       }
 
-      subfield                       = "transmission_ratio";
-      temp.pulley.transmission_ratio = actuator[field][subfield];
-      subfield                       = "radius";
-      temp.pulley.radius             = actuator[field][subfield];
+      subfield                                  = "transmission_ratio";
+      actuator_params.pulley.transmission_ratio = actuator[field][subfield];
+      subfield                                  = "radius";
+      actuator_params.pulley.radius             = actuator[field][subfield];
     }
     catch (json::type_error)
     {
@@ -232,10 +232,11 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
                 << (subfield == "" ? "" : "-") << subfield << std::endl;
       return false;
     }
+    actuator_params.pulley.OrthogonalizeVersors(); // fix numerical issues
 
-    if (!AreActuatorsParamsValid(temp))
+    if (!AreActuatorsParamsValid(actuator_params))
       return false;
-    config_params_.actuators.push_back(temp);
+    config_params_.actuators.push_back(actuator_params);
   }
   return true;
 }
