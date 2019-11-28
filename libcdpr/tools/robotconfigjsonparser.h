@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.h
  * @author Simone Comari
- * @date 30 Jul 2019
+ * @date 28 Nov 2019
  * @brief This file include a parser for JSON configuration file for GRAB CDPR.
  */
 
@@ -110,7 +110,7 @@ class RobotConfigJsonParser
   grabcdpr::RotParametrization str2RotParametrization(const std::string& str);
 
   bool ArePlatformParamsValid() const;
-  bool AreCableParamsValid(const grabcdpr::ActuatorParams& params) const;
+  bool AreActuatorsParamsValid(const grabcdpr::ActuatorParams& params) const;
 };
 
 #endif // GRABCOMMON_LIBCDPR_ROBOTCONFIGJSONPARSER_H

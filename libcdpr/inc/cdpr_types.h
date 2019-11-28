@@ -1,7 +1,7 @@
 /**
  * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 30 Jul 2019
+ * @date 28 Nov 2019
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -917,19 +917,18 @@ struct PulleyParams
   grabnum::Vector3d vers_k; /**< versor @f$\hat{\mathbf{k}}_i@f$ of _i-th_ swivel pulley
                                expressed in global frame. */
   double radius = 0.0;      /**< [m] _i-th_ swivel pulley radius length @f$r_i@f$ */
-  uint32_t encoder_res =
-    0; /**< _i-th_ pulley encoder resolution in counts per revolution. */
+  uint32_t transmission_ratio; /**< _i-th_ pulley counts-to-radians transmittion ratio. */
 
   /**
    * @brief PulleyAngleFactorRad
    * @return
    */
-  inline double PulleyAngleFactorRad() const { return 2.0 * M_PI / encoder_res; }
+  inline double PulleyAngleFactorRad() const { return transmission_ratio; }
   /**
    * @brief PulleyAngleFactorDeg
    * @return
    */
-  inline double PulleyAngleFactorDeg() const { return 360.0 / encoder_res; }
+  inline double PulleyAngleFactorDeg() const { return transmission_ratio * 180. / M_PI; }
 };
 
 /**
@@ -940,23 +939,7 @@ struct WinchParams
   grabnum::Vector3d pos_PA_loc; /**< vector @f$\mathbf{a}_i'@f$. */
   double l0 = 0.0; /**< [m] length between @f$D_i@f$ and the exit point of the _i-th_
                       cable from the corresponding winch. */
-  double drum_pitch    = 0.007; /**< [m] todo..*/
-  double drum_diameter = 0.1;   /**< [m] todo..*/
-  double gear_ratio    = 5.0;   /**< [m] todo..*/
-  uint32_t motor_encoder_res =
-    1048576; /**< motor encoder resolution in counts per revolution. */
-
-  /**
-   * @brief Returns the counts-to-meters factor for this particular winch.
-   * @return counts-to-meters factor for this particular winch.
-   */
-  double CountsToMetersFactor() const
-  {
-    static double tau =
-      sqrt(pow(M_PI * drum_diameter, 2.0) + pow(drum_pitch, 2.0) - drum_diameter * 0.1) /
-      (motor_encoder_res * gear_ratio);
-    return tau;
-  }
+  double transmission_ratio; /**< counts-to-meters transmission ratio. */
 };
 
 /**

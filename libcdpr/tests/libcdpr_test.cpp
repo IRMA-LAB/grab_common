@@ -526,10 +526,11 @@ void LibcdprTest::initTestCase()
 
   // Load robot parameters
   RobotConfigJsonParser parser;
-  parser.ParseFile(SRCDIR "cdpr_matlab/config/my_config_1.json", &params_);
+  parser.ParseFile(SRCDIR "cdpr_matlab/config/Grab_prototype_33.json", &params_);
   // Load same robot parameters in matlab workspace
   matlab_ptr_->eval(
-    u"cdpr_p = CdprParameter('" SRCDIR u"cdpr_matlab/config', 'my_config_1.json');");
+    u"cdpr_p = "
+    u"CdprParameter('" SRCDIR u"cdpr_matlab/config/Grab_prototype_33.json');");
 }
 
 //--------- Tools ---------------//
@@ -547,7 +548,7 @@ void LibcdprTest::testRobotConfigJsonParser()
   parser.GetConfigStruct(&params);
 
   // test display
-  //  parser.PrintConfig();
+  parser.PrintConfig();
 }
 
 //--------- Kinematics ---------------//

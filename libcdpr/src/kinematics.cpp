@@ -1,7 +1,7 @@
 /**
  * @file kinematics.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 07 Nov 2019
+ * @date 28 Nov 2019
  * @brief File containing definitions of functions declared in kinematics.h.
  */
 
@@ -131,7 +131,7 @@ double CalcMotorCounts(const double tau, const double cable_len,
 
 double CalcMotorCounts(ActuatorParams& params, const CableVarsBase& cable)
 {
-  return CalcMotorCounts(params.winch.CountsToMetersFactor(), cable.length,
+  return CalcMotorCounts(params.winch.transmission_ratio, cable.length,
                          params.pulley.radius, cable.tan_ang);
 }
 

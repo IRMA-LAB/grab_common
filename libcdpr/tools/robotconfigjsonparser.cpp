@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.cpp
  * @author Simone Comari
- * @date 05 Aug 2019
+ * @date 28 Nov 2019
  * @brief This file includes definitions of class declared in robotconfigjsonparser.h.
  */
 
@@ -106,15 +106,13 @@ void RobotConfigJsonParser::PrintConfig() const
                                                      : "INACTIVE\n--------------")
               << "\n Winch:\n-----------"
               << "\n   l0\t\t" << config_params_.actuators[i].winch.l0
-              << "\n   drum_pitch\t" << config_params_.actuators[i].winch.drum_pitch
-              << "\n   drum_diameter\t" << config_params_.actuators[i].winch.drum_diameter
-              << "\n   gear_ratio\t" << config_params_.actuators[i].winch.gear_ratio
-              << "\n   motor_encoder_res\t"
-              << config_params_.actuators[i].winch.motor_encoder_res
+              << "\n   transmission_ratio\t"
+              << config_params_.actuators[i].winch.transmission_ratio
               << "\n   pos_PA_loc\n"
               << config_params_.actuators[i].winch.pos_PA_loc
               << "\n Swivel Pulley:\n--------------------"
-              << "\n   encoder_res\t" << config_params_.actuators[i].pulley.encoder_res
+              << "\n   transmission_ratio\t"
+              << config_params_.actuators[i].pulley.transmission_ratio
               << "\n   radius\t\t" << config_params_.actuators[i].pulley.radius
               << "\n   pos_OD_glob\n"
               << config_params_.actuators[i].pulley.pos_OD_glob << "   vers_i\n"
@@ -137,6 +135,17 @@ bool RobotConfigJsonParser::ExtractConfig(const json& raw_data)
 
 bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
 {
+  try
+  {
+    config_params_.platform.rot_parametrization =
+      str2RotParametrization(raw_data["rotation_parametrization"]);
+  }
+  catch (std::exception)
+  {
+    std::cerr << "[ERROR] Missing or invalid rotation parametrization" << std::endl;
+    return false;
+  }
+
   if (raw_data.count("platform") != 1)
   {
     std::cerr << "[ERROR] Missing or invalid platform structure!" << std::endl;
@@ -146,10 +155,8 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
   std::string field;
   try
   {
-    field                                       = "rotation_parametrization";
-    config_params_.platform.rot_parametrization = str2RotParametrization(platform[field]);
-    field                                       = "mass";
-    config_params_.platform.mass                = platform[field];
+    field                        = "mass";
+    config_params_.platform.mass = platform[field];
     for (uint8_t i = 0; i < 3; i++)
     {
       field                                         = "ext_force_loc";
@@ -172,11 +179,6 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
               << std::endl;
     return false;
   }
-  catch (std::exception)
-  {
-    std::cerr << "[ERROR] Missing or invalid rotation parametrization" << std::endl;
-    return false;
-  }
   return ArePlatformParamsValid();
 }
 
@@ -194,20 +196,13 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
     grabcdpr::ActuatorParams temp;
     try
     {
-      field                        = "active";
-      subfield                     = "";
-      temp.active                  = actuator[field];
-      field                        = "winch";
-      subfield                     = "drum_pitch";
-      temp.winch.drum_pitch        = actuator[field][subfield];
-      subfield                     = "drum_diameter";
-      temp.winch.drum_diameter     = actuator[field][subfield];
-      subfield                     = "gear_ratio";
-      temp.winch.gear_ratio        = actuator[field][subfield];
-      subfield                     = "l0";
-      temp.winch.l0                = actuator[field][subfield];
-      subfield                     = "motor_encoder_res";
-      temp.winch.motor_encoder_res = actuator[field][subfield];
+      field                         = "active";
+      temp.active                   = actuator[field];
+      field                         = "winch";
+      subfield                      = "transmission_ratio";
+      temp.winch.transmission_ratio = actuator[field][subfield];
+      subfield                      = "l0";
+      temp.winch.l0                 = actuator[field][subfield];
 
       for (uint8_t i = 0; i < 3; i++)
       {
@@ -226,10 +221,10 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
         temp.pulley.vers_k(i + 1)      = actuator[field][subfield].at(i).at(0);
       }
 
-      subfield                = "encoder_res";
-      temp.pulley.encoder_res = actuator[field][subfield];
-      subfield                = "radius";
-      temp.pulley.radius      = actuator[field][subfield];
+      subfield                       = "transmission_ratio";
+      temp.pulley.transmission_ratio = actuator[field][subfield];
+      subfield                       = "radius";
+      temp.pulley.radius             = actuator[field][subfield];
     }
     catch (json::type_error)
     {
@@ -238,7 +233,7 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
       return false;
     }
 
-    if (!AreCableParamsValid(temp))
+    if (!AreActuatorsParamsValid(temp))
       return false;
     config_params_.actuators.push_back(temp);
   }
@@ -287,7 +282,7 @@ bool RobotConfigJsonParser::ArePlatformParamsValid() const
   return ret;
 }
 
-bool RobotConfigJsonParser::AreCableParamsValid(
+bool RobotConfigJsonParser::AreActuatorsParamsValid(
   const grabcdpr::ActuatorParams& params) const
 {
   bool ret = true;
@@ -298,34 +293,9 @@ bool RobotConfigJsonParser::AreCableParamsValid(
     ret = false;
   }
 
-  if (params.winch.drum_diameter < 0.0)
+  if (params.winch.transmission_ratio <= 0.0)
   {
-    std::cerr << "[ERROR] motor drum diameter must be positive!" << std::endl;
-    ret = false;
-  }
-
-  if (params.winch.drum_pitch <= 0.0)
-  {
-    std::cerr << "[ERROR] motor drum pitch must be strictly positive!" << std::endl;
-    ret = false;
-  }
-
-  if (params.winch.gear_ratio <= 0.0)
-  {
-    std::cerr << "[ERROR] motor gear ration must be strictly positive!" << std::endl;
-    ret = false;
-  }
-
-  if (params.winch.motor_encoder_res <= 0.0)
-  {
-    std::cerr << "[ERROR] motor encoder resolution must be strictly positive!"
-              << std::endl;
-    ret = false;
-  }
-
-  if (params.pulley.encoder_res <= 0.0)
-  {
-    std::cerr << "[ERROR] swivel pulley encoder resolution must be strictly positive!"
+    std::cerr << "[ERROR] winch transmission ratio must be strictly positive!"
               << std::endl;
     ret = false;
   }
