@@ -322,6 +322,18 @@ template <typename T, uint dim> double Mean(const VectorX<T, dim>& vvect);
  */
 template <typename T, uint dim> double Std(const VectorX<T, dim>& vvect);
 
+/**
+ * Returns a identity matrix of defined statis dimension.
+ * @return A matrix.
+ */
+template <uint dim> MatrixXd<dim, dim> Eye() { return MatrixXd<dim, dim>(1.0); }
+
+/**
+ * Returns a zero matrix of defined statis dimensions.
+ * @return A matrix.
+ */
+template <uint rows, uint cols> MatrixXd<rows, cols> Zeros();
+
 } //  end namespace grabnum
 
 // This is a trick to define templated functions in a source file.

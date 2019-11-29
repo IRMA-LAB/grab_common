@@ -397,4 +397,9 @@ template <typename T, uint dim> double Std(const VectorX<T, dim>& vvect)
   return sqrt(static_cast<double>(sum) / static_cast<double>(dim));
 }
 
+template <uint rows, uint cols> MatrixXd<rows, cols> Zeros()
+{
+  return MatrixXd<rows, cols>();
+}
+
 } //  end namespace grabnum

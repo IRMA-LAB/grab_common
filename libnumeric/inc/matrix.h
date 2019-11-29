@@ -1,7 +1,7 @@
 /**
  * @file matrix.h
  * @author Edoardo Idà, Simone Comari
- * @date 30 Aug 2019
+ * @date 29 Nov 2019
  * @brief File containing matrix class and utilities to be included in the GRAB numeric
  * library.
  *
@@ -15,8 +15,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <typeinfo>
 #include <stdexcept>
+#include <typeinfo>
 
 #include "common.h"
 
@@ -81,8 +81,7 @@ template <typename T, uint rows, uint cols> class Matrix
    * @param[in] iterator pointing at the end of the array data.
    * @see Fill()
    */
-  template <class IteratorType>
-  Matrix(IteratorType it, IteratorType end);
+  template <class IteratorType> Matrix(IteratorType it, IteratorType end);
   /**
    * Parametrized constructor from another matrix with the same shape and size.
    * Makes a copy of the given matrix. It also handle automatic casting in case of
@@ -444,8 +443,7 @@ template <typename T, uint rows, uint cols> class Matrix
    * @param[in] iterator pointing at the end of the array data.
    * @return A reference to @c *this.
    */
-  template <class IteratorType>
-  Matrix_t& Fill(IteratorType it, IteratorType end);
+  template <class IteratorType> Matrix_t& Fill(IteratorType it, IteratorType end);
 
   /**
    * Returns the transposed matrix.
@@ -562,6 +560,18 @@ using Vector3l                      = Vector3<long>;   /**< 3D vector of long */
 using Vector3f                      = Vector3<float>;  /**< 3D vector of float */
 using Vector3d                      = Vector3<double>; /**< 3D vector of double */
 
+template <typename T> using Vector4 = Matrix<T, 4, 1>; /**< generic 4D vector */
+using Vector4i                      = Vector4<int>;    /**< 3D vector of int */
+using Vector4l                      = Vector4<long>;   /**< 3D vector of long */
+using Vector4f                      = Vector4<float>;  /**< 3D vector of float */
+using Vector4d                      = Vector4<double>; /**< 3D vector of double */
+
+template <typename T> using Vector6 = Matrix<T, 6, 1>; /**< generic 6D vector */
+using Vector6i                      = Vector6<int>;    /**< 3D vector of int */
+using Vector6l                      = Vector6<long>;   /**< 3D vector of long */
+using Vector6f                      = Vector6<float>;  /**< 3D vector of float */
+using Vector6d                      = Vector6<double>; /**< 3D vector of double */
+
 template <typename T> using Matrix2 = Matrix<T, 2, 2>; /**< generic 2x2 matrix */
 using Matrix2i                      = Matrix2<int>;    /**< 2x2 matrix of int */
 using Matrix2l                      = Matrix2<long>;   /**< 2x2 matrix of long */
@@ -580,6 +590,12 @@ using Matrix4l                      = Matrix4<long>;   /**< 4x4 matrix of long *
 using Matrix4f                      = Matrix4<float>;  /**< 4x4 matrix of float */
 using Matrix4d                      = Matrix4<double>; /**< 4x4 matrix of double */
 
+template <typename T> using Matrix6 = Matrix<T, 6, 6>; /**< generic 6x6 matrix */
+using Matrix6i                      = Matrix6<int>;    /**< 4x4 matrix of int */
+using Matrix6l                      = Matrix6<long>;   /**< 4x4 matrix of long */
+using Matrix6f                      = Matrix6<float>;  /**< 4x4 matrix of float */
+using Matrix6d                      = Matrix6<double>; /**< 4x4 matrix of double */
+
 template <uint rows, uint cols>
 using MatrixXi = Matrix<int, rows, cols>; /**< generic mxn matrix of int */
 template <uint rows, uint cols>
@@ -589,13 +605,27 @@ using MatrixXf = Matrix<float, rows, cols>; /**< generic mxn matrix of float */
 template <uint rows, uint cols>
 using MatrixXd = Matrix<double, rows, cols>; /**< generic mxn matrix of double */
 
-template <typename T, uint dim> using VectorX = Matrix<T, dim, 1>; /**< generic vector */
-template <uint dim> using VectorXi = Matrix<int, dim, 1>;  /**< generic vector of int */
-template <uint dim> using VectorXl = Matrix<long, dim, 1>; /**< generic vector of long */
+template <typename T, uint dim>
+using VectorX = Matrix<T, dim, 1>; /**< generic vertical vector */
 template <uint dim>
-using VectorXf = Matrix<float, dim, 1>; /**< generic vector of float */
+using VectorXi = Matrix<int, dim, 1>; /**< generic vertical vector of int */
 template <uint dim>
-using VectorXd = Matrix<double, dim, 1>; /**< generic vector of double */
+using VectorXl = Matrix<long, dim, 1>; /**< generic vertical vector of long */
+template <uint dim>
+using VectorXf = Matrix<float, dim, 1>; /**< generic vertical vector of float */
+template <uint dim>
+using VectorXd = Matrix<double, dim, 1>; /**< generic vertical vector of double */
+
+template <typename T, uint dim>
+using RowVectorX = Matrix<T, 1, dim>; /**< generic horizontal vector */
+template <uint dim>
+using RowVectorXi = Matrix<int, 1, dim>; /**< generic horizontal vector of int */
+template <uint dim>
+using RowVectorXl = Matrix<long, 1, dim>; /**< generic horizontal vector of long */
+template <uint dim>
+using RowVectorXf = Matrix<float, 1, dim>; /**< generic horizontal vector of float */
+template <uint dim>
+using RowVectorXd = Matrix<double, 1, dim>; /**< generic horizontal vector of double */
 
 } //  end namespace grabnum
 
