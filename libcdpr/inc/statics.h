@@ -73,12 +73,12 @@ void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& param
  * @brief CalCablesTensionStat
  * @param vars
  */
-void CalCablesTensionStat(RobotVars& vars);
+void CalCablesStaticTension(RobotVars& vars);
 /**
  * @brief CalCablesTensionStat
  * @param vars
  */
-void CalCablesTensionStat(RobotVarsQuat& vars);
+void CalCablesStaticTension(RobotVarsQuat& vars);
 
 /**
  * @brief calcGeometricStatic

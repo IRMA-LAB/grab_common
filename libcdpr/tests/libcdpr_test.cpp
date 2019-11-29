@@ -895,9 +895,9 @@ void LibcdprTest::testCalCablesTensionStat()
   addRobot2WS(robot, "cdpr_v");
 
   // Call C++ function implementation to be tested
-  QBENCHMARK { grabcdpr::CalCablesTensionStat(robot); }
+  QBENCHMARK { grabcdpr::CalCablesStaticTension(robot); }
   // Call the corresponding MATLAB
-  matlab_ptr_->eval(u"cdpr_v = CalcCablesTensionStat(cdpr_v);");
+  matlab_ptr_->eval(u"cdpr_v = CalcCablesStaticTension(cdpr_v);");
 
   // Get matlab results
   grabcdpr::RobotVars matlab_robot = getRobotFromWS("cdpr_v");
@@ -916,7 +916,7 @@ void LibcdprTest::testCalcGsJacobians()
   grabnum::Vector3d orientation({0.23, -0.16, 0.03}); // FIND A FEASIBLE ORIENTATION
   grabcdpr::UpdateIK0(position, orientation, params_, robot);
   grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
-  grabcdpr::CalCablesTensionStat(robot);
+  grabcdpr::CalCablesStaticTension(robot);
   arma::mat Ja(robot.cables.size(), robot.cables.size(), arma::fill::randu);
   arma::mat Ju(robot.cables.size(), POSE_DIM - robot.cables.size(), arma::fill::randu);
   grabnum::Vector3d mg = params_.platform.mass * params_.platform.gravity_acc;
@@ -937,7 +937,7 @@ void LibcdprTest::testCalcGsJacobians()
   arma::mat Jq;
   QBENCHMARK { grabcdpr::CalcGsJacobians(robot, Ja, Ju, mg, Jq); }
   // Call the corresponding MATLAB
-  matlab_ptr_->eval(u"J_q = CalcGsJacobians(cdpr_v, Ja, Ju, mg);");
+  matlab_ptr_->eval(u"J_q = CalcJacobianGs(cdpr_v);");
 
   // Get matlab results
   matlab::data::TypedArray<double> J_q = matlab_ptr_->getVariable(u"J_q");

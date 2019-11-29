@@ -67,7 +67,7 @@ void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& param
     4, 1, platform.h_mat.Transpose() * platform.ext_load.GetBlock<3, 1>(4, 1));
 }
 
-void CalCablesTensionStat(RobotVars& vars)
+void CalCablesStaticTension(RobotVars& vars)
 {
   arma::mat A         = -vars.geom_jabobian * vars.geom_jabobian.t();
   arma::vec b         = -vars.geom_jabobian * toArmaVec(vars.platform.ext_load);
@@ -81,7 +81,7 @@ void CalCablesTensionStat(RobotVars& vars)
   }
 }
 
-void CalCablesTensionStat(RobotVarsQuat& vars)
+void CalCablesStaticTension(RobotVarsQuat& vars)
 {
   arma::mat A = -vars.geom_jabobian * vars.geom_jabobian.t();
   arma::vec b = -vars.geom_jabobian * toArmaVec(vars.platform.ext_load, false);
