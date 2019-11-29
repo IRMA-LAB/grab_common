@@ -259,16 +259,36 @@ void CalcCableVectors(const PulleyParams& params, CableVarsBase& cable);
  *
  * Given current cable vector @f$\boldsymbol{\rho}_i@f$, cable length is nothing but:
  * @f[
- * l_i = \|\boldsymbol{\rho}_i\|
+ * l_i = \|\boldsymbol{\rho}_i\| + r_i(\pi - \psi_i)
  * @f]
+ * @param[in] pulley_radius [m] Swivel pulley radius in meters.
  * @param[in] pos_BA_glob [m] Cable vector @f$\boldsymbol{\rho}_i@f$.
+ * @param[in] tan_ang [rad] Tangent angle @f$\psi_i@f$.
  * @return Cable length @f$l_i@f$ in meters.
  * @note See @ref legend for symbols reference.
  * @note This expression results from the application of the 3<sup>rd</sup> kinematic
  * constraint
  * @f[ \boldsymbol{\rho}_i \cdot \boldsymbol{\rho}_i = l_i^2 @f]
  */
-double CalcCableLen(const Vector3d& pos_BA_glob);
+double CalcCableLen(const double pulley_radius, const Vector3d& pos_BA_glob,
+                    const double tan_ang);
+
+/**
+ * @brief Calculate cable length @f$l_i@f$.
+ *
+ * Given current cable vector @f$\boldsymbol{\rho}_i@f$, cable length is nothing but:
+ * @f[
+ * l_i = \|\boldsymbol{\rho}_i\| + r_i(\pi - \psi_i)
+ * @f]
+ * @param[in] params Swivel pulley parameters.
+ * @param[in] cable A pointer to the cable structure.
+ * @return Cable length @f$l_i@f$ in meters.
+ * @note See @ref legend for symbols reference.
+ * @note This expression results from the application of the 3<sup>rd</sup> kinematic
+ * constraint
+ * @f[ \boldsymbol{\rho}_i \cdot \boldsymbol{\rho}_i = l_i^2 @f]
+ */
+double CalcCableLen(const PulleyParams& params, CableVarsBase& cable);
 
 /**
  * @brief Calculate motor counts @f$q_i@f$.
@@ -407,10 +427,9 @@ void CalcRobustDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
  */
 bool SolveDK0(const std::vector<double>& cables_length,
               const std::vector<double>& swivel_angles,
-              const VectorXd<POSE_DIM>& init_guess_pose,
-              const RobotParams& params, VectorXd<POSE_DIM>& platform_pose,
-              const bool use_gs_jacob = false, const uint8_t nmax = 100,
-              uint8_t* iter_out = nullptr);
+              const VectorXd<POSE_DIM>& init_guess_pose, const RobotParams& params,
+              VectorXd<POSE_DIM>& platform_pose, const bool use_gs_jacob = false,
+              const uint8_t nmax = 100, uint8_t* iter_out = nullptr);
 
 /**
  * @brief UpdateDK0

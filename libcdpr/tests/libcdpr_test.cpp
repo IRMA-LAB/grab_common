@@ -272,10 +272,10 @@ void LibcdprTest::addRobot2WS(const grabcdpr::RobotVars& robot,
   // Create variables
   auto geom_jabobian =
     factory_.createArray<double>({robot.cables.size(), POSE_DIM},
-                                 robot.geom_jabobian.begin(), robot.geom_jabobian.end());
+                                 robot.geom_jacobian.begin(), robot.geom_jacobian.end());
   auto anal_jabobian =
     factory_.createArray<double>({robot.cables.size(), POSE_DIM},
-                                 robot.anal_jabobian.begin(), robot.anal_jabobian.end());
+                                 robot.anal_jacobian.begin(), robot.anal_jacobian.end());
   auto tension_vector = factory_.createArray<double>(
     {robot.cables.size(), 1}, robot.tension_vector.begin(), robot.tension_vector.end());
   // Put variables in the MATLAB workspace
@@ -461,11 +461,11 @@ grabcdpr::RobotVars LibcdprTest::getRobotFromWS(const std::string& var_name)
   std::vector<double> geom_jabobian_std(geometric_jacobian.begin(),
                                         geometric_jacobian.end());
   matlab::data::ArrayDimensions dims = geometric_jacobian.getDimensions();
-  robot.geom_jabobian = arma::mat(geom_jabobian_std.data(), dims[0], dims[1]);
+  robot.geom_jacobian = arma::mat(geom_jabobian_std.data(), dims[0], dims[1]);
   std::vector<double> anal_jabobian_std(analitic_jacobian.begin(),
                                         analitic_jacobian.end());
   dims                = analitic_jacobian.getDimensions();
-  robot.anal_jabobian = arma::mat(anal_jabobian_std.data(), dims[0], dims[1]);
+  robot.anal_jacobian = arma::mat(anal_jabobian_std.data(), dims[0], dims[1]);
   return robot;
 }
 
@@ -845,9 +845,9 @@ void LibcdprTest::testUpdateUpdateIKZeroOrd()
     QVERIFY(
       robot.cables[i].anal_jacob_row.IsApprox(matlab_robot.cables[i].anal_jacob_row));
   }
-  QVERIFY(arma::approx_equal(robot.geom_jabobian, matlab_robot.geom_jabobian, "absdiff",
+  QVERIFY(arma::approx_equal(robot.geom_jacobian, matlab_robot.geom_jacobian, "absdiff",
                              EPSILON));
-  QVERIFY(arma::approx_equal(robot.anal_jabobian, matlab_robot.anal_jabobian, "absdiff",
+  QVERIFY(arma::approx_equal(robot.anal_jacobian, matlab_robot.anal_jacobian, "absdiff",
                              EPSILON));
   QVERIFY(arma::approx_equal(robot.tension_vector, matlab_robot.tension_vector, "absdiff",
                              EPSILON));

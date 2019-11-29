@@ -118,9 +118,15 @@ void CalcCableVectors(const PulleyParams& params, CableVarsBase& cable)
   CalcCableVectors(params, cable.vers_u, cable.pos_DA_glob, cable.tan_ang, cable);
 }
 
-double CalcCableLen(const grabnum::Vector3d& pos_BA_glob)
+double CalcCableLen(const double pulley_radius, const grabnum::Vector3d& pos_BA_glob,
+                    const double tan_ang)
 {
-  return grabnum::Norm(pos_BA_glob);
+  return grabnum::Norm(pos_BA_glob) + pulley_radius * (M_PI - tan_ang);
+}
+
+double CalcCableLen(const PulleyParams& params, CableVarsBase& cable)
+{
+  return CalcCableLen(params.radius, cable.pos_BA_glob, cable.tan_ang);
 }
 
 double CalcMotorCounts(const double tau, const double cable_len,
@@ -165,9 +171,9 @@ void UpdateCableZeroOrd(const ActuatorParams& params, const PlatformVars& platfo
     CalcSwivelAngle(params.pulley, cable); // from 1st kinematic constraint.
   CalcPulleyVersors(params.pulley, cable);
   cable.tan_ang =
-    CalcTangentAngle(params.pulley, cable);       // from 2nd kinematic constraint.
-  CalcCableVectors(params.pulley, cable);         // from 1st kinematic constraint.
-  cable.length = CalcCableLen(cable.pos_BA_glob); // from 3rd kinematic constraint.
+    CalcTangentAngle(params.pulley, cable);          // from 2nd kinematic constraint.
+  CalcCableVectors(params.pulley, cable);            // from 1st kinematic constraint.
+  cable.length = CalcCableLen(params.pulley, cable); // from 3rd kinematic constraint.
   UpdateJacobiansRow(platform.h_mat, cable);
 }
 
@@ -179,9 +185,9 @@ void UpdateCableZeroOrd(const ActuatorParams& params, const PlatformQuatVars& pl
     CalcSwivelAngle(params.pulley, cable); // from 1st kinematic constraint.
   CalcPulleyVersors(params.pulley, cable);
   cable.tan_ang =
-    CalcTangentAngle(params.pulley, cable);       // from 2nd kinematic constraint.
-  CalcCableVectors(params.pulley, cable);         // from 1st kinematic constraint.
-  cable.length = CalcCableLen(cable.pos_BA_glob); // from 3rd kinematic constraint.
+    CalcTangentAngle(params.pulley, cable);          // from 2nd kinematic constraint.
+  CalcCableVectors(params.pulley, cable);            // from 1st kinematic constraint.
+  cable.length = CalcCableLen(params.pulley, cable); // from 3rd kinematic constraint.
   UpdateJacobiansRow(platform.h_mat, cable);
 }
 
@@ -191,16 +197,16 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orien
   UpdatePlatformPose(position, orientation, params.platform, vars.platform);
   // Safety check
   std::vector<id_t> active_actuators_id = params.activeActuatorsId();
-  if (vars.geom_jabobian.n_rows != active_actuators_id.size())
-    vars.geom_jabobian.resize(active_actuators_id.size(), POSE_DIM);
-  if (vars.anal_jabobian.n_rows != active_actuators_id.size())
-    vars.anal_jabobian.resize(active_actuators_id.size(), POSE_DIM);
+  if (vars.geom_jacobian.n_rows != active_actuators_id.size())
+    vars.geom_jacobian.resize(active_actuators_id.size(), POSE_DIM);
+  if (vars.anal_jacobian.n_rows != active_actuators_id.size())
+    vars.anal_jacobian.resize(active_actuators_id.size(), POSE_DIM);
   for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
   {
     UpdateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
                        vars.cables[i]);
-    vars.geom_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
-    vars.anal_jabobian.row(i) = arma::rowvec6(vars.cables[i].anal_jacob_row.Data());
+    vars.geom_jacobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
+    vars.anal_jacobian.row(i) = arma::rowvec6(vars.cables[i].anal_jacob_row.Data());
   }
 }
 
@@ -210,16 +216,16 @@ void UpdateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& or
   UpdatePlatformPose(position, orientation, params.platform, vars.platform);
   // Safety check
   std::vector<id_t> active_actuators_id = params.activeActuatorsId();
-  if (vars.geom_jabobian.n_rows != active_actuators_id.size())
-    vars.geom_jabobian.resize(active_actuators_id.size(), POSE_DIM);
-  if (vars.anal_jabobian.n_rows != active_actuators_id.size())
-    vars.anal_jabobian.resize(active_actuators_id.size(), POSE_QUAT_DIM);
+  if (vars.geom_jacobian.n_rows != active_actuators_id.size())
+    vars.geom_jacobian.resize(active_actuators_id.size(), POSE_DIM);
+  if (vars.anal_jacobian.n_rows != active_actuators_id.size())
+    vars.anal_jacobian.resize(active_actuators_id.size(), POSE_QUAT_DIM);
   for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
   {
     UpdateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
                        vars.cables[i]);
-    vars.geom_jabobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
-    vars.anal_jabobian.row(i) = arma::rowvec7(vars.cables[i].anal_jacob_row.Data());
+    vars.geom_jacobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
+    vars.anal_jacobian.row(i) = arma::rowvec7(vars.cables[i].anal_jacob_row.Data());
   }
 }
 
@@ -273,7 +279,7 @@ static void DK0OptimizationFunc(const RobotParams& params, const arma::vec& cabl
   RobotVars vars(kNumCables, params.platform.rot_parametrization);
   UpdateIK0(fromArmaVec3(pose.head(3)), fromArmaVec3(pose.tail(3)), params, vars);
 
-  arma::mat Ja = vars.geom_jabobian.cols(arma::span(0, kNumCables - 1));
+  arma::mat Ja = vars.geom_jacobian.cols(arma::span(0, kNumCables - 1));
   arma::mat J_sl;
   CalcDK0Jacobians(vars, Ja, J_sl); // only kinematics
 
@@ -397,8 +403,8 @@ static void RobustDK0OptimizationFunc(const RobotParams& params,
   UpdateIK0(fromArmaVec3(pose.head(3)), fromArmaVec3(pose.tail(3)), params, vars);
   UpdateExternalLoads(grabnum::Matrix3d(1.0), params.platform, vars.platform);
 
-  arma::mat Ja        = vars.geom_jabobian.head_cols(kNumCables);
-  arma::mat Ju        = vars.geom_jabobian.tail_cols(kNumUncontrolledDof);
+  arma::mat Ja        = vars.geom_jacobian.head_cols(kNumCables);
+  arma::mat Ju        = vars.geom_jacobian.tail_cols(kNumUncontrolledDof);
   arma::vec ext_load  = toArmaVec(vars.platform.ext_load);
   arma::vec Wa        = ext_load.head(kNumCables);
   arma::vec Wu        = ext_load.tail(kNumUncontrolledDof);

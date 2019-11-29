@@ -69,8 +69,8 @@ void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& param
 
 void CalCablesStaticTension(RobotVars& vars)
 {
-  arma::mat A         = -vars.geom_jabobian * vars.geom_jabobian.t();
-  arma::vec b         = -vars.geom_jabobian * toArmaVec(vars.platform.ext_load);
+  arma::mat A         = -vars.geom_jacobian * vars.geom_jacobian.t();
+  arma::vec b         = -vars.geom_jacobian * toArmaVec(vars.platform.ext_load);
   vars.tension_vector = arma::solve(A, b);
   // Tensions cannot be negative
   if (vars.tension_vector.min() < 0.0)
@@ -83,8 +83,8 @@ void CalCablesStaticTension(RobotVars& vars)
 
 void CalCablesStaticTension(RobotVarsQuat& vars)
 {
-  arma::mat A = -vars.geom_jabobian * vars.geom_jabobian.t();
-  arma::vec b = -vars.geom_jabobian * toArmaVec(vars.platform.ext_load, false);
+  arma::mat A = -vars.geom_jacobian * vars.geom_jacobian.t();
+  arma::vec b = -vars.geom_jacobian * toArmaVec(vars.platform.ext_load, false);
   arma::solve(A, b, vars.tension_vector);
 }
 
@@ -118,12 +118,12 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
   for (uint i = 0; i < POSE_DIM; i++)
     if (mask(i + 1) == 1)
     {
-      Ja.col(act_idx) = vars.geom_jabobian.col(i);
+      Ja.col(act_idx) = vars.geom_jacobian.col(i);
       Wa(act_idx++) = vars.platform.ext_load(i + 1); // index of grabnum vect starts at 1
     }
     else
     {
-      Ju.col(unact_idx) = vars.geom_jabobian.col(i);
+      Ju.col(unact_idx) = vars.geom_jacobian.col(i);
       Wu(unact_idx++) =
         vars.platform.ext_load(i + 1); // index of grabnum vect starts at 1
     }
@@ -164,12 +164,12 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
   for (uint i = 0; i < POSE_QUAT_DIM; i++)
     if (mask(i + 1) == 1)
     {
-      Ja.col(act_idx) = vars.geom_jabobian.col(i);
+      Ja.col(act_idx) = vars.geom_jacobian.col(i);
       Wa(act_idx++) = vars.platform.ext_load(i + 1); // index of grabnum vect starts at 1
     }
     else
     {
-      Ju.col(unact_idx) = vars.geom_jabobian.col(i);
+      Ju.col(unact_idx) = vars.geom_jacobian.col(i);
       Wu(unact_idx++) =
         vars.platform.ext_load(i + 1); // index of grabnum vect starts at 1
     }
