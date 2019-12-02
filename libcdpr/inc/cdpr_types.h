@@ -177,6 +177,7 @@
 #include <armadillo>
 
 #include "matrix_utilities.h"
+
 #include "quaternions.h"
 #include "rotations.h"
 
@@ -215,9 +216,13 @@ struct PlatformParams
   RotParametrization rot_parametrization; /**< rotation parametrization used. */
   grabnum::Matrix3d inertia_mat_G_loc;    /**< inertia matrix. */
   grabnum::Vector3d
+    ext_force_loc; /**< [N] external force vector expressed in the local frame. */
+  grabnum::Vector3d
     ext_torque_loc; /**< [Nm] external torque vector expressed in the local frame. */
   grabnum::Vector3d
-    ext_force_loc; /**< [N] external force vector expressed in the local frame. */
+    ext_force_glob; /**< [N] external force vector expressed in the global frame. */
+  grabnum::Vector3d
+    ext_torque_glob; /**< [Nm] external torque vector expressed in the global frame. */
   grabnum::Vector3d pos_PG_loc;  /**< [m] vector @f$^\mathcal{P}\mathbf{p}'_G@f$. */
   double mass = 0.0;             /**< [Kg] platform mass (@f$m@f$). */
   grabnum::Vector3d gravity_acc; /**< [m/s^2] gravity acceleration wrt global frame. */
@@ -242,17 +247,17 @@ struct PulleyParams
    * @brief PulleyAngleFactorRad
    * @return
    */
-  inline double PulleyAngleFactorRad() const { return transmission_ratio; }
+  inline double pulleyAngleFactorRad() const { return transmission_ratio; }
   /**
    * @brief PulleyAngleFactorDeg
    * @return
    */
-  inline double PulleyAngleFactorDeg() const { return transmission_ratio * 180. / M_PI; }
+  inline double pulleyAngleFactorDeg() const { return transmission_ratio * 180. / M_PI; }
 
   /**
    * @brief Fix versors to ensure orthogonality and being unit vectors.
    */
-  void OrthogonalizeVersors()
+  void orthogonalizeVersors()
   {
     vers_k = vers_k / grabnum::Norm(vers_k);
     vers_i = grabnum::Cross(vers_j, vers_k);
@@ -367,22 +372,6 @@ struct PlatformVarsBase
     total_load; /**< vector containing components of total external and dynamic forces and
                  moments, expressed in the global frame. */
   /** @} */     // end of Dynamics group
-
-  /**
-   * @brief Update inertial matrices, that is mass and inertia matrix.
-   * @param[in] params Platform parameters.
-   * @ingroup Dynamics
-   */
-  void updateInertialMatrices(const PlatformParams& params)
-  {
-    grabnum::Matrix3d anti_com = grabnum::Skew(pos_PG_glob);
-    inertia_mat_glob = rot_mat * params.inertia_mat_G_loc * rot_mat.Transpose() -
-                       params.mass * anti_com * anti_com;
-    mass_mat_glob.SetBlock<3, 3>(1, 1, grabnum::Matrix3d(params.mass));
-    mass_mat_glob.SetBlock<3, 3>(1, 4, -params.mass * anti_com);
-    mass_mat_glob.SetBlock<3, 3>(4, 1, params.mass * anti_com);
-    mass_mat_glob.SetBlock<3, 3>(4, 4, inertia_mat_glob);
-  }
 };
 
 /**
@@ -456,7 +445,7 @@ struct PlatformVars: PlatformVarsBase
                const RotParametrization _angles_type = TILT_TORSION)
   {
     angles_type = _angles_type;
-    UpdatePose(_position, _orientation);
+    updatePose(_position, _orientation);
   }
   /**
    * @brief Constructor to initialize platform vars with position and angles and their
@@ -477,8 +466,8 @@ struct PlatformVars: PlatformVarsBase
                const RotParametrization _angles_type = TILT_TORSION)
   {
     angles_type = _angles_type;
-    UpdatePose(_position, _orientation);
-    UpdateVel(_velocity, _orientation_dot);
+    updatePose(_position, _orientation);
+    updateVel(_velocity, _orientation_dot);
   }
   /**
    * @brief Constructor to initialize platform vars with position and angles and their
@@ -505,7 +494,7 @@ struct PlatformVars: PlatformVarsBase
                const RotParametrization _angles_type = TILT_TORSION)
   {
     angles_type = _angles_type;
-    Update(_position, _velocity, _acceleration, _orientation, _orientation_dot,
+    update(_position, _velocity, _acceleration, _orientation, _orientation_dot,
            _orientation_ddot);
   }
 
@@ -514,9 +503,9 @@ struct PlatformVars: PlatformVarsBase
    * @param[in] pose Platform pose, including both position and orientation.
    * @see UpdatePose()
    */
-  void SetPose(const grabnum::VectorXd<POSE_DIM> pose)
+  void setPose(const grabnum::VectorXd<POSE_DIM> pose)
   {
-    UpdatePose(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<3, 1>(4, 1));
+    updatePose(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<3, 1>(4, 1));
   }
 
   /**
@@ -529,7 +518,7 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdateVel() UpdateAcc() Update()
    * @note See @ref legend for more details.
    */
-  void UpdatePose(const grabnum::Vector3d& _position,
+  void updatePose(const grabnum::Vector3d& _position,
                   const grabnum::Vector3d& _orientation)
   {
     position    = _position;
@@ -573,12 +562,12 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdatePose() UpdateAcc() Update()
    * @note See @ref legend for more details.
    */
-  void UpdateVel(const grabnum::Vector3d& _velocity,
+  void updateVel(const grabnum::Vector3d& _velocity,
                  const grabnum::Vector3d& _orientation_dot,
                  const grabnum::Vector3d& _orientation)
   {
-    UpdatePose(position, _orientation); // update h_mat
-    UpdateVel(_velocity, _orientation_dot);
+    updatePose(position, _orientation); // update h_mat
+    updateVel(_velocity, _orientation_dot);
   }
 
   /**
@@ -592,7 +581,7 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdateVel()
    * @note See @ref legend for more details.
    */
-  void UpdateVel(const grabnum::Vector3d& _velocity,
+  void updateVel(const grabnum::Vector3d& _velocity,
                  const grabnum::Vector3d& _orientation_dot)
   {
     velocity        = _velocity;
@@ -613,7 +602,7 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdateVel() UpdatePose() Update()
    * @note See @ref legend for more details.
    */
-  void UpdateAcc(const grabnum::Vector3d& _acceleration,
+  void updateAcc(const grabnum::Vector3d& _acceleration,
                  const grabnum::Vector3d& _orientation_ddot,
                  const grabnum::Vector3d& _orientation_dot,
                  const grabnum::Vector3d& _orientation, const grabnum::Matrix3d& _h_mat)
@@ -653,10 +642,10 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdateAcc()
    * @note See @ref legend for more details.
    */
-  void UpdateAcc(const grabnum::Vector3d& _acceleration,
+  void updateAcc(const grabnum::Vector3d& _acceleration,
                  const grabnum::Vector3d& _orientation_ddot)
   {
-    UpdateAcc(_acceleration, _orientation_ddot, orientation_dot, orientation, h_mat);
+    updateAcc(_acceleration, _orientation_ddot, orientation_dot, orientation, h_mat);
   }
 
   /**
@@ -676,33 +665,15 @@ struct PlatformVars: PlatformVarsBase
    * @note See @ref legend for more details.
    * @see UpdatePose() UpdateVel() UpdateAcc()
    */
-  void Update(const grabnum::Vector3d& _position, const grabnum::Vector3d& _velocity,
+  void update(const grabnum::Vector3d& _position, const grabnum::Vector3d& _velocity,
               const grabnum::Vector3d& _acceleration,
               const grabnum::Vector3d& _orientation,
               const grabnum::Vector3d& _orientation_dot,
               const grabnum::Vector3d& _orientation_ddot)
   {
-    UpdatePose(_position, _orientation);
-    UpdateVel(_velocity, _orientation_dot);
-    UpdateAcc(_acceleration, _orientation_ddot);
-  }
-
-  /**
-   * @brief Update all inertial matrices, that is both mass and inertia matrix expressed
-   * in global frame and projected into state-space.
-   * @param[in] params Platform parameters.
-   * @ingroup Dynamics
-   * @see updateInertialMatrices
-   */
-  void updateInertialMatricesSs(const PlatformParams& params)
-  {
-    updateInertialMatrices(params);
-    mass_mat_glob_ss.SetBlock<3, 3>(1, 1, mass_mat_glob.GetBlock<3, 3>(1, 1));
-    mass_mat_glob_ss.SetBlock<3, 3>(1, 4, mass_mat_glob.GetBlock<3, 3>(1, 4) * h_mat);
-    mass_mat_glob_ss.SetBlock<3, 3>(
-      4, 1, h_mat.Transpose() * mass_mat_glob.GetBlock<3, 3>(4, 1));
-    mass_mat_glob_ss.SetBlock<3, 3>(
-      4, 4, h_mat.Transpose() * mass_mat_glob.GetBlock<3, 3>(4, 4) * h_mat);
+    updatePose(_position, _orientation);
+    updateVel(_velocity, _orientation_dot);
+    updateAcc(_acceleration, _orientation_ddot);
   }
 };
 
@@ -781,7 +752,7 @@ struct PlatformQuatVars: PlatformVarsBase
                    const grabgeom::Quaternion& _orientation_dot,
                    const grabgeom::Quaternion& _orientation_ddot)
   {
-    Update(_position, _velocity, _acceleration, _orientation, _orientation_dot,
+    update(_position, _velocity, _acceleration, _orientation, _orientation_dot,
            _orientation_ddot);
   }
 
@@ -791,10 +762,10 @@ struct PlatformQuatVars: PlatformVarsBase
    * quaternion.
    * @see UpdatePose()
    */
-  void SetPose(const grabnum::VectorXd<POSE_QUAT_DIM> pose)
+  void setPose(const grabnum::VectorXd<POSE_QUAT_DIM> pose)
   {
     grabgeom::Quaternion quaternion(pose.GetBlock<4, 1>(4, 1));
-    UpdatePose(pose.GetBlock<3, 1>(1, 1), quaternion);
+    updatePose(pose.GetBlock<3, 1>(1, 1), quaternion);
   }
 
   /**
@@ -807,7 +778,7 @@ struct PlatformQuatVars: PlatformVarsBase
    * @see UpdateVel() UpdateAcc()
    * @note See @ref legend for more details.
    */
-  void UpdatePose(const grabnum::Vector3d& _position,
+  void updatePose(const grabnum::Vector3d& _position,
                   const grabgeom::Quaternion& _orientation)
   {
     position    = _position;
@@ -832,7 +803,7 @@ struct PlatformQuatVars: PlatformVarsBase
    * @see UpdatePose() UpdateAcc()
    * @note See @ref legend for more details.
    */
-  void UpdateVel(const grabnum::Vector3d& _velocity,
+  void updateVel(const grabnum::Vector3d& _velocity,
                  const grabgeom::Quaternion& _orientation_dot,
                  const grabgeom::Quaternion& _orientation)
   {
@@ -853,10 +824,10 @@ struct PlatformQuatVars: PlatformVarsBase
    * @see UpdateVel()
    * @note See @ref legend for more details.
    */
-  void UpdateVel(const grabnum::Vector3d& _velocity,
+  void updateVel(const grabnum::Vector3d& _velocity,
                  const grabgeom::Quaternion& _orientation_dot)
   {
-    UpdateVel(_velocity, _orientation_dot, grabgeom::Quaternion(orientation));
+    updateVel(_velocity, _orientation_dot, grabgeom::Quaternion(orientation));
   }
 
   /**
@@ -870,7 +841,7 @@ struct PlatformQuatVars: PlatformVarsBase
    * @ingroup SecondOrderKinematics
    * @note See @ref legend for more details.
    */
-  void UpdateAcc(const grabnum::Vector3d& _acceleration,
+  void updateAcc(const grabnum::Vector3d& _acceleration,
                  const grabgeom::Quaternion& _orientation_ddot,
                  const grabgeom::Quaternion& _orientation_dot,
                  const grabnum::MatrixXd<3, 4>& _h_mat)
@@ -891,10 +862,10 @@ struct PlatformQuatVars: PlatformVarsBase
    * @ingroup SecondOrderKinematics
    * @note See @ref legend for more details.
    */
-  void UpdateAcc(const grabnum::Vector3d& _acceleration,
+  void updateAcc(const grabnum::Vector3d& _acceleration,
                  const grabgeom::Quaternion& _orientation_ddot)
   {
-    UpdateAcc(_acceleration, _orientation_ddot, grabgeom::Quaternion(orientation_dot),
+    updateAcc(_acceleration, _orientation_ddot, grabgeom::Quaternion(orientation_dot),
               h_mat);
   }
 
@@ -914,33 +885,15 @@ struct PlatformQuatVars: PlatformVarsBase
    * @note See @ref legend for more details.
    * @see UpdatePose() UpdateVel() UpdateAcc()
    */
-  void Update(const grabnum::Vector3d& _position, const grabnum::Vector3d& _velocity,
+  void update(const grabnum::Vector3d& _position, const grabnum::Vector3d& _velocity,
               const grabnum::Vector3d& _acceleration,
               const grabgeom::Quaternion& _orientation,
               const grabgeom::Quaternion& _orientation_dot,
               const grabgeom::Quaternion& _orientation_ddot)
   {
-    UpdatePose(_position, _orientation);
-    UpdateVel(_velocity, _orientation_dot);
-    UpdateAcc(_acceleration, _orientation_ddot);
-  }
-
-  /**
-   * @brief Update all inertial matrices, that is both mass and inertia matrix expressed
-   * in global frame and projected into state-space.
-   * @param[in] params Platform parameters.
-   * @ingroup Dynamics
-   * @see updateInertialMatrices
-   */
-  void updateInertialMatricesSs(const PlatformParams& params)
-  {
-    updateInertialMatrices(params);
-    mass_mat_glob_ss.SetBlock<3, 3>(1, 1, mass_mat_glob.GetBlock<3, 3>(1, 1));
-    mass_mat_glob_ss.SetBlock<3, 4>(1, 4, mass_mat_glob.GetBlock<3, 3>(1, 4) * h_mat);
-    mass_mat_glob_ss.SetBlock<4, 3>(
-      4, 1, h_mat.Transpose() * mass_mat_glob.GetBlock<3, 3>(4, 1));
-    mass_mat_glob_ss.SetBlock<4, 4>(
-      4, 4, h_mat.Transpose() * mass_mat_glob.GetBlock<3, 3>(4, 4) * h_mat);
+    updatePose(_position, _orientation);
+    updateVel(_velocity, _orientation_dot);
+    updateAcc(_acceleration, _orientation_ddot);
   }
 };
 

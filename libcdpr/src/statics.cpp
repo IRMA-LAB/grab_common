@@ -35,38 +35,6 @@ grabnum::Vector3d fromArmaVec3(const arma::vec3& vect)
 
 namespace grabcdpr {
 
-void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& params,
-                         PlatformVars& platform)
-{
-  platform.ext_load.SetBlock<3, 1>(
-    1, 1,
-    R * (params.mass * params.gravity_acc + platform.rot_mat * params.ext_force_loc));
-  platform.ext_load.SetBlock<3, 1>(4, 1,
-                                   grabnum::Skew(platform.pos_PG_glob) *
-                                       platform.ext_load.GetBlock<3, 1>(1, 1) +
-                                     platform.rot_mat * params.ext_torque_loc);
-
-  platform.ext_load_ss = platform.ext_load;
-  platform.ext_load_ss.SetBlock<3, 1>(
-    4, 1, platform.h_mat.Transpose() * platform.ext_load.GetBlock<3, 1>(4, 1));
-}
-
-void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& params,
-                         PlatformQuatVars& platform)
-{
-  platform.ext_load.SetBlock<3, 1>(
-    1, 1,
-    R * (params.mass * params.gravity_acc + platform.rot_mat * params.ext_force_loc));
-  platform.ext_load.SetBlock<3, 1>(4, 1,
-                                   grabnum::Skew(platform.pos_PG_glob) *
-                                       platform.ext_load.GetBlock<3, 1>(1, 1) +
-                                     platform.rot_mat * params.ext_torque_loc);
-
-  platform.ext_load_ss = platform.ext_load_ss;
-  platform.ext_load_ss.SetBlock<4, 1>(
-    4, 1, platform.h_mat.Transpose() * platform.ext_load.GetBlock<3, 1>(4, 1));
-}
-
 void CalCablesStaticTension(RobotVars& vars)
 {
   arma::mat A         = -vars.geom_jacobian * vars.geom_jacobian.t();
@@ -105,8 +73,8 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
 
   const ulong kNumCables = params.activeActuatorsNum();
   RobotVars vars(kNumCables, params.platform.rot_parametrization);
-  UpdateIK0(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<3, 1>(4, 1), params, vars);
-  UpdateExternalLoads(grabnum::Matrix3d(1.0), params.platform, vars.platform);
+  updateIK0(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<3, 1>(4, 1), params, vars);
+  updateExternalLoads(params.platform, vars.platform);
 
   arma::mat Ja(kNumCables, kNumCables, arma::fill::zeros);
   arma::mat Ju(kNumCables, POSE_DIM - kNumCables, arma::fill::zeros);
@@ -150,8 +118,8 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
       pose(i) = var_coord(vars_idx++);
 
   RobotVarsQuat vars(params.activeActuatorsNum());
-  UpdateIK0(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<4, 1>(4, 1), params, vars);
-  UpdateExternalLoads(grabnum::Matrix3d(0.0), params.platform, vars.platform);
+  updateIK0(pose.GetBlock<3, 1>(1, 1), pose.GetBlock<4, 1>(4, 1), params, vars);
+  updateExternalLoads(params.platform, vars.platform);
 
   const ulong kNumCables = params.actuators.size();
   arma::mat Ja(kNumCables, kNumCables, arma::fill::zeros);

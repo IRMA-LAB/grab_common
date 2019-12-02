@@ -2,8 +2,8 @@
  * @file diffkinematics.h
  * @author Edoardo Idà, Simone Comari
  * @date 02 Dec 2019
- * @brief File containing differential kinematics-related functions to be included in the
- * GRAB CDPR library.
+ * @brief File containing first-order differential kinematics-related functions to be
+ * included in the GRAB CDPR library.
  */
 
 #ifndef GRABCOMMON_LIBCDPR_DIFFKINEMATICS_H
@@ -47,9 +47,8 @@ namespace grabcdpr {
  * @param[out] platform The platform structure including vars to be updated.
  * @note See @ref legend for symbols reference.
  */
-void UpdatePlatformVel(const grabnum::Vector3d& velocity,
-                       const grabnum::Vector3d& orientation_dot,
-                       const grabnum::Vector3d& pos_PG_glob, PlatformVars& platform);
+void updatePlatformVel(const Vector3d& velocity, const Vector3d& orientation_dot,
+                       const Vector3d& pos_PG_glob, PlatformVars& platform);
 /**
  * @brief Update platform-related first-order quantities.
  *
@@ -71,9 +70,9 @@ void UpdatePlatformVel(const grabnum::Vector3d& velocity,
  * @param[out] platform The platform structure including vars to be updated.
  * @note See @ref legend for symbols reference.
  */
-void UpdatePlatformVel(const grabnum::Vector3d& velocity,
+void updatePlatformVel(const Vector3d& velocity,
                        const grabgeom::Quaternion& orientation_dot,
-                       const grabnum::Vector3d& pos_PG_glob, PlatformQuatVars& platform);
+                       const Vector3d& pos_PG_glob, PlatformQuatVars& platform);
 /**
  * @brief Update platform-related first-order quantities.
  * @param[in] velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
@@ -83,8 +82,8 @@ void UpdatePlatformVel(const grabnum::Vector3d& velocity,
  * updated.
  * @see UpdatePlatformVel()
  */
-void UpdatePlatformVel(const grabnum::Vector3d& velocity,
-                       const grabnum::Vector3d& orientation_dot, PlatformVars& platform);
+void updatePlatformVel(const Vector3d& velocity, const Vector3d& orientation_dot,
+                       PlatformVars& platform);
 /**
  * @brief Update platform-related first-order quantities.
  * @param[in] velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
@@ -94,7 +93,7 @@ void UpdatePlatformVel(const grabnum::Vector3d& velocity,
  * updated.
  * @see UpdatePlatformVel()
  */
-void UpdatePlatformVel(const grabnum::Vector3d& velocity,
+void updatePlatformVel(const Vector3d& velocity,
                        const grabgeom::Quaternion& orientation_dot,
                        PlatformQuatVars& platform);
 
@@ -113,8 +112,8 @@ void UpdatePlatformVel(const grabnum::Vector3d& velocity,
  * to be updated.
  * @note See @ref legend for symbols reference.
  */
-void UpdateVelA(const grabnum::Vector3d& pos_PA_glob, const PlatformVarsBase& platform,
-                CableVarsBase& cable);
+Vector3d calcVelA(const Vector3d& pos_PA_glob, const PlatformVarsBase& platform);
+
 /**
  * @brief Update global velocity of point @f$A_i@f$ and relative segments.
  * @param[in] platform The updated platform variables structure.
@@ -122,7 +121,7 @@ void UpdateVelA(const grabnum::Vector3d& pos_PA_glob, const PlatformVarsBase& pl
  * velocities to be updated.
  * @see UpdateVelA()
  */
-void UpdateVelA(const PlatformVarsBase& platform, CableVarsBase& cable);
+void updateVelA(const PlatformVarsBase& platform, CableVarsBase& cable);
 
 /**
  * @brief Calculate swivel pulley versors speed
@@ -141,9 +140,9 @@ void UpdateVelA(const PlatformVarsBase& platform, CableVarsBase& cable);
  * be updated.
  * @note See @ref legend for symbols reference.
  */
-void CalcPulleyVersorsDot(const grabnum::Vector3d& vers_u,
-                          const grabnum::Vector3d& vers_w, const double swivel_ang_vel,
-                          CableVarsBase& cable);
+void calcPulleyVersorsDot(const Vector3d& vers_u, const Vector3d& vers_w,
+                          const double swivel_ang_vel, Vector3d& vers_u_dot,
+                          Vector3d& vers_w_dot);
 /**
  * @brief Calculate swivel pulley versors speed.
  * @f$\dot{\hat{\mathbf{u}}}_i, \dot{\hat{\mathbf{w}}}_i@f$.
@@ -151,7 +150,7 @@ void CalcPulleyVersorsDot(const grabnum::Vector3d& vers_u,
  * their derivatives to be updated.
  * @see CalcPulleyVersorsDot()
  */
-void CalcPulleyVersorsDot(CableVarsBase& cable);
+void updatePulleyVersorsDot(CableVarsBase& cable);
 
 /**
  * @brief Calculate pulley swivel angle speed @f$\dot{\sigma}_i@f$.
@@ -170,17 +169,16 @@ void CalcPulleyVersorsDot(CableVarsBase& cable);
  * @return Swivel angle speed @f$\dot{\sigma}_i@f$ in _rad/s_.
  * @note See @ref legend for symbols reference.
  */
-double CalcSwivelAngSpeed(const grabnum::Vector3d& vers_u,
-                          const grabnum::Vector3d& vers_w,
-                          const grabnum::Vector3d& vel_OA_glob,
-                          const grabnum::Vector3d& pos_DA_glob);
+double calcSwivelAngSpeed(const Vector3d& vers_u, const Vector3d& vers_w,
+                          const Vector3d& vel_OA_glob, const Vector3d& pos_DA_glob);
+
 /**
  * @brief Calculate pulley swivel angle speed @f$\dot{\sigma}_i@f$.
  * @param[in] cable A pointer to the cable variables structure.
  * @return Swivel angle speed @f$\dot{\sigma}_i@f$ in _rad/s_.
  * @see CalcSwivelAngSpeed()
  */
-double CalcSwivelAngSpeed(const CableVarsBase& cable);
+void updateSwivelAngSpeed(CableVarsBase& cable);
 
 /**
  * @brief Calculate pulley tangent angle speed @f$\dot{\psi}_i@f$.
@@ -198,16 +196,15 @@ double CalcSwivelAngSpeed(const CableVarsBase& cable);
  * @return Tangent angle speed @f$\dot{\psi}_i@f$ in _rad/s_.
  * @note See @ref legend for symbols reference.
  */
-double CalcTangAngSpeed(const grabnum::Vector3d& vers_n,
-                        const grabnum::Vector3d& vel_OA_glob,
-                        const grabnum::Vector3d& pos_BA_glob);
+double calcTangAngSpeed(const Vector3d& vers_n, const Vector3d& vel_OA_glob,
+                        const Vector3d& pos_BA_glob);
 /**
  * @brief Calculate pulley tangent angle speed @f$\dot{\psi}_i@f$.
  * @param[in] cable A pointer to the cable variables structure.
  * @return Tangent angle speed @f$\dot{\psi}_i@f$ in _rad/s_.
  * @see CalcTangAngSpeed()
  */
-double CalcTangAngSpeed(const CableVarsBase& cable);
+void updateTangAngSpeed(CableVarsBase& cable);
 
 /**
  * @brief Calculate cable versors @f$\dot{\hat{\mathbf{n}}}_i,
@@ -232,8 +229,8 @@ double CalcTangAngSpeed(const CableVarsBase& cable);
  * calculated.
  * @note See @ref legend for symbols reference.
  */
-void CalcCableVersorsDot(const double pulley_radius, const grabnum::Vector3d& vers_w,
-                         const grabnum::Vector3d& vers_n, const grabnum::Vector3d& vers_t,
+void calcCableVersorsDot(const double pulley_radius, const Vector3d& vers_w,
+                         const Vector3d& vers_n, const Vector3d& vers_t,
                          const double tan_ang, const double tan_ang_vel,
                          const double swivel_ang_vel, CableVarsBase& cable);
 /**
@@ -243,7 +240,7 @@ void CalcCableVersorsDot(const double pulley_radius, const grabnum::Vector3d& ve
  * calculated and the updated input quantities.
  * @see CalcCableVersorsDot()
  */
-void CalcCableVersorsDot(const PulleyParams& params, CableVarsBase& cable);
+void updateCableVersorsDot(const PulleyParams& params, CableVarsBase& cable);
 
 /**
  * @brief Calculate cable speed @f$\dot{l}_i@f$.
@@ -258,28 +255,28 @@ void CalcCableVersorsDot(const PulleyParams& params, CableVarsBase& cable);
  * @return Cable speed @f$\dot{l}_i@f$ in _m/s_.
  * @note See @ref legend for symbols reference.
  */
-double CalcCableSpeed(const grabnum::Vector3d& vers_t,
-                      const grabnum::Vector3d& vel_OA_glob);
+double calcCableSpeed(const Vector3d& vers_t, const Vector3d& vel_OA_glob);
+
 /**
  * @brief Calculate cable speed @f$\dot{l}_i@f$.
  * @param[in] cable A pointer to the cable variables structure.
  * @return Cable speed @f$\dot{l}_i@f$ in _m/s_.
  * @see CalcCableSpeed()
  */
-double CalcCableSpeed(const CableVarsBase& cable);
+void updateCableSpeed(CableVarsBase& cable);
 
 /**
  * @brief UpdateJacobiansRowD
  * @param platform
  * @param cable
  */
-void UpdateJacobiansRowD(const PlatformVars& platform, CableVars& cable);
+void updateJacobiansRowD(const PlatformVars& platform, CableVars& cable);
 /**
  * @brief UpdateJacobiansRowD
  * @param platform
  * @param cable
  */
-void UpdateJacobiansRowD(const PlatformQuatVars& platform, CableVarsQuat& cable);
+void updateJacobiansRowD(const PlatformQuatVars& platform, CableVarsQuat& cable);
 
 /**
  * @brief Update all first-order variables of a single cable at once.
@@ -287,9 +284,9 @@ void UpdateJacobiansRowD(const PlatformQuatVars& platform, CableVarsQuat& cable)
  * @param[in,out] cable A pointer to the cable structure with updated zero-order variables
  * and first-order variables to be updated.
  */
-void UpdateCableFirstOrd(const PulleyParams& params, const PlatformVars& platform,
+void updateCableFirstOrd(const PulleyParams& params, const PlatformVars& platform,
                          CableVars& cable);
-void UpdateCableFirstOrd(const PulleyParams& params, const PlatformQuatVars& platform,
+void updateCableFirstOrd(const PulleyParams& params, const PlatformQuatVars& platform,
                          CableVarsQuat& cable);
 
 /**
@@ -299,9 +296,8 @@ void UpdateCableFirstOrd(const PulleyParams& params, const PlatformQuatVars& pla
  * @param[in,out] vars The robot structure with updated zero-order variables
  * and first-order variables to be updated.
  */
-void UpdateIK1(const grabnum::Vector3d& velocity,
-               const grabnum::Vector3d& orientation_dot, const RobotParams& params,
-               RobotVars& vars);
+void updateIK1(const Vector3d& velocity, const Vector3d& orientation_dot,
+               const RobotParams& params, RobotVars& vars);
 /**
  * @brief Update all robots first-order variables at once (inverse kinematics problem).
  * @param[in] velocity [m/s] Platform global linear velocity.
@@ -309,273 +305,10 @@ void UpdateIK1(const grabnum::Vector3d& velocity,
  * @param[in,out] vars The robot structure with updated zero-order variables
  * and first-order variables to be updated.
  */
-void UpdateIK1(const grabnum::Vector3d& velocity,
-               const grabnum::Vector4d& orientation_dot, const RobotParams& params,
-               RobotVarsQuat& vars);
+void updateIK1(const Vector3d& velocity, const Vector4d& orientation_dot,
+               const RobotParams& params, RobotVarsQuat& vars);
 
 /** @} */ // end of FirstOrderKinematics group
-
-/** @defgroup SecondOrderKinematics Second Order Kinematics
- * This group collects all elements related to second-order kinematics of a generic 6DoF
- * CDPR.
- * @{
- */
-
-/**
- * @brief Update platform-related second-order quantities.
- *
- * Given a new acceleration of the platform
- * @f$\ddot{\mathbf{x}} = (\ddot{\mathbf{p}}^T, \ddot{\boldsymbol{\varepsilon}}^T)^T
- * @f$, the following quantities are updated:
- * @f[
- * \boldsymbol{\alpha} = \dot{\mathbf{H}}
- * (\dot{\boldsymbol{\varepsilon}}, \boldsymbol{\varepsilon})
- * \dot{\boldsymbol{\varepsilon}} + \mathbf{H}(\boldsymbol{\varepsilon})
- * \ddot{\boldsymbol{\varepsilon}} \\
- * \ddot{\mathbf{r}} = \ddot{\mathbf{p}} + \boldsymbol{\alpha} \times \mathbf{p}'_G +
- * \boldsymbol{\omega}\times (\boldsymbol{\omega}\times \mathbf{p}'_G) =
- * \ddot{\mathbf{p}} + (\tilde{\mathbf{A}} +
- * \tilde{\boldsymbol{\Omega}} \tilde{\boldsymbol{\Omega}}) \mathbf{p}'_G
- * @f]
- * being @f$\tilde{\boldsymbol{\Omega}}, \tilde{\mathbf{A}}@f$ the anti-symmetric matrix
- * of @f$\boldsymbol{\omega}, \boldsymbol{\alpha}@f$ respectively.
- * @param[in] acceleration [m/s<sup>2</sup>] Platform global linear acceleration
- * @f$\ddot{\mathbf{p}}@f$.
- * @param[in] angles_acc [rad/s<sup>2</sup>] Platform orientation second time-derivative
- * @f$\ddot{\boldsymbol{\varepsilon}}@f$.
- * @param[in] pos_PG_glob [m] Global CoG position @f$\mathbf{p}'_G@f$.
- * @param[out] platform A pointer to the platform structure including vars to be updated.
- * @note See @ref legend for symbols reference.
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
- */
-void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
-                       const grabnum::Vector3d& angles_acc,
-                       const grabnum::Vector3d& pos_PG_glob, PlatformVars& platform);
-void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
-                       const grabgeom::Quaternion& quat_acc,
-                       const grabnum::Vector3d& pos_PG_glob, PlatformQuatVars& platform);
-/**
- * @brief Update platform-related second-order quantities.
- * @param[in] acceleration [m/s<sup>2</sup>] Platform global linear acceleration
- * @f$\ddot{\mathbf{p}}@f$.
- * @param[in] angles_acc [rad/s<sup>2</sup>] Platform orientation second time-derivative
- * @f$\ddot{\boldsymbol{\varepsilon}}@f$.
- * @param[in,out] platform A pointer to the platform structure including vars to be
- * updated.
- * @see UpdatePlatformAcc()
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
- */
-void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
-                       const grabnum::Vector3d& angles_acc, PlatformVars& platform);
-void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
-                       const grabgeom::Quaternion& angles_acc,
-                       PlatformQuatVars& platform);
-
-/**
- * @brief Update global velocity of point @f$A_i@f$ and relative segments.
- *
- * Given a current @f$\mathbf{a}'_i@f$ and platform variables, the following vector is
- * updated:
- * @f[
- * \ddot{\mathbf{a}}_i = \ddot{\mathbf{p}} + \boldsymbol{\alpha} \times \mathbf{a}'_i +
- * \boldsymbol{\omega}\times (\boldsymbol{\omega}\times \mathbf{a}'_i) =
- * \ddot{\mathbf{p}} + (\tilde{\mathbf{A}} +
- * \tilde{\boldsymbol{\Omega}} \tilde{\boldsymbol{\Omega}}) \mathbf{a}'_i
- * @f]
- * being @f$\tilde{\boldsymbol{\Omega}}, \tilde{\mathbf{A}}@f$ the anti-symmetric matrix
- * of @f$\boldsymbol{\omega}, \boldsymbol{\alpha}@f$ respectively.
- * @param[in] pos_PA_glob [m] Vector @f$\mathbf{a}'_i@f$.
- * @param[in] platform A pointer to the updated platform structure.
- * @param[out] cable A pointer to the cable structure including the accelerations to be
- * updated.
- * @note See @ref legend for symbols reference.
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
- */
-void UpdateAccA(const grabnum::Vector3d& pos_PA_glob, const PlatformVarsBase& platform,
-                CableVarsBase& cable);
-/**
- * @brief Update global velocity of point @f$A_i@f$ and relative segments.
- * @param[in] platform A pointer to the updated platform structure.
- * @param[in,out] cable A pointer to the cable structure including the accelerations to be
- * updated.
- * @see UpdateAccA()
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
- */
-void UpdateAccA(const PlatformVarsBase& platform, CableVarsBase& cable);
-
-/**
- * @brief Calculate pulley swivel angle acceleration @f$\ddot{\sigma}_i@f$.
- *
- * Given current @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i, \dot{\mathbf{a}}_i,
- * \boldsymbol{\rho}^*_i, \ddot{\mathbf{a}}_i, \dot{\sigma}_i@f$, the swivel angle
- * acceleration is calculated as:
- * @f[
- * \ddot{\sigma}_i = \frac{\hat{\mathbf{w}}_i \cdot \ddot{\mathbf{a}}_i -
- *        2 \hat{\mathbf{u}}_i \cdot \dot{\mathbf{a}}_i \dot{\sigma}_i}
- *        {\hat{\mathbf{u}}_i \cdot \boldsymbol{\rho}^*_i}
- * @f]
- * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
- * @param[in] vers_w Versor @f$\hat{\mathbf{w}}_i@f$.
- * @param[in] vel_OA_glob [m/s] Vector @f$\dot{\mathbf{a}}_i@f$.
- * @param[in] pos_DA_glob [m] Vector @f$\boldsymbol{\rho}^*_i@f$.
- * @param[in] acc_OA_glob [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{a}}_i@f$.
- * @param[in] swivel_ang_vel [rad/s] Swivel angle speed @f$\dot{\sigma}_i@f$.
- * @return Swivel angle acceleration @f$\ddot{\sigma}_i@f$ in _rad/s<sup>2</sup>_.
- * @note See @ref legend for symbols reference.
- */
-double CalcSwivelAngAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& vers_w,
-                        const grabnum::Vector3d& vel_OA_glob,
-                        const grabnum::Vector3d& pos_DA_glob,
-                        const grabnum::Vector3d& acc_OA_glob,
-                        const double swivel_ang_vel);
-/**
- * @brief Calculate pulley swivel angle acceleration @f$\ddot{\sigma}_i@f$.
- * @param[in] cable A pointer to the updated cable variables structure.
- * @return Swivel angle acceleration @f$\ddot{\sigma}_i@f$ in _rad/s<sup>2</sup>_.
- * @see CalcSwivelAngAcc()
- */
-double CalcSwivelAngAcc(const CableVarsBase& cable);
-
-/**
- * @brief Calculate pulley tangent angle acceleration @f$\ddot{\psi}_i@f$.
- *
- * Given current @f$\hat{\mathbf{u}}_i, \hat{\mathbf{n}}_i, \boldsymbol{\rho}^*_i,
- * \boldsymbol{\rho}_i, \ddot{\mathbf{a}}_i, \dot{l}_i, \psi_i, \dot{\psi}_i,
- * \dot{\sigma}_i@f$, the tangent angle acceleration is calculated as:
- * @f[
- * \ddot{\psi}_i = \frac{\hat{\mathbf{n}}_i \cdot \ddot{\mathbf{a}}_i +
- *        \hat{\mathbf{u}}_i \cdot \boldsymbol{\rho}^*_i \cos(\psi_i) \dot{\sigma}_i -
- *        (2 \dot{l}_i + r_i \dot{\psi}_i) \dot{\psi}_i}
- *        {\|\boldsymbol{\rho}_i\|}
- * @f]
- * being @f$r_i@f$ a known parameter.
- * @param[in] pulley_radius [m] Swivel pulley radius @f$r_i@f$.
- * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
- * @param[in] vers_n Versor @f$\hat{\mathbf{n}}_i@f$.
- * @param[in] pos_DA_glob [m] Vector @f$\boldsymbol{\rho}^*_i@f$.
- * @param[in] pos_BA_glob [m] Vector @f$\boldsymbol{\rho}_i@f$.
- * @param[in] acc_OA_glob [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{a}}_i@f$.
- * @param[in] speed [m/s] Cable speed @f$\dot{l}_i@f$.
- * @param[in] tan_ang [rad] Tangent angle @f$\psi_i@f$.
- * @param[in] tan_ang_vel [rad/s] Tangent angle speed @f$\dot{\psi}_i@f$.
- * @param[in] swivel_ang_vel [rad/s] See @f$\dot{\sigma}_i@f$.
- * @return Tangent angle acceleration @f$\ddot{\psi}_i@f$ in _rad/s<sup>2</sup>_.
- * @note See @ref legend for symbols reference.
- */
-double CalcTangAngAcc(const double pulley_radius, const grabnum::Vector3d& vers_u,
-                      const grabnum::Vector3d& vers_n,
-                      const grabnum::Vector3d& pos_DA_glob,
-                      const grabnum::Vector3d& pos_BA_glob,
-                      const grabnum::Vector3d& acc_OA_glob, const double speed,
-                      const double tan_ang, const double tan_ang_vel,
-                      const double swivel_ang_vel);
-/**
- * @brief Calculate pulley tangent angle acceleration @f$\ddot{\psi}_i@f$.
- * @param[in] pulley_radius [m] Swivel pulley radius @f$r_i@f$.
- * @param[in] cable A pointer to the updated cable variables structure.
- * @return Tangent angle acceleration @f$\ddot{\psi}_i@f$ in _rad/s<sup>2</sup>_.
- * @see CalcTangAngAcc()
- */
-double CalcTangAngAcc(const double pulley_radius, const CableVarsBase& cable);
-
-/**
- * @brief Calculate cable acceleration @f$\ddot{l}_i@f$.
- *
- * Given current @f$\hat{\mathbf{u}}_i, \hat{\mathbf{t}}_i, \ddot{\mathbf{a}}_i,
- * \boldsymbol{\rho}^*_i, \boldsymbol{\rho}_i, \psi_i, \dot{\psi}_i, \dot{\sigma}_i@f$,
- * the cable acceleration is calculated as:
- * @f[
- * \ddot{l}_i = \hat{\mathbf{u}}_i \cdot \boldsymbol{\rho}^*_i \sin(\psi_i)
- * \dot{\sigma}_i^2 +
- *        \|\boldsymbol{\rho}_i\| \dot{\psi}_i +
- *        \hat{\mathbf{t}}_i \cdot \ddot{\mathbf{a}}_i
- * @f]
- * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
- * @param[in] vers_t Versor @f$\hat{\mathbf{t}}_i@f$.
- * @param[in] pos_DA_glob [m] Vector @f$\boldsymbol{\rho}^*_i@f$.
- * @param[in] pos_BA_glob [m] Vector @f$\boldsymbol{\rho}_i@f$.
- * @param[in] acc_OA_glob [m/s<sup>2</sup>] Vector @f$\ddot{\mathbf{a}}_i@f$.
- * @param[in] tan_ang [rad] Tangent angle @f$\psi_i@f$.
- * @param[in] tan_ang_vel [rad/s] Tangent angle speed @f$\dot{\psi}_i@f$.
- * @param[in] swivel_ang_vel [rad/s] Swivel angle speed @f$\dot{\sigma}_i@f$.
- * @return Cable acceleration @f$\ddot{l}_i@f$ in _m/s<sup>2</sup>_.
- * @note See @ref legend for symbols reference.
- */
-double CalcCableAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& vers_t,
-                    const grabnum::Vector3d& pos_DA_glob,
-                    const grabnum::Vector3d& pos_BA_glob,
-                    const grabnum::Vector3d& acc_OA_glob, const double tan_ang,
-                    const double tan_ang_vel, const double swivel_ang_vel);
-/**
- * @brief Calculate cable acceleration @f$\ddot{l}_i@f$.
- * @param[in] cable A pointer to the updated cable variables structure.
- * @return Cable acceleration @f$\ddot{l}_i@f$ in _m/s<sup>2</sup>_.
- * @see CalcCableAcc()
- */
-double CalcCableAcc(const CableVarsBase& cable);
-
-/**
- * @brief Update all second-order variables of a single cable at once.
- * @param[in] params Swivel pulley parameters.
- * @param[in] platform A pointer to the updated platform structure.
- * @param[in,out] cable A pointer to the cable structure with updated zero and first-order
- * variables and second-order variables to be updated.
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
- */
-void UpdateCableSecondOrd(const PulleyParams& params, const PlatformVarsBase& platform,
-                          CableVarsBase& cable);
-
-/**
- * @brief Update all robots second-order variables at once (inverse kinematics problem).
- * @param[in] acceleration [m/s<sup>2</sup>] Platform global linear acceleration
- * @f$\ddot{\mathbf{p}}@f$.
- * @param[in] orientation_ddot [rad/s<sup>2</sup>] Platform orientation second
- * time-derivative
- * @f$\ddot{\boldsymbol{\varepsilon}}@f$.
- * @param[in] params A pointer to the robot parameters structure.
- * @param[in,out] vars A pointer to the robot structure with updated zero and first-order
- * variables and second-order variables to be updated.
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
- */
-void UpdateIK2(const grabnum::Vector3d& acceleration,
-               const grabnum::Vector3d& orientation_ddot, const RobotParams& params,
-               RobotParams& vars);
-void UpdateIK2(const grabnum::Vector3d& acceleration,
-               const grabgeom::Quaternion& orientation_ddot, const RobotParams& params,
-               RobotVarsQuat& vars);
-
-/** @} */ // end of SecondOrderKinematics group
-
-/**
- * @brief Update all robots variables at once (full inverse kinematics problem).
- * @param[in] position Platform global position.
- * @param[in] orientation Platform global orientation.
- * @param[in] velocity [m/s] Platform global linear velocity.
- * @param[in] orientation_dot Platform orientation time-derivative.
- * @param[in] acceleration [m/s<sup>2</sup>] Platform global linear acceleration.
- * @param[in] orientation_ddot Platform orientation time-derivative.
- * @param[in] params A pointer to the robot parameters structure.
- * @param[out] vars A pointer to the robot structure to be updated.
- * @note Both orientation parametrizations are valid here, that is both angles and
- * quaternions can be used.
- */
-void UpdateIK(const grabnum::Vector3d& position, const grabnum::Vector3d& orientation,
-              const grabnum::Vector3d& velocity, const grabnum::Vector3d& orientation_dot,
-              const grabnum::Vector3d& acceleration,
-              const grabnum::Vector3d& orientation_ddot, const RobotParams& params,
-              RobotVars& vars);
-void UpdateIK(const grabnum::Vector3d& position, const grabgeom::Quaternion& orientation,
-              const grabnum::Vector3d& velocity,
-              const grabgeom::Quaternion& orientation_dot,
-              const grabnum::Vector3d& acceleration,
-              const grabgeom::Quaternion& orientation_ddot, const RobotParams& params,
-              RobotVarsQuat& vars);
 
 } // end namespace grabcdpr
 

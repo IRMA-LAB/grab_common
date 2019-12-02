@@ -10,6 +10,7 @@
 
 #include "cdpr_types.h"
 #include "diffkinematics.h"
+#include "dynamics.h"
 #include "kinematics.h"
 #include "robotconfigjsonparser.h"
 #include "statics.h"
@@ -338,7 +339,8 @@ grabcdpr::CableVars LibcdprTest::getCableFromWS(const std::string& var_name)
   cable.speed          = matlab_ptr_->getProperty(cable_matlab, u"complete_speed")[0];
   cable.swivel_ang_vel = matlab_ptr_->getProperty(cable_matlab, u"swivel_ang_vel")[0];
   cable.tan_ang_vel    = matlab_ptr_->getProperty(cable_matlab, u"tan_ang_vel")[0];
-  cable.acceleration   = matlab_ptr_->getProperty(cable_matlab, u"complete_acceleration")[0];
+  cable.acceleration =
+    matlab_ptr_->getProperty(cable_matlab, u"complete_acceleration")[0];
   cable.swivel_ang_acc = matlab_ptr_->getProperty(cable_matlab, u"swivel_ang_acc")[0];
   cable.tan_ang_acc    = matlab_ptr_->getProperty(cable_matlab, u"tan_ang_acc")[0];
   cable.pos_PA_glob.Fill(pos_PA_glob.begin(), pos_PA_glob.end());
@@ -548,7 +550,7 @@ void LibcdprTest::testRobotConfigJsonParser()
   parser.GetConfigStruct(&params);
 
   // test display
-  parser.PrintConfig();
+//  parser.PrintConfig();
 }
 
 //--------- Kinematics ---------------//
@@ -576,7 +578,7 @@ void LibcdprTest::testUpdatePlatformPose()
   // Call C++ function implementation to be tested
   QBENCHMARK
   {
-    grabcdpr::UpdatePlatformPose(position, orientation, params_.platform.pos_PG_loc,
+    grabcdpr::updatePlatformPose(position, orientation, params_.platform.pos_PG_loc,
                                  platform);
   }
   // Call the corresponding MATLAB
@@ -607,7 +609,7 @@ void LibcdprTest::testUpdatePosA()
   addPlatform2WS(platform, "platform_v");
 
   // Call C++ function implementation to be tested
-  QBENCHMARK { grabcdpr::UpdatePosA(params_.actuators[0], platform, cable); }
+  QBENCHMARK { grabcdpr::updatePosA(params_.actuators[0], platform, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = "
                     u"UpdatePosA(cdpr_p.cable(1).pos_PA_loc, cdpr_p.cable(1).pos_OD_glob,"
@@ -631,7 +633,7 @@ void LibcdprTest::testCalcPulleyVersors()
   addCable2WS(cable, "cable_v");
 
   // Call C++ function implementation to be tested
-  QBENCHMARK { grabcdpr::CalcPulleyVersors(params_.actuators[0].pulley, cable); }
+  QBENCHMARK { grabcdpr::updatePulleyVersors(params_.actuators[0].pulley, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = CalcPulleyVersors(cdpr_p.cable(1).vers_i, "
                     u"cdpr_p.cable(1).vers_j, cable_v);");
@@ -658,7 +660,7 @@ void LibcdprTest::testCalcSwivelAngle()
   double swivel_angle;
   QBENCHMARK
   {
-    swivel_angle = grabcdpr::CalcSwivelAngle(params_.actuators[0].pulley, pos_DA_glob);
+    swivel_angle = grabcdpr::calcSwivelAngle(params_.actuators[0].pulley, pos_DA_glob);
   }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"swivel_angle = CalcSwivelAngle(cdpr_p.cable(1).vers_i, "
@@ -690,7 +692,7 @@ void LibcdprTest::testCalcTangentAngle()
   QBENCHMARK
   {
     tan_angle =
-      grabcdpr::CalcTangentAngle(params_.actuators[0].pulley, vers_u, pos_DA_glob);
+      grabcdpr::calcTangentAngle(params_.actuators[0].pulley, vers_u, pos_DA_glob);
   }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"tan_angle = CalcTangentAngle(cdpr_p.cable(1).vers_k, "
@@ -715,7 +717,7 @@ void LibcdprTest::testCalcCableVectors()
   addCable2WS(cable, "cable_v");
 
   // Call C++ function implementation to be tested
-  QBENCHMARK { grabcdpr::CalcCableVectors(params_.actuators[0].pulley, cable); }
+  QBENCHMARK { grabcdpr::updateCableVectors(params_.actuators[0].pulley, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = CalcCableVectors(cdpr_p.cable(1).swivel_pulley_r, "
                     u"cdpr_p.cable(1).vers_k, cable_v);");
@@ -742,7 +744,7 @@ void LibcdprTest::testUpdateJacobiansRow()
   matlab_ptr_->setVariable(u"h_mat", std::move(h_mat_matlab));
 
   // Call C++ function implementation to be tested
-  QBENCHMARK { grabcdpr::UpdateJacobiansRow(h_mat, cable); }
+  QBENCHMARK { grabcdpr::updateJacobiansRow(h_mat, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"[geometric, analitic] = CalcPlatformJacobianRow(cable_v.vers_t,"
                     u"cable_v.pos_PA_glob, h_mat);");
@@ -774,7 +776,7 @@ void LibcdprTest::testUpdateCableZeroOrd()
   addCable2WS(cable, "cable_v");
 
   // Call C++ function implementation to be tested
-  QBENCHMARK { grabcdpr::UpdateCableZeroOrd(params_.actuators[0], platform, cable); }
+  QBENCHMARK { grabcdpr::updateCableZeroOrd(params_.actuators[0], platform, cable); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = UpdateCableZeroOrd(cdpr_p.cable(1), "
                     u"platform_v, cable_v);");
@@ -816,7 +818,7 @@ void LibcdprTest::testUpdateUpdateIKZeroOrd()
   matlab_ptr_->setVariable(u"orientation", std::move(orientation_matlab));
 
   // Call C++ function implementation to be tested
-  QBENCHMARK { grabcdpr::UpdateIK0(position, orientation, params_, robot); }
+  QBENCHMARK { grabcdpr::updateIK0(position, orientation, params_, robot); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cdpr_v = UpdateIKZeroOrd(position, orientation, cdpr_p, cdpr_v);");
 
@@ -860,19 +862,17 @@ void LibcdprTest::testUpdateExternalLoads()
   // Setup dummy input
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
-  grabcdpr::UpdatePlatformPose(grabnum::Vector3d({1, 2, 3}),
+  grabcdpr::updatePlatformPose(grabnum::Vector3d({1, 2, 3}),
                                grabnum::Vector3d({0.5, 1.0, 1.5}), params_.platform,
                                robot.platform);
-  grabnum::Matrix3d R(1.0);
 
   // Load dummy input to Matlab workspace
   addRobot2WS(robot, "cdpr_v");
 
   // Call C++ function implementation to be tested
-  QBENCHMARK { grabcdpr::UpdateExternalLoads(R, params_.platform, robot.platform); }
+  QBENCHMARK { grabcdpr::updateAllExternalLoads(params_.platform, robot.platform); }
   // Call the corresponding MATLAB
-  matlab_ptr_->eval(
-    u"cdpr_v = CalcExternalLoadsStateSpace(cdpr_v, cdpr_p);");
+  matlab_ptr_->eval(u"cdpr_v = CalcExternalLoadsStateSpace(cdpr_v, cdpr_p);");
 
   // Get matlab results
   grabcdpr::RobotVars matlab_platform = getRobotFromWS("cdpr_v");
@@ -889,8 +889,8 @@ void LibcdprTest::testCalCablesTensionStat()
                             params_.platform.rot_parametrization);
   grabnum::Vector3d position({0.1, 1.5, 0.2});    // some feasible position
   grabnum::Vector3d orientation({0.0, 0.0, 0.0}); // FIND A FEASIBLE ORIENTATION
-  grabcdpr::UpdateIK0(position, orientation, params_, robot);
-  grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
+  grabcdpr::updateIK0(position, orientation, params_, robot);
+  grabcdpr::updateExternalLoads(params_.platform, robot.platform);
   // Load dummy input to Matlab workspace
   addRobot2WS(robot, "cdpr_v");
 
@@ -909,13 +909,14 @@ void LibcdprTest::testCalCablesTensionStat()
 
 void LibcdprTest::testCalcGsJacobians()
 {
+  return;
   // Setup dummy input
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
   grabnum::Vector3d position({0.1, 1.5, 0.2});        // some feasible position
   grabnum::Vector3d orientation({0.23, -0.16, 0.03}); // FIND A FEASIBLE ORIENTATION
-  grabcdpr::UpdateIK0(position, orientation, params_, robot);
-  grabcdpr::UpdateExternalLoads(grabnum::Matrix3d(1.0), params_.platform, robot.platform);
+  grabcdpr::updateIK0(position, orientation, params_, robot);
+  grabcdpr::updateExternalLoads(params_.platform, robot.platform);
   grabcdpr::CalCablesStaticTension(robot);
   arma::mat Ja(robot.cables.size(), robot.cables.size(), arma::fill::randu);
   arma::mat Ju(robot.cables.size(), POSE_DIM - robot.cables.size(), arma::fill::randu);
@@ -951,6 +952,7 @@ void LibcdprTest::testCalcGsJacobians()
 
 void LibcdprTest::testCalcGeometricStatic()
 {
+  return;
   // Setup dummy input
   arma::vec3 fixed_coord({0.1, 1.5, 0.2}); // pos
   arma::vec3 var_coord({0.0, 0, 0.0});     // orient
@@ -994,6 +996,7 @@ void LibcdprTest::testCalcGeometricStatic()
 
 void LibcdprTest::testNonLinsolveJacGeomStatic()
 {
+  return;
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   //  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0, 0, 0});
@@ -1045,7 +1048,7 @@ void LibcdprTest::testUpdateDK0()
                             params_.platform.rot_parametrization);
   grabnum::Vector3d position = init_guess.GetBlock<3, 1>(1, 1);
   grabnum::Vector3d orientation(true_orientation.begin(), true_orientation.end());
-  grabcdpr::UpdateIK0(position, orientation, params_, robot);
+  grabcdpr::updateIK0(position, orientation, params_, robot);
   // Perturbate pose
   robot.platform.pose +=
     grabnum::VectorXd<POSE_DIM>({0.01, -0.02, 0.001, 0.001, 0.002, -0.008});
@@ -1053,7 +1056,7 @@ void LibcdprTest::testUpdateDK0()
   bool ret = false;
 
   // Perform fast direct kinematics
-  QBENCHMARK { ret = grabcdpr::UpdateDK0(params_, robot); }
+  QBENCHMARK { ret = grabcdpr::updateDK0(params_, robot); }
 
   if (ret)
   {
@@ -1065,10 +1068,10 @@ void LibcdprTest::testUpdateDK0()
     std::cout << "could not solve fast DK0" << std::endl;
 
   // Reset to original pose
-  grabcdpr::UpdateIK0(position, orientation, params_, robot);
+  grabcdpr::updateIK0(position, orientation, params_, robot);
 
   // Perform robust direct kinematics
-  QBENCHMARK { ret = grabcdpr::UpdateDK0(params_, robot, true); }
+  QBENCHMARK { ret = grabcdpr::updateDK0(params_, robot, true); }
 
   if (ret)
   {

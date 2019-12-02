@@ -232,7 +232,7 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
                 << (subfield == "" ? "" : "-") << subfield << std::endl;
       return false;
     }
-    actuator_params.pulley.OrthogonalizeVersors(); // fix numerical issues
+    actuator_params.pulley.orthogonalizeVersors(); // fix numerical issues
 
     if (!AreActuatorsParamsValid(actuator_params))
       return false;

@@ -6,6 +6,7 @@
 
 #include "cdpr_types.h"
 #include "kinematics.h"
+#include "dynamics.h"
 
 using namespace grabnum;
 
@@ -45,29 +46,10 @@ grabnum::Vector3d fromArmaVec3(const arma::vec3& vect);
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
  */
 namespace grabcdpr {
-
-/**
- * @brief Computes the components of the external loads in terms of external forces and
- * moments acting on the platform.
- * @param[in] R A 3-by-3 matrix, that premultiplies the equation of dynamic equilibrium in
- * order to make the mass matrix symmetric.
- * @param[in] params A structure containing platform parameters.
- * @param[in,out] platform A structure containing updated platform pose and the external
- * loads to be updated.
+/** @defgroup Dynamics Dynamics
+ * This group collects all elements related to the dynamics of a generic 6DoF CDPR.
+ * @{
  */
-void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& params,
-                         PlatformVars& platform);
-/**
- * @brief Computes the components of the external loads in terms of external forces and
- * moments acting on the platform.
- * @param[in] R A 3-by-3 matrix, that premultiplies the equation of dynamic equilibrium in
- * order to make the mass matrix symmetric.
- * @param[in] params A structure containing platform parameters.
- * @param[in,out] platform A structure containing updated platform pose and the external
- * loads to be updated.
- */
-void UpdateExternalLoads(const grabnum::Matrix3d& R, const PlatformParams& params,
-                         PlatformQuatVars& platform);
 
 /**
  * @brief CalCablesTensionStat
@@ -116,6 +98,8 @@ arma::mat CalcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
                              const arma::mat& Ju, const Vector3d& mg);
 arma::mat CalcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,
                              const arma::mat& Ju, const Vector3d& mg);
+
+/** @} */ // end of Dynamics group
 
 } // end namespace grabcdpr
 
