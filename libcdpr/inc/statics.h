@@ -5,8 +5,8 @@
 #include "matrix_utilities.h"
 
 #include "cdpr_types.h"
-#include "kinematics.h"
 #include "dynamics.h"
+#include "kinematics.h"
 
 using namespace grabnum;
 
@@ -51,16 +51,19 @@ namespace grabcdpr {
  * @{
  */
 
+arma::vec calcCablesStaticTension(const arma::mat& geom_jacobian,
+                                  const Vector6d& ext_load);
+
 /**
  * @brief CalCablesTensionStat
  * @param vars
  */
-void CalCablesStaticTension(RobotVars& vars);
+void updateCablesStaticTension(RobotVars& vars);
 /**
  * @brief CalCablesTensionStat
  * @param vars
  */
-void CalCablesStaticTension(RobotVarsQuat& vars);
+void updateCablesStaticTension(RobotVarsQuat& vars);
 
 /**
  * @brief calcGeometricStatic
@@ -86,17 +89,17 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
  * @param mg
  * @return
  */
-void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
+void calcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
                      const Vector3d& mg, arma::mat& J_q);
-void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
+void calcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
                      const Vector3d& mg, arma::mat& J_q, arma::mat& J_sl);
-void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
+void calcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
                      const Vector3d& mg, arma::mat& J_q);
-void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
+void calcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
                      const Vector3d& mg, arma::mat& J_q, arma::mat& J_sl);
-arma::mat CalcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
+arma::mat calcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
                              const arma::mat& Ju, const Vector3d& mg);
-arma::mat CalcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,
+arma::mat calcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,
                              const arma::mat& Ju, const Vector3d& mg);
 
 /** @} */ // end of Dynamics group

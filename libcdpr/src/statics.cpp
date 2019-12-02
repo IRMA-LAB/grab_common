@@ -35,25 +35,31 @@ grabnum::Vector3d fromArmaVec3(const arma::vec3& vect)
 
 namespace grabcdpr {
 
-void CalCablesStaticTension(RobotVars& vars)
+arma::vec calcCablesStaticTension(const arma::mat& geom_jacobian,
+                                  const Vector6d& ext_load)
 {
-  arma::mat A         = -vars.geom_jacobian * vars.geom_jacobian.t();
-  arma::vec b         = -vars.geom_jacobian * toArmaVec(vars.platform.ext_load);
-  vars.tension_vector = arma::solve(A, b);
+  arma::mat A              = geom_jacobian * geom_jacobian.t();
+  arma::vec b              = geom_jacobian * toArmaVec(ext_load);
+  arma::vec tension_vector = arma::solve(A, b);
   // Tensions cannot be negative
-  if (vars.tension_vector.min() < 0.0)
+  if (tension_vector.min() < 0.0)
   {
     PrintColor('y', "WARNING: negative cables tension! Values will be clamped to 0.");
-    vars.tension_vector =
-      arma::clamp(vars.tension_vector, 0.0, vars.tension_vector.max());
+    tension_vector = arma::clamp(tension_vector, 0.0, tension_vector.max());
   }
+  return tension_vector;
 }
 
-void CalCablesStaticTension(RobotVarsQuat& vars)
+void updateCablesStaticTension(RobotVars& vars)
 {
-  arma::mat A = -vars.geom_jacobian * vars.geom_jacobian.t();
-  arma::vec b = -vars.geom_jacobian * toArmaVec(vars.platform.ext_load, false);
-  arma::solve(A, b, vars.tension_vector);
+  vars.tension_vector =
+    calcCablesStaticTension(vars.geom_jacobian, vars.platform.ext_load);
+}
+
+void updateCablesStaticTension(RobotVarsQuat& vars)
+{
+  vars.tension_vector =
+    calcCablesStaticTension(vars.geom_jacobian, vars.platform.ext_load);
 }
 
 void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord,
@@ -98,7 +104,7 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
 
   vars.tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
   func_val            = Ju.t() * vars.tension_vector - Wu;
-  CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc,
+  calcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc,
                   fun_jacobian);
 }
 
@@ -144,11 +150,11 @@ void calcGeometricStatic(const RobotParams& params, const arma::vec& fixed_coord
 
   arma::vec tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
   func_val                 = Ju.t() * tension_vector - Wu;
-  CalcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc,
+  calcGsJacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc,
                   fun_jacobian);
 }
 
-void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
+void calcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
                      const Vector3d& mg, arma::mat& J_q)
 {
   static constexpr ulong m = POSE_DIM;  // DOF
@@ -192,7 +198,7 @@ void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat
     dfdq_arma(arma::span(n, m - 1), arma::span(n, m - 1));
 }
 
-void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
+void calcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat& Ju,
                      const Vector3d& mg, arma::mat& J_q, arma::mat& J_sl)
 {
   static constexpr ulong m = POSE_DIM;  // DOF
@@ -241,7 +247,7 @@ void CalcGsJacobians(const RobotVars& vars, const arma::mat& Ja, const arma::mat
     dfdq_arma(arma::span(n, m - 1), arma::span(n, m - 1));
 }
 
-void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
+void calcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
                      const Vector3d& mg, arma::mat& J_q)
 {
   static constexpr ulong m = POSE_QUAT_DIM; // DOF
@@ -282,7 +288,7 @@ void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma:
     dfdq_arma(arma::span(n, m - 1), arma::span(n, m - 1));
 }
 
-void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
+void calcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma::mat& Ju,
                      const Vector3d& mg, arma::mat& J_q, arma::mat& J_sl)
 {
   static constexpr ulong m = POSE_QUAT_DIM; // DOF
@@ -333,7 +339,7 @@ void CalcGsJacobians(const RobotVarsQuat& vars, const arma::mat& Ja, const arma:
     dfdq_arma(arma::span(n, m - 1), arma::span(n, m - 1));
 }
 
-arma::mat CalcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
+arma::mat calcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
                              const arma::mat& Ju, const Vector3d& mg)
 {
   const ulong n = Ja.n_cols; // num cables
@@ -393,7 +399,7 @@ arma::mat CalcGsJacobiansOld(const RobotVars& vars, const arma::mat& Ja,
   return J_q.tail_cols(m - n);
 }
 
-arma::mat CalcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,
+arma::mat calcGsJacobiansOld(const RobotVarsQuat& vars, const arma::mat& Ja,
                              const arma::mat& Ju, const Vector3d& mg)
 {
   const ulong n = Ja.n_cols;     // num cables
