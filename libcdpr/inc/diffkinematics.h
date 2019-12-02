@@ -1,7 +1,7 @@
 /**
  * @file diffkinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 29 Nov 2019
+ * @date 02 Dec 2019
  * @brief File containing differential kinematics-related functions to be included in the
  * GRAB CDPR library.
  */
@@ -9,11 +9,11 @@
 #ifndef GRABCOMMON_LIBCDPR_DIFFKINEMATICS_H
 #define GRABCOMMON_LIBCDPR_DIFFKINEMATICS_H
 
-#include "kinematics.h"
 #include "matrix_utilities.h"
 #include "rotations.h"
 
 #include "cdpr_types.h"
+#include "kinematics.h"
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
@@ -72,7 +72,7 @@ void UpdatePlatformVel(const grabnum::Vector3d& velocity,
  * @note See @ref legend for symbols reference.
  */
 void UpdatePlatformVel(const grabnum::Vector3d& velocity,
-                       const grabnum::Vector4d& orientation_dot,
+                       const grabgeom::Quaternion& orientation_dot,
                        const grabnum::Vector3d& pos_PG_glob, PlatformQuatVars& platform);
 /**
  * @brief Update platform-related first-order quantities.
@@ -95,7 +95,7 @@ void UpdatePlatformVel(const grabnum::Vector3d& velocity,
  * @see UpdatePlatformVel()
  */
 void UpdatePlatformVel(const grabnum::Vector3d& velocity,
-                       const grabnum::Vector4d& orientation_dot,
+                       const grabgeom::Quaternion& orientation_dot,
                        PlatformQuatVars& platform);
 
 /**
@@ -279,7 +279,7 @@ void UpdateJacobiansRowD(const PlatformVars& platform, CableVars& cable);
  * @param platform
  * @param cable
  */
-void UpdateJacobiansRowD(const PlatformQuatVars &platform, CableVarsQuat& cable);
+void UpdateJacobiansRowD(const PlatformQuatVars& platform, CableVarsQuat& cable);
 
 /**
  * @brief Update all first-order variables of a single cable at once.
@@ -349,10 +349,12 @@ void UpdateIK1(const grabnum::Vector3d& velocity,
  * @note Both orientation parametrizations are valid here, that is both angles and
  * quaternions can be used.
  */
-template <class OrientationType, class PlatformVarsType>
 void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
-                       const OrientationType& angles_acc,
-                       const grabnum::Vector3d& pos_PG_glob, PlatformVarsType* platform);
+                       const grabnum::Vector3d& angles_acc,
+                       const grabnum::Vector3d& pos_PG_glob, PlatformVars& platform);
+void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
+                       const grabgeom::Quaternion& quat_acc,
+                       const grabnum::Vector3d& pos_PG_glob, PlatformQuatVars& platform);
 /**
  * @brief Update platform-related second-order quantities.
  * @param[in] acceleration [m/s<sup>2</sup>] Platform global linear acceleration
@@ -365,9 +367,11 @@ void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
  * @note Both orientation parametrizations are valid here, that is both angles and
  * quaternions can be used.
  */
-template <class OrientationType, class PlatformVarsType>
 void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
-                       const OrientationType& angles_acc, PlatformVarsType* platform);
+                       const grabnum::Vector3d& angles_acc, PlatformVars& platform);
+void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
+                       const grabgeom::Quaternion& angles_acc,
+                       PlatformQuatVars& platform);
 
 /**
  * @brief Update global velocity of point @f$A_i@f$ and relative segments.
@@ -390,9 +394,8 @@ void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
  * @note Both orientation parametrizations are valid here, that is both angles and
  * quaternions can be used.
  */
-template <class PlatformVarsType>
-void UpdateAccA(const grabnum::Vector3d& pos_PA_glob, const PlatformVarsType* platform,
-                CableVars* cable);
+void UpdateAccA(const grabnum::Vector3d& pos_PA_glob, const PlatformVarsBase& platform,
+                CableVarsBase& cable);
 /**
  * @brief Update global velocity of point @f$A_i@f$ and relative segments.
  * @param[in] platform A pointer to the updated platform structure.
@@ -402,8 +405,7 @@ void UpdateAccA(const grabnum::Vector3d& pos_PA_glob, const PlatformVarsType* pl
  * @note Both orientation parametrizations are valid here, that is both angles and
  * quaternions can be used.
  */
-template <class PlatformVarsType>
-void UpdateAccA(const PlatformVarsType* platform, CableVars* cable);
+void UpdateAccA(const PlatformVarsBase& platform, CableVarsBase& cable);
 
 /**
  * @brief Calculate pulley swivel angle acceleration @f$\ddot{\sigma}_i@f$.
@@ -436,7 +438,7 @@ double CalcSwivelAngAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d
  * @return Swivel angle acceleration @f$\ddot{\sigma}_i@f$ in _rad/s<sup>2</sup>_.
  * @see CalcSwivelAngAcc()
  */
-double CalcSwivelAngAcc(const CableVars* cable);
+double CalcSwivelAngAcc(const CableVarsBase& cable);
 
 /**
  * @brief Calculate pulley tangent angle acceleration @f$\ddot{\psi}_i@f$.
@@ -478,7 +480,7 @@ double CalcTangAngAcc(const double pulley_radius, const grabnum::Vector3d& vers_
  * @return Tangent angle acceleration @f$\ddot{\psi}_i@f$ in _rad/s<sup>2</sup>_.
  * @see CalcTangAngAcc()
  */
-double CalcTangAngAcc(const double pulley_radius, const CableVars* cable);
+double CalcTangAngAcc(const double pulley_radius, const CableVarsBase& cable);
 
 /**
  * @brief Calculate cable acceleration @f$\ddot{l}_i@f$.
@@ -514,7 +516,7 @@ double CalcCableAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& ve
  * @return Cable acceleration @f$\ddot{l}_i@f$ in _m/s<sup>2</sup>_.
  * @see CalcCableAcc()
  */
-double CalcCableAcc(const CableVars* cable);
+double CalcCableAcc(const CableVarsBase& cable);
 
 /**
  * @brief Update all second-order variables of a single cable at once.
@@ -525,9 +527,8 @@ double CalcCableAcc(const CableVars* cable);
  * @note Both orientation parametrizations are valid here, that is both angles and
  * quaternions can be used.
  */
-template <class PlatformVarsType>
-void UpdateCableSecondOrd(const PulleyParams& params, const PlatformVarsType* platform,
-                          CableVars* cable);
+void UpdateCableSecondOrd(const PulleyParams& params, const PlatformVarsBase& platform,
+                          CableVarsBase& cable);
 
 /**
  * @brief Update all robots second-order variables at once (inverse kinematics problem).
@@ -542,10 +543,12 @@ void UpdateCableSecondOrd(const PulleyParams& params, const PlatformVarsType* pl
  * @note Both orientation parametrizations are valid here, that is both angles and
  * quaternions can be used.
  */
-template <class OrientationType, class VarsType>
 void UpdateIK2(const grabnum::Vector3d& acceleration,
-               const OrientationType& orientation_ddot, const RobotParams* params,
-               VarsType* vars);
+               const grabnum::Vector3d& orientation_ddot, const RobotParams& params,
+               RobotParams& vars);
+void UpdateIK2(const grabnum::Vector3d& acceleration,
+               const grabgeom::Quaternion& orientation_ddot, const RobotParams& params,
+               RobotVarsQuat& vars);
 
 /** @} */ // end of SecondOrderKinematics group
 
@@ -562,12 +565,17 @@ void UpdateIK2(const grabnum::Vector3d& acceleration,
  * @note Both orientation parametrizations are valid here, that is both angles and
  * quaternions can be used.
  */
-template <class OrientationType, class VarsType>
-void UpdateIK(const grabnum::Vector3d& position, const OrientationType& orientation,
-              const grabnum::Vector3d& velocity, const OrientationType& orientation_dot,
+void UpdateIK(const grabnum::Vector3d& position, const grabnum::Vector3d& orientation,
+              const grabnum::Vector3d& velocity, const grabnum::Vector3d& orientation_dot,
               const grabnum::Vector3d& acceleration,
-              const OrientationType& orientation_ddot, const RobotParams* params,
-              VarsType* vars);
+              const grabnum::Vector3d& orientation_ddot, const RobotParams& params,
+              RobotVars& vars);
+void UpdateIK(const grabnum::Vector3d& position, const grabgeom::Quaternion& orientation,
+              const grabnum::Vector3d& velocity,
+              const grabgeom::Quaternion& orientation_dot,
+              const grabnum::Vector3d& acceleration,
+              const grabgeom::Quaternion& orientation_ddot, const RobotParams& params,
+              RobotVarsQuat& vars);
 
 } // end namespace grabcdpr
 
