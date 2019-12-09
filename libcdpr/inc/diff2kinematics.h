@@ -53,7 +53,7 @@ namespace grabcdpr {
 void updatePlatformAcc(const Vector3d& acceleration, const Vector3d& angles_acc,
                        const Vector3d& pos_PG_glob, PlatformVars& platform);
 void updatePlatformAcc(const Vector3d& acceleration, const grabgeom::Quaternion& quat_acc,
-                       const Vector3d& pos_PG_glob, PlatformQuatVars& platform);
+                       const Vector3d& pos_PG_glob, PlatformVarsQuat& platform);
 /**
  * @brief Update platform-related second-order quantities.
  * @param[in] acceleration [m/s<sup>2</sup>] Platform global linear acceleration
@@ -70,7 +70,7 @@ void updatePlatformAcc(const Vector3d& acceleration, const Vector3d& angles_acc,
                        PlatformVars& platform);
 void updatePlatformAcc(const Vector3d& acceleration,
                        const grabgeom::Quaternion& angles_acc,
-                       PlatformQuatVars& platform);
+                       PlatformVarsQuat& platform);
 
 /**
  * @brief Update global velocity of point @f$A_i@f$ and relative segments.

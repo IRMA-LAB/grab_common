@@ -22,7 +22,7 @@ void updatePlatformPose(const grabnum::Vector3d& position,
 
 void updatePlatformPose(const grabnum::Vector3d& position,
                         const grabgeom::Quaternion& orientation,
-                        const grabnum::Vector3d& pos_PG_loc, PlatformQuatVars& platform)
+                        const grabnum::Vector3d& pos_PG_loc, PlatformVarsQuat& platform)
 {
   // Update platform pose.
   platform.updatePose(position, orientation);
@@ -40,7 +40,7 @@ void updatePlatformPose(const grabnum::Vector3d& position,
 
 void updatePlatformPose(const grabnum::Vector3d& position,
                         const grabgeom::Quaternion& orientation,
-                        const PlatformParams& params, PlatformQuatVars& platform)
+                        const PlatformParams& params, PlatformVarsQuat& platform)
 {
   updatePlatformPose(position, orientation, params.pos_PG_loc, platform);
 }
@@ -174,7 +174,7 @@ void updateCableZeroOrd(const ActuatorParams& params, const PlatformVars& platfo
   updateJacobiansRow(platform.h_mat, cable);
 }
 
-void updateCableZeroOrd(const ActuatorParams& params, const PlatformQuatVars& platform,
+void updateCableZeroOrd(const ActuatorParams& params, const PlatformVarsQuat& platform,
                         CableVarsQuat& cable)
 {
   updatePosA(params, platform, cable);     // update segments ending with point A_i.
@@ -190,38 +190,22 @@ void updateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orien
                const RobotParams& params, RobotVars& vars)
 {
   updatePlatformPose(position, orientation, params.platform, vars.platform);
-  // Safety check
   std::vector<id_t> active_actuators_id = params.activeActuatorsId();
-  if (vars.geom_jacobian.n_rows != active_actuators_id.size())
-    vars.geom_jacobian.resize(active_actuators_id.size(), POSE_DIM);
-  if (vars.anal_jacobian.n_rows != active_actuators_id.size())
-    vars.anal_jacobian.resize(active_actuators_id.size(), POSE_DIM);
   for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
-  {
     updateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
                        vars.cables[i]);
-    vars.geom_jacobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
-    vars.anal_jacobian.row(i) = arma::rowvec6(vars.cables[i].anal_jacob_row.Data());
-  }
+  vars.updateJacobians();
 }
 
 void updateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& orientation,
                const RobotParams& params, RobotVarsQuat& vars)
 {
   updatePlatformPose(position, orientation, params.platform, vars.platform);
-  // Safety check
   std::vector<id_t> active_actuators_id = params.activeActuatorsId();
-  if (vars.geom_jacobian.n_rows != active_actuators_id.size())
-    vars.geom_jacobian.resize(active_actuators_id.size(), POSE_DIM);
-  if (vars.anal_jacobian.n_rows != active_actuators_id.size())
-    vars.anal_jacobian.resize(active_actuators_id.size(), POSE_QUAT_DIM);
   for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
-  {
     updateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
                        vars.cables[i]);
-    vars.geom_jacobian.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_row.Data());
-    vars.anal_jacobian.row(i) = arma::rowvec7(vars.cables[i].anal_jacob_row.Data());
-  }
+  vars.updateJacobians();
 }
 
 void calcDK0Jacobians(const RobotVars& vars, const arma::mat& Ja, arma::mat& J_sl)

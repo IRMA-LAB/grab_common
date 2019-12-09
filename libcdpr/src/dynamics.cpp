@@ -57,7 +57,7 @@ void updateInertialMatricesGlobSS(PlatformVars& platform)
   calcMassMatrixGlobSS(platform.mass_mat_glob, platform.h_mat, platform.mass_mat_glob_ss);
 }
 
-void updateInertialMatricesGlobSS(PlatformQuatVars& platform)
+void updateInertialMatricesGlobSS(PlatformVarsQuat& platform)
 {
   calcMassMatrixGlobSS(platform.mass_mat_glob, platform.h_mat, platform.mass_mat_glob_ss);
 }
@@ -68,7 +68,7 @@ void updateAllInertialMatrices(const PlatformParams& params, PlatformVars& platf
   updateInertialMatricesGlobSS(platform);
 }
 
-void updateAllInertialMatrices(const PlatformParams& params, PlatformQuatVars& platform)
+void updateAllInertialMatrices(const PlatformParams& params, PlatformVarsQuat& platform)
 {
   updateInertialMatricesGlob(params, platform);
   updateInertialMatricesGlobSS(platform);
@@ -113,7 +113,7 @@ void updateExternalLoadsSS(PlatformVars& platform)
   platform.ext_load_ss = calcExternalLoadsSS(platform.ext_load, platform.h_mat);
 }
 
-void updateExternalLoadsSS(PlatformQuatVars& platform)
+void updateExternalLoadsSS(PlatformVarsQuat& platform)
 {
   platform.ext_load_ss = calcExternalLoadsSS(platform.ext_load, platform.h_mat);
 }
@@ -124,7 +124,7 @@ void updateAllExternalLoads(const PlatformParams& params, PlatformVars& platform
   updateExternalLoadsSS(platform);
 }
 
-void updateAllExternalLoads(const PlatformParams& params, PlatformQuatVars& platform)
+void updateAllExternalLoads(const PlatformParams& params, PlatformVarsQuat& platform)
 {
   updateExternalLoads(params, platform);
   updateExternalLoadsSS(platform);

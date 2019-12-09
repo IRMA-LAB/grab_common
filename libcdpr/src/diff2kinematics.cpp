@@ -25,7 +25,7 @@ void updatePlatformAcc(const Vector3d& acceleration, const Vector3d& orientation
 }
 
 void updatePlatformAcc(const Vector3d& acceleration, const grabgeom::Quaternion& quat_acc,
-                       const Vector3d& pos_PG_glob, PlatformQuatVars& platform)
+                       const Vector3d& pos_PG_glob, PlatformVarsQuat& platform)
 {
   // Update platform velocities.
   platform.updateAcc(acceleration, quat_acc);
@@ -42,7 +42,7 @@ void updatePlatformAcc(const Vector3d& acceleration, const Vector3d& orientation
 }
 
 void updatePlatformAcc(const Vector3d& acceleration, const grabgeom::Quaternion& quat_acc,
-                       PlatformQuatVars& platform)
+                       PlatformVarsQuat& platform)
 {
   updatePlatformAcc(acceleration, quat_acc, platform.pos_PG_glob, platform);
 }
@@ -51,7 +51,7 @@ Vector3d calcAccA(const Vector3d& pos_PA_glob, const PlatformVarsBase& platform)
 {
   Matrix3d Omega = Skew(platform.angular_vel);
   Vector3d acc_OA_glob =
-    platform.acceleration + (Skew(platform.angular_acc) + Omega * Omega) * pos_PA_glob;
+    platform.linear_acc + (Skew(platform.angular_acc) + Omega * Omega) * pos_PA_glob;
   return acc_OA_glob;
 }
 

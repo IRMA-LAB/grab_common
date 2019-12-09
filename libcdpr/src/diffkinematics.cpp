@@ -15,17 +15,17 @@ void updatePlatformVel(const Vector3d& velocity, const Vector3d& orientation_dot
   // Update platform velocities.
   platform.updateVel(velocity, orientation_dot);
   // Calculate platform baricenter velocity expressed in global frame.
-  platform.vel_OG_glob = platform.velocity + Cross(platform.angular_vel, pos_PG_glob);
+  platform.vel_OG_glob = platform.linear_vel + Cross(platform.angular_vel, pos_PG_glob);
 }
 
 void updatePlatformVel(const Vector3d& velocity,
                        const grabgeom::Quaternion& orientation_dot,
-                       const Vector3d& pos_PG_glob, PlatformQuatVars& platform)
+                       const Vector3d& pos_PG_glob, PlatformVarsQuat& platform)
 {
   // Update platform velocities.
   platform.updateVel(velocity, orientation_dot);
   // Calculate platform baricenter velocity expressed in global frame.
-  platform.vel_OG_glob = platform.velocity + Cross(platform.angular_vel, pos_PG_glob);
+  platform.vel_OG_glob = platform.linear_vel + Cross(platform.angular_vel, pos_PG_glob);
 }
 
 void updatePlatformVel(const Vector3d& velocity, const Vector3d& orientation_dot,
@@ -36,14 +36,14 @@ void updatePlatformVel(const Vector3d& velocity, const Vector3d& orientation_dot
 
 void updatePlatformVel(const Vector3d& velocity,
                        const grabgeom::Quaternion& orientation_dot,
-                       PlatformQuatVars& platform)
+                       PlatformVarsQuat& platform)
 {
   updatePlatformVel(velocity, orientation_dot, platform.pos_PG_glob, platform);
 }
 
 Vector3d calcVelA(const Vector3d& pos_PA_glob, const PlatformVarsBase& platform)
 {
-  return platform.velocity + Cross(platform.angular_vel, pos_PA_glob);
+  return platform.linear_vel + Cross(platform.angular_vel, pos_PA_glob);
 }
 
 void updateVelA(const PlatformVarsBase& platform, CableVarsBase& cable)
@@ -135,7 +135,7 @@ void updateJacobiansRowD(const PlatformVars& platform, CableVars& cable)
       cable.vers_t.Transpose() * Skew(cable.pos_PA_glob) * platform.dh_mat);
 }
 
-void updateJacobiansRowD(const PlatformQuatVars& platform, CableVarsQuat& cable)
+void updateJacobiansRowD(const PlatformVarsQuat& platform, CableVarsQuat& cable)
 {
   cable.geom_jacob_d_row.SetBlock<1, 3>(1, 1, cable.vers_t_dot.Transpose());
   cable.geom_jacob_d_row.SetBlock<1, 3>(
@@ -161,7 +161,7 @@ void updateCableFirstOrd(const PulleyParams& params, const PlatformVars& platfor
   updateJacobiansRowD(platform, cable);
 }
 
-void updateCableFirstOrd(const PulleyParams& params, const PlatformQuatVars& platform,
+void updateCableFirstOrd(const PulleyParams& params, const PlatformVarsQuat& platform,
                          CableVarsQuat& cable)
 {
   updateVelA(platform, cable);

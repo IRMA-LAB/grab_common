@@ -7,32 +7,6 @@
 
 #include "statics.h"
 
-arma::vec toArmaVec(Vector3d vect, bool copy /*= true*/)
-{
-  return arma::vec(vect.Data(), 3, copy);
-}
-
-arma::vec toArmaVec(VectorXd<POSE_DIM> vect, bool copy /*= true*/)
-{
-  return arma::vec(vect.Data(), POSE_DIM, copy);
-}
-
-arma::vec toArmaVec(VectorXd<POSE_QUAT_DIM> vect, bool copy /*= true*/)
-{
-  return arma::vec(vect.Data(), POSE_QUAT_DIM, copy);
-}
-
-arma::mat toArmaMat(Matrix3d mat, bool copy /*= true*/)
-{
-  // Data is filled column-by-column, that's why we need the transpose
-  return arma::mat(mat.Data(), 3, 3, copy).t();
-}
-
-grabnum::Vector3d fromArmaVec3(const arma::vec3& vect)
-{
-  return grabnum::Vector3d(vect.begin(), vect.end());
-}
-
 namespace grabcdpr {
 
 arma::vec calcCablesStaticTension(const arma::mat& geom_jacobian,

@@ -34,10 +34,10 @@ void calcMassMatrixGlobSS(const Matrix6d& mass_mat_glob, const Matrix3d& h_mat,
                           MatrixXd<POSE_QUAT_DIM, POSE_QUAT_DIM>& mass_mat_glob_ss);
 
 void updateInertialMatricesGlobSS(PlatformVars& platform);
-void updateInertialMatricesGlobSS(PlatformQuatVars& platform);
+void updateInertialMatricesGlobSS(PlatformVarsQuat& platform);
 
 void updateAllInertialMatrices(const PlatformParams& params, PlatformVars& platform);
-void updateAllInertialMatrices(const PlatformParams& params, PlatformQuatVars& platform);
+void updateAllInertialMatrices(const PlatformParams& params, PlatformVarsQuat& platform);
 
 Vector6d calcExternalLoads(const PlatformParams& params, const Vector3d& pos_PG_glob,
                            const Matrix3d& rot_mat);
@@ -54,10 +54,10 @@ VectorXd<POSE_QUAT_DIM> calcExternalLoadsSS(const Vector6d& ext_load,
                                             const MatrixXd<3, 4>& h_mat);
 
 void updateExternalLoadsSS(PlatformVars& platform);
-void updateExternalLoadsSS(PlatformQuatVars& platform);
+void updateExternalLoadsSS(PlatformVarsQuat& platform);
 
 void updateAllExternalLoads(const PlatformParams& params, PlatformVars& platform);
-void updateAllExternalLoads(const PlatformParams& params, PlatformQuatVars& platform);
+void updateAllExternalLoads(const PlatformParams& params, PlatformVarsQuat& platform);
 
 /** @} */ // end of Dynamics group
 

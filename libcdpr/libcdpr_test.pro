@@ -23,7 +23,7 @@ HEADERS += \
     $$PWD/inc/dynamics.h \
     $$PWD/tools/json.hpp \
     $$PWD/tools/robotconfigjsonparser.h \
-    $$PWD/../grabcommon.h \
+    $$PWD/../grabcommon.h
 
 SOURCES += \
     $$PWD/src/kinematics.cpp \
@@ -34,6 +34,7 @@ SOURCES += \
     $$PWD/tools/robotconfigjsonparser.cpp \
     $$PWD/tests/libcdpr_test.cpp \
     $$PWD/../grabcommon.cpp \
+    src/cdpr_types.cpp
 
 INCLUDEPATH += \
     $$PWD/inc \

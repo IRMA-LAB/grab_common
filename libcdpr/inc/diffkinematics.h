@@ -72,7 +72,7 @@ void updatePlatformVel(const Vector3d& velocity, const Vector3d& orientation_dot
  */
 void updatePlatformVel(const Vector3d& velocity,
                        const grabgeom::Quaternion& orientation_dot,
-                       const Vector3d& pos_PG_glob, PlatformQuatVars& platform);
+                       const Vector3d& pos_PG_glob, PlatformVarsQuat& platform);
 /**
  * @brief Update platform-related first-order quantities.
  * @param[in] velocity [m/s] Platform global linear velocity @f$\dot{\mathbf{p}}_P@f$.
@@ -95,7 +95,7 @@ void updatePlatformVel(const Vector3d& velocity, const Vector3d& orientation_dot
  */
 void updatePlatformVel(const Vector3d& velocity,
                        const grabgeom::Quaternion& orientation_dot,
-                       PlatformQuatVars& platform);
+                       PlatformVarsQuat& platform);
 
 /**
  * @brief Update global velocity of point @f$A_i@f$ and relative segments.
@@ -276,7 +276,7 @@ void updateJacobiansRowD(const PlatformVars& platform, CableVars& cable);
  * @param platform
  * @param cable
  */
-void updateJacobiansRowD(const PlatformQuatVars& platform, CableVarsQuat& cable);
+void updateJacobiansRowD(const PlatformVarsQuat& platform, CableVarsQuat& cable);
 
 /**
  * @brief Update all first-order variables of a single cable at once.
@@ -286,7 +286,7 @@ void updateJacobiansRowD(const PlatformQuatVars& platform, CableVarsQuat& cable)
  */
 void updateCableFirstOrd(const PulleyParams& params, const PlatformVars& platform,
                          CableVars& cable);
-void updateCableFirstOrd(const PulleyParams& params, const PlatformQuatVars& platform,
+void updateCableFirstOrd(const PulleyParams& params, const PlatformVarsQuat& platform,
                          CableVarsQuat& cable);
 
 /**

@@ -11,38 +11,6 @@
 using namespace grabnum;
 
 /**
- * @brief toCvMat
- * @param vect
- * @return
- */
-arma::vec toArmaVec(Vector3d vect, bool copy = true);
-/**
- * @brief toCvMat
- * @param vect
- * @return
- */
-arma::vec toArmaVec(VectorXd<POSE_DIM> vect, bool copy = true);
-/**
- * @brief toCvMat
- * @param vect
- * @return
- */
-arma::vec toArmaVec(VectorXd<POSE_QUAT_DIM> vect, bool copy = true);
-/**
- * @brief toCvMat
- * @param vect
- * @return
- */
-arma::mat toArmaMat(Matrix3d mat, bool copy = true);
-
-/**
- * @brief fromArmaVec3
- * @param vect
- * @return
- */
-grabnum::Vector3d fromArmaVec3(const arma::vec3& vect);
-
-/**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
  */
 namespace grabcdpr {

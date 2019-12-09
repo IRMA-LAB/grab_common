@@ -66,7 +66,7 @@ void updatePlatformPose(const Vector3d& position, const Vector3d& orientation,
  * @note See @ref legend for symbols reference.
  */
 void updatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& orientation,
-                        const Vector3d& pos_PG_loc, PlatformQuatVars& platform);
+                        const Vector3d& pos_PG_loc, PlatformVarsQuat& platform);
 /**
  * @brief Update platform-related zero-order quantities (implicit).
  * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
@@ -88,7 +88,7 @@ void updatePlatformPose(const Vector3d& position, const Vector3d& orientation,
  * @see UpdatePlatformPose()
  */
 void updatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& orientation,
-                        const PlatformParams& params, PlatformQuatVars& platform);
+                        const PlatformParams& params, PlatformVarsQuat& platform);
 
 /**
  * @brief calcPosA
@@ -350,7 +350,7 @@ void updateCableZeroOrd(const ActuatorParams& params, const PlatformVars& platfo
  * @param[in] params A pointer to _i-th_ cable parameters.
  * @param[out] cable A pointer to _i-th_ cable variables structure to be updated.
  */
-void updateCableZeroOrd(const ActuatorParams& params, const PlatformQuatVars& platform,
+void updateCableZeroOrd(const ActuatorParams& params, const PlatformVarsQuat& platform,
                         CableVarsQuat& cable);
 
 /**
