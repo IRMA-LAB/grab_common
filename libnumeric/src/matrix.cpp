@@ -250,10 +250,10 @@ template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetRow(const uint rw,
                                                      const Matrix<T, 1, cols>& matrix1d)
 {
+  assert(rw > 0);
+
   for (uint i = 0; i < cols; ++i)
-  {
     elements_[rw - 1][i] = matrix1d(i + 1);
-  }
   return *this;
 }
 
@@ -261,12 +261,10 @@ template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetRow(const uint rw, const T* vect,
                                                      const uint size)
 {
-  assert(size == cols);
+  assert(rw > 0 && size == cols);
 
   for (uint i = 0; i < cols; ++i)
-  {
     elements_[rw - 1][i] = vect[i];
-  }
   return *this;
 }
 
@@ -274,12 +272,10 @@ template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetRow(const uint rw,
                                                      const std::vector<T>& vect)
 {
-  assert(vect.size() == cols);
+  assert(rw > 0 && vect.size() == cols);
 
   for (uint i = 0; i < cols; ++i)
-  {
     elements_[rw - 1][i] = vect[i];
-  }
   return *this;
 }
 
@@ -369,6 +365,8 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::SwapCol(const uint col1, const uin
 template <typename T, uint rows, uint cols>
 Matrix<T, 1, cols> Matrix<T, rows, cols>::GetRow(const uint row) const
 {
+  assert(row > 0 && row <= rows);
+
   Matrix<T, 1, cols> row_vect;
   for (uint col = 0; col < cols; ++col)
     row_vect(col + 1) = elements_[row - 1][col];
@@ -376,8 +374,36 @@ Matrix<T, 1, cols> Matrix<T, rows, cols>::GetRow(const uint row) const
 }
 
 template <typename T, uint rows, uint cols>
+template <uint num_rows>
+Matrix<T, num_rows, cols> Matrix<T, rows, cols>::GetRows(const uint start_row) const
+{
+  assert(start_row > 0 && start_row + num_rows - 1 <= rows);
+
+  Matrix<T, num_rows, cols> block_rows;
+  for (uint i = start_row; i < start_row + num_rows; ++i)
+    block_rows.SetRow(i, this->GetRow(i));
+  return block_rows;
+}
+
+template <typename T, uint rows, uint cols>
+template <uint num_rows>
+Matrix<T, num_rows, cols> Matrix<T, rows, cols>::HeadRows() const
+{
+  return GetRows<num_rows>(1);
+}
+
+template <typename T, uint rows, uint cols>
+template <uint num_rows>
+Matrix<T, num_rows, cols> Matrix<T, rows, cols>::TailRows() const
+{
+  return GetRows<num_rows>(rows - num_rows + 1);
+}
+
+template <typename T, uint rows, uint cols>
 VectorX<T, rows> Matrix<T, rows, cols>::GetCol(const uint col) const
 {
+  assert(col > 0 && col <= cols);
+
   VectorX<T, rows> col_vect;
   for (uint row = 0; row < rows; ++row)
     col_vect(row + 1) = elements_[row][col - 1];
@@ -385,10 +411,38 @@ VectorX<T, rows> Matrix<T, rows, cols>::GetCol(const uint col) const
 }
 
 template <typename T, uint rows, uint cols>
+template <uint num_cols>
+Matrix<T, rows, num_cols> Matrix<T, rows, cols>::GetCols(const uint start_col) const
+{
+  assert(start_col > 0 && start_col + num_cols - 1 <= cols);
+
+  Matrix<T, rows, num_cols> block_cols;
+  for (uint i = start_col; i < start_col + num_cols; ++i)
+    block_cols.SetCol(i, this->GetCol(i));
+  return block_cols;
+}
+
+template <typename T, uint rows, uint cols>
+template <uint num_cols>
+Matrix<T, rows, num_cols> Matrix<T, rows, cols>::HeadCols() const
+{
+  return GetCols<num_cols>(1);
+}
+
+template <typename T, uint rows, uint cols>
+template <uint num_cols>
+Matrix<T, rows, num_cols> Matrix<T, rows, cols>::TailCols() const
+{
+  return GetCols<num_cols>(cols - num_cols + 1);
+}
+
+template <typename T, uint rows, uint cols>
 template <uint blk_rows, uint blk_cols>
 Matrix<T, blk_rows, blk_cols> Matrix<T, rows, cols>::GetBlock(const uint start_row,
                                                               const uint start_col) const
 {
+  assert(start_row > 0 && start_col > 0);
+
   Matrix<T, blk_rows, blk_cols> block;
   block.SetFromBlock(start_row, start_col, *this);
   return block;

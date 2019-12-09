@@ -476,12 +476,50 @@ template <typename T, uint rows, uint cols> class Matrix
    */
   Matrix<T, 1, cols> GetRow(const uint row) const;
   /**
+   * @brief GetRows
+   * @param start_row
+   * @return
+   */
+  template <uint num_rows>
+  Matrix<T, num_rows, cols> GetRows(const uint start_row) const;
+  /**
+   * @brief HeadRows
+   * @return
+   */
+  template <uint num_rows>
+  Matrix<T, num_rows, cols> HeadRows() const;
+  /**
+   * @brief HeadRows
+   * @return
+   */
+  template <uint num_rows>
+  Matrix<T, num_rows, cols> TailRows() const;
+  /**
    * Extracts a column from the matrix.
    *
    * @param[in] col The index of the column to be extracted.
    * @return A 1-dimensional matrix (aka a vertical vector).
    */
   Matrix<T, rows, 1> GetCol(const uint col) const;
+  /**
+   * @brief GetRows
+   * @param start_row
+   * @return
+   */
+  template <uint num_cols>
+  Matrix<T, rows, num_cols> GetCols(const uint start_col) const;
+  /**
+   * @brief HeadCols
+   * @return
+   */
+  template <uint num_cols>
+  Matrix<T, rows, num_cols> HeadCols() const;
+  /**
+   * @brief TailCols
+   * @return
+   */
+  template <uint num_cols>
+  Matrix<T, rows, num_cols> TailCols() const;
   /**
    * Extracts a block from the matrix.
    *
@@ -549,53 +587,63 @@ template <typename T, uint rows, uint cols> class Matrix
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T> using Vector2 = Matrix<T, 2, 1>; /**< generic 2D vector */
+using Vector2u                      = Vector2<uint>;   /**< 2D vector of unsigned int */
 using Vector2i                      = Vector2<int>;    /**< 2D vector of int */
 using Vector2l                      = Vector2<long>;   /**< 2D vector of long */
 using Vector2f                      = Vector2<float>;  /**< 2D vector of float */
 using Vector2d                      = Vector2<double>; /**< 2D vector of double */
 
 template <typename T> using Vector3 = Matrix<T, 3, 1>; /**< generic 3D vector */
+using Vector3u                      = Vector3<uint>;   /**< 3D vector of unsigned int */
 using Vector3i                      = Vector3<int>;    /**< 3D vector of int */
 using Vector3l                      = Vector3<long>;   /**< 3D vector of long */
 using Vector3f                      = Vector3<float>;  /**< 3D vector of float */
 using Vector3d                      = Vector3<double>; /**< 3D vector of double */
 
 template <typename T> using Vector4 = Matrix<T, 4, 1>; /**< generic 4D vector */
-using Vector4i                      = Vector4<int>;    /**< 3D vector of int */
-using Vector4l                      = Vector4<long>;   /**< 3D vector of long */
-using Vector4f                      = Vector4<float>;  /**< 3D vector of float */
-using Vector4d                      = Vector4<double>; /**< 3D vector of double */
+using Vector4u                      = Vector4<uint>;   /**< 4D vector of unsigned int */
+using Vector4i                      = Vector4<int>;    /**< 4D vector of int */
+using Vector4l                      = Vector4<long>;   /**< 4D vector of long */
+using Vector4f                      = Vector4<float>;  /**< 4D vector of float */
+using Vector4d                      = Vector4<double>; /**< 4D vector of double */
 
 template <typename T> using Vector6 = Matrix<T, 6, 1>; /**< generic 6D vector */
-using Vector6i                      = Vector6<int>;    /**< 3D vector of int */
-using Vector6l                      = Vector6<long>;   /**< 3D vector of long */
-using Vector6f                      = Vector6<float>;  /**< 3D vector of float */
-using Vector6d                      = Vector6<double>; /**< 3D vector of double */
+using Vector6u                      = Vector6<uint>;   /**< 6D vector of unsigned int */
+using Vector6i                      = Vector6<int>;    /**< 6D vector of int */
+using Vector6l                      = Vector6<long>;   /**< 6D vector of long */
+using Vector6f                      = Vector6<float>;  /**< 6D vector of float */
+using Vector6d                      = Vector6<double>; /**< 6D vector of double */
 
 template <typename T> using Matrix2 = Matrix<T, 2, 2>; /**< generic 2x2 matrix */
+using Matrix2u                      = Matrix2<uint>;   /**< 2x2 matrix of unsigned int */
 using Matrix2i                      = Matrix2<int>;    /**< 2x2 matrix of int */
 using Matrix2l                      = Matrix2<long>;   /**< 2x2 matrix of long */
 using Matrix2f                      = Matrix2<float>;  /**< 2x2 matrix of float */
 using Matrix2d                      = Matrix2<double>; /**< 2x2 matrix of double */
 
 template <typename T> using Matrix3 = Matrix<T, 3, 3>; /**< generic 3x3 matrix */
+using Matrix3u                      = Matrix3<uint>;   /**< 3x3 matrix of unsigned int */
 using Matrix3i                      = Matrix3<int>;    /**< 3x3 matrix of int */
 using Matrix3l                      = Matrix3<long>;   /**< 3x3 matrix of long */
 using Matrix3f                      = Matrix3<float>;  /**< 3x3 matrix of float */
 using Matrix3d                      = Matrix3<double>; /**< 3x3 matrix of double */
 
 template <typename T> using Matrix4 = Matrix<T, 4, 4>; /**< generic 4x4 matrix */
+using Matrix4u                      = Matrix4<uint>;   /**< 4x4 matrix of unsigned int */
 using Matrix4i                      = Matrix4<int>;    /**< 4x4 matrix of int */
 using Matrix4l                      = Matrix4<long>;   /**< 4x4 matrix of long */
 using Matrix4f                      = Matrix4<float>;  /**< 4x4 matrix of float */
 using Matrix4d                      = Matrix4<double>; /**< 4x4 matrix of double */
 
 template <typename T> using Matrix6 = Matrix<T, 6, 6>; /**< generic 6x6 matrix */
-using Matrix6i                      = Matrix6<int>;    /**< 4x4 matrix of int */
-using Matrix6l                      = Matrix6<long>;   /**< 4x4 matrix of long */
-using Matrix6f                      = Matrix6<float>;  /**< 4x4 matrix of float */
-using Matrix6d                      = Matrix6<double>; /**< 4x4 matrix of double */
+using Matrix6u                      = Matrix6<uint>;   /**< 6x6 matrix of unsigned int */
+using Matrix6i                      = Matrix6<int>;    /**< 6x6 matrix of int */
+using Matrix6l                      = Matrix6<long>;   /**< 6x6 matrix of long */
+using Matrix6f                      = Matrix6<float>;  /**< 6x6 matrix of float */
+using Matrix6d                      = Matrix6<double>; /**< 6x6 matrix of double */
 
+template <uint rows, uint cols>
+using MatrixXu = Matrix<uint, rows, cols>; /**< generic mxn matrix of unsigned int */
 template <uint rows, uint cols>
 using MatrixXi = Matrix<int, rows, cols>; /**< generic mxn matrix of int */
 template <uint rows, uint cols>
@@ -608,6 +656,8 @@ using MatrixXd = Matrix<double, rows, cols>; /**< generic mxn matrix of double *
 template <typename T, uint dim>
 using VectorX = Matrix<T, dim, 1>; /**< generic vertical vector */
 template <uint dim>
+using VectorXu = Matrix<uint, dim, 1>; /**< generic vertical vector of unsigned int */
+template <uint dim>
 using VectorXi = Matrix<int, dim, 1>; /**< generic vertical vector of int */
 template <uint dim>
 using VectorXl = Matrix<long, dim, 1>; /**< generic vertical vector of long */
@@ -618,6 +668,8 @@ using VectorXd = Matrix<double, dim, 1>; /**< generic vertical vector of double 
 
 template <typename T, uint dim>
 using RowVectorX = Matrix<T, 1, dim>; /**< generic horizontal vector */
+template <uint dim>
+using RowVectorXu = Matrix<uint, 1, dim>; /**< generic horizontal vector of uint */
 template <uint dim>
 using RowVectorXi = Matrix<int, 1, dim>; /**< generic horizontal vector of int */
 template <uint dim>
