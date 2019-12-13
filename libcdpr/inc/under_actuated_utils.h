@@ -81,29 +81,30 @@ struct UnderActuatedPlatformVars: PlatformVars
                             const RotParametrization _angles_type = TILT_TORSION,
                             const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
 
-  void updatePose(const grabnum::VectorXd<POSE_DIM>& _pose) override;
+  void updatePose(const grabnum::VectorXd<POSE_DIM>& _pose);
   void updatePose(const grabnum::Vector3d& _position,
-                  const grabnum::Vector3d& _orientation) override;
+                  const grabnum::Vector3d& _orientation);
+  void updatePose(const arma::vec& _actuated_vars, const arma::vec& _unactuated_vars);
 
   void updateVel(const grabnum::Vector3d& _velocity,
                  const grabnum::Vector3d& _orientation_dot,
-                 const grabnum::Vector3d& _orientation) override;
+                 const grabnum::Vector3d& _orientation);
   void updateVel(const grabnum::Vector3d& _velocity,
-                 const grabnum::Vector3d& _orientation_dot) override;
+                 const grabnum::Vector3d& _orientation_dot);
 
   void updateAcc(const grabnum::Vector3d& _acceleration,
                  const grabnum::Vector3d& _orientation_ddot,
                  const grabnum::Vector3d& _orientation_dot,
                  const grabnum::Vector3d& _orientation,
-                 const grabnum::Matrix3d& _h_mat) override;
+                 const grabnum::Matrix3d& _h_mat);
   void updateAcc(const grabnum::Vector3d& _acceleration,
-                 const grabnum::Vector3d& _orientation_ddot) override;
+                 const grabnum::Vector3d& _orientation_ddot);
 
   void update(const grabnum::Vector3d& _position, const grabnum::Vector3d& _velocity,
               const grabnum::Vector3d& _acceleration,
               const grabnum::Vector3d& _orientation,
               const grabnum::Vector3d& _orientation_dot,
-              const grabnum::Vector3d& _orientation_ddot) override;
+              const grabnum::Vector3d& _orientation_ddot);
 
   void setMask(const arma::uvec6& _mask);
 };
@@ -168,6 +169,11 @@ void updateIK0(const Vector3d& position, const Vector3d& orientation,
                const RobotParams& params, UnderActuatedRobotVars& vars);
 
 void updateCablesStaticTension(UnderActuatedRobotVars& vars);
+
+arma::vec calcStaticConstraint(const UnderActuatedRobotVars& vars);
+
+void OptFunGS(const RobotParams& params, const arma::vec& act_vars,
+              const arma::vec& unact_vars, arma::mat& fun_jacobian, arma::vec& fun_val);
 
 } // end namespace grabcdpr
 

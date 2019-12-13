@@ -74,6 +74,24 @@ void UnderActuatedPlatformVars::updatePose(const grabnum::Vector3d& _position,
       unactuated_vars(u++) = pose(i);
 }
 
+void UnderActuatedPlatformVars::updatePose(const arma::vec& _actuated_vars,
+                                           const arma::vec& _unactuated_vars)
+{
+  assert(_actuated_vars.n_elem + _unactuated_vars.n_elem == POSE_DIM);
+
+  actuated_vars   = _actuated_vars;
+  unactuated_vars = _unactuated_vars;
+  uint a = 0, u = 0;
+  for (uint i = 1; i <= POSE_DIM; i++)
+  {
+    if (mask(i - 1) == 1)
+      pose(i) = actuated_vars(a++);
+    else
+      pose(i) = unactuated_vars(u++);
+  }
+  PlatformVars::updatePose(pose);
+}
+
 void UnderActuatedPlatformVars::updateVel(const grabnum::Vector3d& _velocity,
                                           const grabnum::Vector3d& _orientation_dot,
                                           const grabnum::Vector3d& _orientation)
@@ -365,8 +383,8 @@ arma::mat calcJacobianGS(const UnderActuatedRobotVars& vars)
     grabnum::Matrix3d a_tilde = grabnum::Skew(vars.cables[i].pos_PA_glob);
     grabnum::Matrix6d K_i;
     K_i.SetBlock<3, 3>(1, 1, -T);
-    K_i.SetBlock<3, 3>(4, 1, T * a_tilde);
-    K_i.SetBlock<3, 3>(1, 4, -T * a_tilde);
+    K_i.SetBlock<3, 3>(1, 4, T * a_tilde);
+    K_i.SetBlock<3, 3>(4, 1, -a_tilde * T);
     K_i.SetBlock<3, 3>(4, 4,
                        (a_tilde * T - grabnum::Skew(vars.cables[i].vers_t)) * a_tilde);
     K += (vars.tension_vector(i) * K_i);
@@ -395,6 +413,26 @@ void updateCablesStaticTension(UnderActuatedRobotVars& vars)
 {
   vars.tension_vector =
     calcCablesStaticTension(vars.geom_jacobian, vars.platform.ext_load);
+}
+
+arma::vec calcStaticConstraint(const UnderActuatedRobotVars& vars)
+{
+  return vars.geom_orthogonal.t() * toArmaVec(vars.platform.ext_load);
+}
+
+void OptFunGS(const RobotParams& params, const arma::vec& act_vars,
+              const arma::vec& unact_vars, arma::mat& fun_jacobian, arma::vec& fun_val)
+{
+  const ulong kNumCables = params.activeActuatorsNum();
+  UnderActuatedRobotVars vars(kNumCables, params.platform.rot_parametrization,
+                              params.controlled_vars_mask);
+  vars.platform.updatePose(act_vars, unact_vars);
+  updateIK0(vars.platform.position, vars.platform.orientation, params, vars);
+  updateExternalLoads(params.platform, vars.platform);
+  updateCablesStaticTension(vars);
+
+  fun_val      = calcStaticConstraint(vars);
+  fun_jacobian = calcJacobianGS(vars).cols(arma::find(params.controlled_vars_mask == 0));
 }
 
 } // namespace grabcdpr

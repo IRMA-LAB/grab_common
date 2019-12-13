@@ -40,9 +40,8 @@ class LibcdprTest: public QObject
   grabcdpr::UnderActuatedRobotVars getRobotFromWS(const std::string& var_name);
 
   arma::vec nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess,
-                                     const grabnum::VectorXi<POSE_DIM>& mask,
-                                     const uint8_t nmax = 100,
-                                     uint8_t* iter_out  = nullptr) const;
+                                     const arma::uvec6& mask, const uint8_t nmax = 100,
+                                     uint8_t* iter_out = nullptr) const;
  private Q_SLOTS:
   void initTestCase();
 
@@ -63,9 +62,9 @@ class LibcdprTest: public QObject
 
   // Dynamics
   void testUpdateExternalLoads();
-  void testCalCablesTensionStat();
+  void testUpdateCablesStaticTension();
   void testCalcJacobiansGS();
-  void testCalcGeometricStatic();
+  void testOptFunGS();
   void testNonLinsolveJacGeomStatic();
 };
 
@@ -514,7 +513,7 @@ grabcdpr::UnderActuatedRobotVars LibcdprTest::getRobotFromWS(const std::string& 
 }
 
 arma::vec LibcdprTest::nonLinsolveJacGeomStatic(
-  const grabnum::VectorXd<POSE_DIM>& init_guess, const grabnum::VectorXi<POSE_DIM>& mask,
+  const grabnum::VectorXd<POSE_DIM>& init_guess, const arma::uvec6& mask,
   const uint8_t nmax /*= 100*/, uint8_t* iter_out /*= nullptr*/) const
 {
   static const double kFtol = 1e-4;
@@ -522,21 +521,14 @@ arma::vec LibcdprTest::nonLinsolveJacGeomStatic(
 
   // Distribute initial guess between fixed and variable coordinates (i.e. the solution of
   // the iterative process)
-  arma::vec fixed_coord(mask.NonZeros().size(), arma::fill::none);
-  arma::vec var_coord(POSE_DIM - fixed_coord.n_elem, arma::fill::none);
-  ulong fixed_idx = 0;
-  ulong var_idx   = 0;
-  for (uint i = 1; i <= POSE_DIM; i++)
-    if (mask(i) == 1)
-      fixed_coord(fixed_idx++) = init_guess(i);
-    else
-      var_coord(var_idx++) = init_guess(i);
+  arma::vec init_guess_arma = toArmaVec(init_guess);
+  arma::vec fixed_coord(init_guess_arma.elem(arma::find(mask == 1)));
+  arma::vec var_coord(init_guess_arma.elem(arma::find(mask == 1)));
 
   // First round to init function value and jacobian
   arma::vec func_val;
   arma::mat func_jacob;
-  grabcdpr::calcGeometricStatic(params_, fixed_coord, var_coord, mask, func_jacob,
-                                func_val);
+  grabcdpr::OptFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
 
   // Init iteration variables
   arma::vec s;
@@ -549,8 +541,7 @@ arma::vec LibcdprTest::nonLinsolveJacGeomStatic(
     iter++;
     s = arma::solve(func_jacob, func_val);
     var_coord -= s;
-    grabcdpr::calcGeometricStatic(params_, fixed_coord, var_coord, mask, func_jacob,
-                                  func_val);
+    grabcdpr::OptFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
     err  = arma::norm(s);
     cond = kXtol * (1 + arma::norm(var_coord));
   }
@@ -901,7 +892,7 @@ void LibcdprTest::testUpdateDK0()
 {
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
-  const grabnum::VectorXi<POSE_DIM> mask({1, 1, 1, 0, 0, 0});
+  const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
   arma::vec3 true_orientation = nonLinsolveJacGeomStatic(init_guess, mask);
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
@@ -969,7 +960,7 @@ void LibcdprTest::testUpdateExternalLoads()
   QCOMPARE(robot.platform.ext_load_ss, matlab_platform.platform.ext_load_ss);
 }
 
-void LibcdprTest::testCalCablesTensionStat()
+void LibcdprTest::testUpdateCablesStaticTension()
 {
   // Setup dummy input
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
@@ -1021,39 +1012,33 @@ void LibcdprTest::testCalcJacobiansGS()
   arma::mat matlab_J_q(J_q_std.data(), dims[0], dims[1]);
 
   // Check they are the same
-  std::cout << Jq << "\n" << matlab_J_q << std::endl;
   QVERIFY(arma::approx_equal(Jq, matlab_J_q, "absdiff", EPSILON));
 }
 
-void LibcdprTest::testCalcGeometricStatic()
+void LibcdprTest::testOptFunGS()
 {
-  return;
   // Setup dummy input
   arma::vec3 fixed_coord({0.1, 1.5, 0.2}); // pos
   arma::vec3 var_coord({0.0, 0, 0.0});     // orient
-  VectorXi<POSE_DIM> mask({1, 1, 1, 0, 0, 0});
+  const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
   arma::mat fun_jacobian;
   arma::vec fun_val;
   // Load dummy input to Matlab workspace
-  auto parameters =
+  auto act_vars =
     factory_.createArray<double>({3, 1}, fixed_coord.begin(), fixed_coord.end());
-  auto variables =
+  auto unact_vars =
     factory_.createArray<double>({3, 1}, var_coord.begin(), var_coord.end());
-  auto mask_matlab = factory_.createArray<int>({POSE_DIM, 1}, mask.Begin(), mask.End());
   // Put variables in the MATLAB workspace
-  matlab_ptr_->setVariable(u"parameters", std::move(parameters));
-  matlab_ptr_->setVariable(u"variables", std::move(variables));
-  matlab_ptr_->setVariable(u"mask", std::move(mask_matlab));
+  matlab_ptr_->setVariable(u"act_vars", std::move(act_vars));
+  matlab_ptr_->setVariable(u"unact_vars", std::move(unact_vars));
 
   // Call C++ function implementation to be tested
   QBENCHMARK
   {
-    grabcdpr::calcGeometricStatic(params_, fixed_coord, var_coord, mask, fun_jacobian,
-                                  fun_val);
+    grabcdpr::OptFunGS(params_, fixed_coord, var_coord, fun_jacobian, fun_val);
   }
   // Call the corresponding MATLAB
-  matlab_ptr_->eval(u"[fun_val, fun_jacobian] = CalcWPGeometricStatic(cdpr_p, "
-                    u"parameters, variables, mask);");
+  matlab_ptr_->eval(u"[fun_val, fun_jacobian] = FunGs(cdpr_p, act_vars, unact_vars);");
 
   // Get matlab results
   matlab::data::TypedArray<double> J = matlab_ptr_->getVariable(u"fun_jacobian");
@@ -1071,24 +1056,26 @@ void LibcdprTest::testCalcGeometricStatic()
 
 void LibcdprTest::testNonLinsolveJacGeomStatic()
 {
-  return;
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   //  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0, 0, 0});
-  const grabnum::VectorXi<POSE_DIM> mask({1, 1, 1, 0, 0, 0});
+  const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
   // Load dummy input to Matlab workspace
   auto p =
     factory_.createArray<double>({3, 1}, init_guess.Begin(), init_guess.Begin() + 3);
   auto v = factory_.createArray<double>({3, 1}, init_guess.Begin() + 4, init_guess.End());
-  auto mask_matlab = factory_.createArray<int>({POSE_DIM, 1}, mask.Begin(), mask.End());
   // Put variables in the MATLAB workspace
   matlab_ptr_->setVariable(u"p", std::move(p));
   matlab_ptr_->setVariable(u"in_guess", std::move(v));
-  matlab_ptr_->setVariable(u"mask", std::move(mask_matlab));
 
   // Call C++ function implementation to be tested
   arma::vec3 orientation;
+  uint8_t iterations;
+  // Run once outside benchmark to obtain iterations
+  orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
+  printf("Iterations: %d\n", iterations);
   QBENCHMARK { orientation = nonLinsolveJacGeomStatic(init_guess, mask); }
+  return;
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"fsolve_options_grad = "
@@ -1103,11 +1090,6 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   matlab::data::TypedArray<double> orient = matlab_ptr_->getVariable(u"orient");
   std::vector<double> orient_std(orient.begin(), orient.end());
   arma::vec matlab_orientation(orient_std.data(), orient.getNumberOfElements());
-
-  // Print iterations
-  uint8_t iterations;
-  orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
-  //  printf("Iterations: %d\n", iterations);
 
   // Check they are the same
   QVERIFY(arma::approx_equal(orientation, matlab_orientation, "absdiff", 1e-3));

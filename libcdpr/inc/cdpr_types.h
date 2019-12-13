@@ -496,14 +496,12 @@ struct PlatformVars: PlatformVarsBase
                const grabnum::Vector3d& _orientation_ddot,
                const RotParametrization _angles_type = TILT_TORSION);
 
-  virtual ~PlatformVars() {}
-
   /**
    * @brief Set platform pose.
    * @param[in] pose Platform pose, including both position and orientation.
    * @see UpdatePose()
    */
-  virtual void updatePose(const grabnum::VectorXd<POSE_DIM>& _pose);
+  void updatePose(const grabnum::VectorXd<POSE_DIM>& _pose);
 
   /**
    * @brief Update platform pose with position and angles.
@@ -515,7 +513,7 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdateVel() UpdateAcc() Update()
    * @note See @ref legend for more details.
    */
-  virtual void updatePose(const grabnum::Vector3d& _position,
+  void updatePose(const grabnum::Vector3d& _position,
                           const grabnum::Vector3d& _orientation);
 
   /**
@@ -528,7 +526,7 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdatePose() UpdateAcc() Update()
    * @note See @ref legend for more details.
    */
-  virtual void updateVel(const grabnum::Vector3d& _velocity,
+  void updateVel(const grabnum::Vector3d& _velocity,
                          const grabnum::Vector3d& _orientation_dot,
                          const grabnum::Vector3d& _orientation);
 
@@ -543,7 +541,7 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdateVel()
    * @note See @ref legend for more details.
    */
-  virtual void updateVel(const grabnum::Vector3d& _velocity,
+  void updateVel(const grabnum::Vector3d& _velocity,
                          const grabnum::Vector3d& _orientation_dot);
 
   /**
@@ -559,7 +557,7 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdateVel() UpdatePose() Update()
    * @note See @ref legend for more details.
    */
-  virtual void updateAcc(const grabnum::Vector3d& _acceleration,
+  void updateAcc(const grabnum::Vector3d& _acceleration,
                          const grabnum::Vector3d& _orientation_ddot,
                          const grabnum::Vector3d& _orientation_dot,
                          const grabnum::Vector3d& _orientation,
@@ -577,7 +575,7 @@ struct PlatformVars: PlatformVarsBase
    * @see UpdateAcc()
    * @note See @ref legend for more details.
    */
-  virtual void updateAcc(const grabnum::Vector3d& _acceleration,
+  void updateAcc(const grabnum::Vector3d& _acceleration,
                          const grabnum::Vector3d& _orientation_ddot);
 
   /**
@@ -597,7 +595,7 @@ struct PlatformVars: PlatformVarsBase
    * @note See @ref legend for more details.
    * @see UpdatePose() UpdateVel() UpdateAcc()
    */
-  virtual void update(const grabnum::Vector3d& _position,
+  void update(const grabnum::Vector3d& _position,
                       const grabnum::Vector3d& _velocity,
                       const grabnum::Vector3d& _acceleration,
                       const grabnum::Vector3d& _orientation,
