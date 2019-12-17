@@ -277,6 +277,14 @@ Matrix<T, rows - 1, cols - 1> GetCofactor(const Matrix<T, rows, cols>& matrix,
  * @return The determinant of the matrix.
  */
 template <typename T, uint dim> T Det(const Matrix<T, dim, dim>& matrix);
+/**
+ * Base case for recursive calculation of determinant.
+ *
+ * @param[in] matrix A single-element matrix.
+ * @return The determinant of the single-element matrix, that is its only value.
+ * @see Det()
+ */
+template <typename T> T Det (const Matrix<T, 1, 1>& matrix);
 
 /**
  * Returns _Cholesky factor_ of given symmetric, positive-definite matrix.

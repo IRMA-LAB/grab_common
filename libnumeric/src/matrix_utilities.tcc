@@ -114,7 +114,6 @@ Matrix<T, rows1, cols2> operator*(const Matrix<T, rows1, dim_common>& matrix1,
 {
   Matrix<T, rows1, cols2> prod;
   for (uint row = 1; row <= rows1; ++row)
-  {
     for (uint col = 1; col <= cols2; ++col)
     {
       T sum = 0;
@@ -122,7 +121,6 @@ Matrix<T, rows1, cols2> operator*(const Matrix<T, rows1, dim_common>& matrix1,
         sum += matrix1(row, j) * matrix2(j, col);
       prod(row, col) = sum;
     }
-  }
   return prod;
 }
 
@@ -132,12 +130,8 @@ Matrix<T, rows, cols> operator*(const VectorX<T, rows>& vvect,
 {
   Matrix<T, rows, cols> prod;
   for (uint row = 1; row <= rows; ++row)
-  {
     for (uint col = 1; col <= cols; ++col)
-    {
       prod(row, col) = vvect(row) * hvect(col);
-    }
-  }
   return prod;
 }
 
@@ -228,9 +222,7 @@ T Dot(const VectorX<T, dim>& vvect1, const VectorX<T, dim>& vvect2)
 {
   T result = 0;
   for (uint i = 1; i <= dim; ++i)
-  {
     result += vvect1(i) * vvect2(i);
-  }
   return result;
 }
 
@@ -239,9 +231,7 @@ T Dot(const Matrix<T, 1, dim>& hvect, const VectorX<T, dim>& vvect)
 {
   T result = 0;
   for (uint i = 1; i <= dim; ++i)
-  {
     result += hvect(i) * vvect(i);
-  }
   return result;
 }
 
@@ -291,7 +281,6 @@ Matrix<T, rows - 1, cols - 1> GetCofactor(const Matrix<T, rows, cols>& matrix,
 
   // Looping for each element of the matrix
   for (uint row = 1; row <= rows; ++row)
-  {
     for (uint col = 1; col <= cols; ++col)
     {
       // Copying into temporary matrix only those element which are not in given row and
@@ -305,15 +294,12 @@ Matrix<T, rows - 1, cols - 1> GetCofactor(const Matrix<T, rows, cols>& matrix,
       j = 1;
       i++;
     }
-  }
   return cofactor;
 }
 
 template <typename T, uint dim> T Det(const Matrix<T, dim, dim>& matrix)
 {
-  //  Base case : if matrix contains single element
-  if (dim == 1)
-    return matrix(1, 1);
+  // See base case in function below
 
   int8_t sign = 1; // to store sign multiplier
   T det       = 0; // initialize result
@@ -327,6 +313,12 @@ template <typename T, uint dim> T Det(const Matrix<T, dim, dim>& matrix)
     sign = -sign;
   }
   return det;
+}
+
+template <typename T> T Det(const Matrix<T, 1, 1>& matrix)
+{
+  //  Base case : if matrix contains single element
+  return matrix(1, 1);
 }
 
 template <typename T, uint dim> MatrixXd<dim, dim> Cholesky(const Matrix<T, dim, dim>& A)
