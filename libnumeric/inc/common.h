@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <stdlib.h>
+#include <string>
 #include <vector>
 
 #ifndef SQUARE
@@ -21,6 +22,23 @@
  * @brief Namespace for GRAB numeric library.
  */
 namespace grabnum {
+
+struct Exception: public std::exception
+{
+ public:
+  explicit Exception(const std::string& message = "")
+  {
+    if (!message.empty())
+      message_ = "GRAB numeric runtime error: " + message;
+    else
+      message_ = "GRAB numeric runtime error";
+  }
+
+  virtual const char* what() const noexcept { return message_.c_str(); }
+
+ private:
+  std::string message_;
+};
 
 static constexpr double EPSILON = 1e-7; /**< tolerance for floating point comparison */
 
