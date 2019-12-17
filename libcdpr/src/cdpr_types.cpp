@@ -1,5 +1,10 @@
 #include "cdpr_types.h"
 
+arma::rowvec3 toArmaVec(RowVectorXd<3> vect, bool copy /*= true*/)
+{
+  return arma::rowvec(vect.Data(), 3, copy);
+}
+
 arma::vec toArmaVec(Vector3d vect, bool copy /*= true*/)
 {
   return arma::vec(vect.Data(), 3, copy);

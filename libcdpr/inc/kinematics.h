@@ -320,7 +320,7 @@ double calcMotorCounts(const double tau, const double cable_len,
  * @return Motor counts @f$q_i@f$.
  * @see CalcCableLen()
  */
-double calcMotorCounts(const ActuatorParams &params, const CableVarsBase& cable);
+double calcMotorCounts(const ActuatorParams& params, const CableVarsBase& cable);
 
 /**
  * @brief UpdateJacobiansRow
@@ -364,6 +364,20 @@ void updateCableZeroOrd(const ActuatorParams& params, const PlatformVarsQuat& pl
 void updateIK0(const Vector3d& position, const Vector3d& orientation,
                const RobotParams& params, RobotVars& vars);
 /**
+ * @brief updateIK0
+ * @param pose
+ * @param params
+ * @param vars
+ */
+void updateIK0(const Vector6d& pose, const RobotParams& params, RobotVars& vars);
+/**
+ * @brief updateIK0
+ * @param _pose
+ * @param params
+ * @param vars
+ */
+void updateIK0(const arma::vec6& _pose, const RobotParams& params, RobotVars& vars);
+/**
  * @brief Update all robots zero-order variables at once (inverse kinematics problem) when
  * usign quaternions.
  * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
@@ -375,45 +389,13 @@ void updateIK0(const Vector3d& position, const Vector3d& orientation,
 void updateIK0(const Vector3d& position, const grabgeom::Quaternion& orientation,
                const RobotParams& params, RobotVarsQuat& vars);
 
-/**
- * @brief CalcDK0Jacobians
- * @param vars
- * @param Ja
- * @param J_sl
- */
-void calcDK0Jacobians(const RobotVars& vars, const arma::mat& Ja, arma::mat& J_sl);
-/**
- * @brief CalcDK0Jacobians
- * @param vars
- * @param Ja
- * @param J_sl
- */
-void calcDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja, arma::mat& J_sl);
+arma::mat calcJacobianL(const RobotVars &vars);
 
-/**
- * @brief CalcRobustDK0Jacobians
- * @param vars
- * @param Ja
- * @param Ju
- * @param mg
- * @param J_q
- * @param J_sl
- */
-void calcRobustDK0Jacobians(const RobotVars& vars, const arma::mat& Ja,
-                            const arma::mat& Ju, const Vector3d& mg, arma::mat& J_q,
-                            arma::mat& J_sl);
-/**
- * @brief CalcRobustDK0Jacobians
- * @param vars
- * @param Ja
- * @param Ju
- * @param mg
- * @param J_q
- * @param J_sl
- */
-void calcRobustDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
-                            const arma::mat& Ju, const Vector3d& mg, arma::mat& J_q,
-                            arma::mat& J_sl);
+arma::mat calcJacobianSw(const RobotVars &vars);
+
+void optFunDK0(const RobotParams& params, const arma::vec& cables_length,
+               const arma::vec& swivel_angles, const arma::vec6& pose,
+               arma::mat& fun_jacobian, arma::vec& fun_val);
 
 /**
  * @brief SolveDK0
@@ -430,7 +412,7 @@ void calcRobustDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
 bool solveDK0(const std::vector<double>& cables_length,
               const std::vector<double>& swivel_angles,
               const VectorXd<POSE_DIM>& init_guess_pose, const RobotParams& params,
-              VectorXd<POSE_DIM>& platform_pose, const bool use_gs_jacob = false,
+              VectorXd<POSE_DIM>& platform_pose,
               const uint8_t nmax = 100, uint8_t* iter_out = nullptr);
 
 /**
@@ -440,8 +422,7 @@ bool solveDK0(const std::vector<double>& cables_length,
  * @param use_gs_jacob
  * @return
  */
-bool updateDK0(const RobotParams& params, RobotVars& vars,
-               const bool use_gs_jacob = false);
+bool updateDK0(const RobotParams& params, RobotVars& vars);
 
 /** @} */ // end of ZeroOrderKinematics group
 

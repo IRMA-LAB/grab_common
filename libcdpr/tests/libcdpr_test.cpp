@@ -18,6 +18,122 @@
 
 using namespace matlab::engine;
 
+static grabnum::Vector3d
+matlabProperty2GrabVec3(const std::unique_ptr<MATLABEngine>& matlab_ptr,
+                        const matlab::data::Array& matlab_object,
+                        const std::string& var_name)
+{
+  matlab::data::TypedArray<double> matlab_var =
+    matlab_ptr->getProperty(matlab_object, var_name);
+  try
+  {
+    return grabnum::Vector3d(matlab_var.begin(), matlab_var.end());
+  }
+  catch (std::exception)
+  {
+    qDebug() << (var_name + " is empty!").c_str();
+    return grabnum::Vector3d();
+  }
+}
+
+static grabnum::Vector6d
+matlabProperty2GrabVec6(const std::unique_ptr<MATLABEngine>& matlab_ptr,
+                        const matlab::data::Array& matlab_object,
+                        const std::string& var_name)
+{
+  matlab::data::TypedArray<double> matlab_var =
+    matlab_ptr->getProperty(matlab_object, var_name);
+  try
+  {
+    return grabnum::Vector6d(matlab_var.begin(), matlab_var.end());
+  }
+  catch (grabnum::Exception)
+  {
+    qDebug() << (var_name + " is empty!").c_str();
+    return grabnum::Vector6d();
+  }
+}
+
+static grabnum::Matrix3d
+matlabProperty2GrabMat33(const std::unique_ptr<MATLABEngine>& matlab_ptr,
+                         const matlab::data::Array& matlab_object,
+                         const std::string& var_name)
+{
+  matlab::data::TypedArray<double> matlab_var =
+    matlab_ptr->getProperty(matlab_object, var_name);
+  try
+  {
+    // Matlab iterator works column-by-column, so we need to transpose all matrices
+    return grabnum::Matrix3d(matlab_var.begin(), matlab_var.end()).Transpose();
+  }
+  catch (std::exception)
+  {
+    qDebug() << (var_name + " is empty!").c_str();
+    return grabnum::Matrix3d();
+  }
+}
+
+static grabnum::Matrix6d
+matlabProperty2GrabMat66(const std::unique_ptr<MATLABEngine>& matlab_ptr,
+                         const matlab::data::Array& matlab_object,
+                         const std::string& var_name)
+{
+  matlab::data::TypedArray<double> matlab_var =
+    matlab_ptr->getProperty(matlab_object, var_name);
+  try
+  {
+    // Matlab iterator works column-by-column, so we need to transpose all matrices
+    return grabnum::Matrix6d(matlab_var.begin(), matlab_var.end()).Transpose();
+  }
+  catch (std::exception)
+  {
+    qDebug() << (var_name + " is empty!").c_str();
+    return grabnum::Matrix6d();
+  }
+}
+
+static arma::mat matlab2ArmaMat(const std::unique_ptr<MATLABEngine>& matlab_ptr,
+                                const char16_t* var_name)
+{
+  matlab::data::TypedArray<double> matlab_var = matlab_ptr->getVariable(var_name);
+  std::vector<double> std_var(matlab_var.begin(), matlab_var.end());
+  matlab::data::ArrayDimensions dims = matlab_var.getDimensions();
+  arma::mat arma_matlab_var(std_var.data(), dims[0], dims[1]);
+  return arma_matlab_var;
+}
+
+static arma::vec matlab2ArmaVec(const std::unique_ptr<MATLABEngine>& matlab_ptr,
+                                const char16_t* var_name)
+{
+  matlab::data::TypedArray<double> matlab_var = matlab_ptr->getVariable(var_name);
+  std::vector<double> std_var(matlab_var.begin(), matlab_var.end());
+  arma::vec arma_matlab_var(std_var.data(), std_var.size());
+  return arma_matlab_var;
+}
+
+static arma::mat matlabProperty2ArmaMat(const std::unique_ptr<MATLABEngine>& matlab_ptr,
+                                        const matlab::data::Array& matlab_object,
+                                        const std::string& property_name)
+{
+  matlab::data::TypedArray<double> matlab_var =
+    matlab_ptr->getProperty(matlab_object, property_name);
+  std::vector<double> std_var(matlab_var.begin(), matlab_var.end());
+  matlab::data::ArrayDimensions dims = matlab_var.getDimensions();
+  arma::mat arma_matlab_var(std_var.data(), dims[0], dims[1]);
+  return arma_matlab_var;
+}
+
+static arma::vec matlabProperty2ArmaVec(const std::unique_ptr<MATLABEngine>& matlab_ptr,
+                                        const matlab::data::Array& matlab_object,
+                                        const std::string& property_name)
+{
+  matlab::data::TypedArray<double> matlab_var =
+    matlab_ptr->getProperty(matlab_object, property_name);
+  std::vector<double> std_var(matlab_var.begin(), matlab_var.end());
+  arma::vec arma_matlab_var(std_var.data(), std_var.size());
+  return arma_matlab_var;
+}
+
 class LibcdprTest: public QObject
 {
   Q_OBJECT
@@ -36,8 +152,12 @@ class LibcdprTest: public QObject
                    const std::string& var_name);
 
   grabcdpr::CableVars getCableFromWS(const std::string& var_name);
-  grabcdpr::UnderActuatedPlatformVars getPlatformFromWS(const std::string& var_name);
-  grabcdpr::UnderActuatedRobotVars getRobotFromWS(const std::string& var_name);
+  grabcdpr::PlatformVars getPlatformFromWS(const std::string& var_name);
+  void getUnderActuatedPlatformFromWS(const std::string& var_name,
+                                      grabcdpr::UnderActuatedPlatformVars& platform);
+  grabcdpr::RobotVars getRobotFromWS(const std::string& var_name);
+  grabcdpr::UnderActuatedRobotVars
+  getUnderActuatedRobotFromWS(const std::string& var_name);
 
   arma::vec nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess,
                                      const arma::uvec6& mask, const uint8_t nmax = 100,
@@ -48,7 +168,7 @@ class LibcdprTest: public QObject
   // Tools
   void testRobotConfigJsonParser();
 
-  // Kinematics
+  // Inverse Kinematics
   void testUpdatePlatformPose();
   void testUpdatePosA();
   void testUpdatePulleyVersors();
@@ -57,8 +177,15 @@ class LibcdprTest: public QObject
   void testUpdateCableVectors();
   void testUpdateJacobiansRow();
   void testUpdateCableZeroOrd();
-  void testUpdateUpdateIKZeroOrd();
+  void testUpdateIK0();
+
+  // Direct Kinematics
+  void testCalcJacobianL();
+  void testCalcJacobianSw();
+  void testOptFunDK0();
   void testUpdateDK0();
+  void testOptFunDK0GS();
+  void testRobustUpdateDK0();
 
   // Dynamics
   void testUpdateExternalLoads();
@@ -334,42 +461,6 @@ grabcdpr::CableVars LibcdprTest::getCableFromWS(const std::string& var_name)
   matlab::data::Array cable_matlab =
     matlab_ptr_->getVariable(convertUTF8StringToUTF16String(var_name));
 
-  // Get cable properties (only array ones)
-  matlab::data::TypedArray<double> pos_PA_glob =
-    matlab_ptr_->getProperty(cable_matlab, u"pos_PA_glob");
-  matlab::data::TypedArray<double> pos_OA_glob =
-    matlab_ptr_->getProperty(cable_matlab, u"pos_OA_glob");
-  matlab::data::TypedArray<double> pos_DA_glob =
-    matlab_ptr_->getProperty(cable_matlab, u"pos_DA_glob");
-  matlab::data::TypedArray<double> pos_BA_glob =
-    matlab_ptr_->getProperty(cable_matlab, u"pos_BA_glob");
-  matlab::data::TypedArray<double> vers_u =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_u");
-  matlab::data::TypedArray<double> vers_w =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_w");
-  matlab::data::TypedArray<double> vers_n =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_n");
-  matlab::data::TypedArray<double> vers_t =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_t");
-  matlab::data::TypedArray<double> vel_OA_glob =
-    matlab_ptr_->getProperty(cable_matlab, u"vel_OA_glob");
-  matlab::data::TypedArray<double> vel_BA_glob =
-    matlab_ptr_->getProperty(cable_matlab, u"vel_BA_glob");
-  matlab::data::TypedArray<double> vers_u_dot =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_u_deriv");
-  matlab::data::TypedArray<double> vers_w_dot =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_w_deriv");
-  matlab::data::TypedArray<double> vers_n_dot =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_n_deriv");
-  matlab::data::TypedArray<double> vers_t_dot =
-    matlab_ptr_->getProperty(cable_matlab, u"vers_t_deriv");
-  matlab::data::TypedArray<double> acc_OA_glob =
-    matlab_ptr_->getProperty(cable_matlab, u"acc_OA_glob");
-  matlab::data::TypedArray<double> geom_jacob_row =
-    matlab_ptr_->getProperty(cable_matlab, u"geometric_jacobian_row");
-  matlab::data::TypedArray<double> anal_jacob_row =
-    matlab_ptr_->getProperty(cable_matlab, u"analitic_jacobian_row");
-
   // Build corresponding cable structure
   grabcdpr::CableVars cable;
   cable.length         = matlab_ptr_->getProperty(cable_matlab, u"complete_length")[0];
@@ -382,133 +473,213 @@ grabcdpr::CableVars LibcdprTest::getCableFromWS(const std::string& var_name)
     matlab_ptr_->getProperty(cable_matlab, u"complete_acceleration")[0];
   cable.swivel_ang_acc = matlab_ptr_->getProperty(cable_matlab, u"swivel_ang_acc")[0];
   cable.tan_ang_acc    = matlab_ptr_->getProperty(cable_matlab, u"tan_ang_acc")[0];
-  cable.pos_PA_glob.Fill(pos_PA_glob.begin(), pos_PA_glob.end());
-  cable.pos_OA_glob.Fill(pos_OA_glob.begin(), pos_OA_glob.end());
-  cable.pos_DA_glob.Fill(pos_DA_glob.begin(), pos_DA_glob.end());
-  cable.pos_BA_glob.Fill(pos_BA_glob.begin(), pos_BA_glob.end());
-  cable.vers_u.Fill(vers_u.begin(), vers_u.end());
-  cable.vers_w.Fill(vers_w.begin(), vers_w.end());
-  cable.vers_n.Fill(vers_n.begin(), vers_n.end());
-  cable.vers_t.Fill(vers_t.begin(), vers_t.end());
-  cable.vel_OA_glob.Fill(vel_OA_glob.begin(), vel_OA_glob.end());
-  cable.vel_BA_glob.Fill(vel_BA_glob.begin(), vel_BA_glob.end());
-  cable.vers_u_dot.Fill(vers_u_dot.begin(), vers_u_dot.end());
-  cable.vers_w_dot.Fill(vers_w_dot.begin(), vers_w_dot.end());
-  cable.vers_n_dot.Fill(vers_n_dot.begin(), vers_n_dot.end());
-  cable.vers_t_dot.Fill(vers_t_dot.begin(), vers_t_dot.end());
-  cable.acc_OA_glob.Fill(acc_OA_glob.begin(), acc_OA_glob.end());
-  cable.geom_jacob_row.Fill(geom_jacob_row.begin(), geom_jacob_row.end());
-  cable.anal_jacob_row.Fill(anal_jacob_row.begin(), anal_jacob_row.end());
+  cable.pos_PA_glob = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "pos_PA_glob");
+  cable.pos_OA_glob = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "pos_OA_glob");
+  cable.pos_DA_glob = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "pos_DA_glob");
+  cable.pos_BA_glob = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "pos_BA_glob");
+  cable.vers_u      = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vers_u");
+  cable.vers_w      = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vers_w");
+  cable.vers_n      = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vers_n");
+  cable.vers_t      = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vers_t");
+  cable.vel_OA_glob = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vel_OA_glob");
+  cable.vel_BA_glob = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vel_BA_glob");
+  cable.vers_u_dot  = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vers_u_deriv");
+  cable.vers_w_dot  = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vers_w_deriv");
+  cable.vers_n_dot  = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vers_n_deriv");
+  cable.vers_t_dot  = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "vers_t_deriv");
+  cable.acc_OA_glob = matlabProperty2GrabVec3(matlab_ptr_, cable_matlab, "acc_OA_glob");
+  cable.geom_jacob_row =
+    matlabProperty2GrabVec6(matlab_ptr_, cable_matlab, "geometric_jacobian_row")
+      .Transpose();
+  cable.anal_jacob_row =
+    matlabProperty2GrabVec6(matlab_ptr_, cable_matlab, "analitic_jacobian_row")
+      .Transpose();
 
   return cable;
 }
 
-grabcdpr::UnderActuatedPlatformVars
-LibcdprTest::getPlatformFromWS(const std::string& var_name)
+grabcdpr::PlatformVars LibcdprTest::getPlatformFromWS(const std::string& var_name)
 {
   // Get platform object
   matlab::data::Array platform_matlab =
     matlab_ptr_->getVariable(convertUTF8StringToUTF16String(var_name));
 
-  // Get platform properties (only array ones)
-  matlab::data::TypedArray<double> position =
-    matlab_ptr_->getProperty(platform_matlab, u"position");
-  matlab::data::TypedArray<double> pos_PG_glob =
-    matlab_ptr_->getProperty(platform_matlab, u"pos_PG_glob");
-  matlab::data::TypedArray<double> pos_OG_glob =
-    matlab_ptr_->getProperty(platform_matlab, u"pos_OG_glob");
-  matlab::data::TypedArray<double> velocity =
-    matlab_ptr_->getProperty(platform_matlab, u"velocity");
-  matlab::data::TypedArray<double> angular_vel =
-    matlab_ptr_->getProperty(platform_matlab, u"angular_vel");
-  matlab::data::TypedArray<double> vel_OG_glob =
-    matlab_ptr_->getProperty(platform_matlab, u"vel_OG_glob");
-  matlab::data::TypedArray<double> acceleration =
-    matlab_ptr_->getProperty(platform_matlab, u"acceleration");
-  matlab::data::TypedArray<double> angular_acc =
-    matlab_ptr_->getProperty(platform_matlab, u"angular_acc");
-  matlab::data::TypedArray<double> acc_OG_glob =
-    matlab_ptr_->getProperty(platform_matlab, u"acc_OG_glob");
-  matlab::data::TypedArray<double> orientation =
-    matlab_ptr_->getProperty(platform_matlab, u"orientation");
-  matlab::data::TypedArray<double> orientation_dot =
-    matlab_ptr_->getProperty(platform_matlab, u"orientation_deriv");
-  matlab::data::TypedArray<double> orientation_ddot =
-    matlab_ptr_->getProperty(platform_matlab, u"orientation_deriv_2");
-  matlab::data::TypedArray<double> pose =
-    matlab_ptr_->getProperty(platform_matlab, u"pose");
-  matlab::data::TypedArray<double> rot_mat =
-    matlab_ptr_->getProperty(platform_matlab, u"rot_mat");
-  matlab::data::TypedArray<double> h_mat =
-    matlab_ptr_->getProperty(platform_matlab, u"H_mat");
-  matlab::data::TypedArray<double> dh_mat =
-    matlab_ptr_->getProperty(platform_matlab, u"H_mat_deriv");
-  matlab::data::TypedArray<double> ext_load =
-    matlab_ptr_->getProperty(platform_matlab, u"ext_load");
-  matlab::data::TypedArray<double> ext_load_ss =
-    matlab_ptr_->getProperty(platform_matlab, u"ext_load_ss");
-
-  // Build corresponding platform structure
-  grabcdpr::UnderActuatedPlatformVars platform(params_.controlled_vars_mask);
-  platform.position.Fill(position.begin(), position.end());
-  platform.pos_PG_glob.Fill(pos_PG_glob.begin(), pos_PG_glob.end());
-  platform.pos_OG_glob.Fill(pos_OG_glob.begin(), pos_OG_glob.end());
-  platform.linear_vel.Fill(velocity.begin(), velocity.end());
-  platform.angular_vel.Fill(angular_vel.begin(), angular_vel.end());
-  platform.vel_OG_glob.Fill(vel_OG_glob.begin(), vel_OG_glob.end());
-  platform.linear_acc.Fill(acceleration.begin(), acceleration.end());
-  platform.angular_acc.Fill(angular_acc.begin(), angular_acc.end());
-  platform.acc_OG_glob.Fill(acc_OG_glob.begin(), acc_OG_glob.end());
-  platform.orientation.Fill(orientation.begin(), orientation.end());
-  platform.orientation_dot.Fill(orientation_dot.begin(), orientation_dot.end());
-  platform.orientation_ddot.Fill(orientation_ddot.begin(), orientation_ddot.end());
-  platform.pose.Fill(pose.begin(), pose.end());
-  platform.ext_load.Fill(ext_load.begin(), ext_load.end());
-  platform.ext_load_ss.Fill(ext_load_ss.begin(), ext_load_ss.end());
-  // Matlab iterator works column-by-column, so we need to transpose all matrices
-  platform.rot_mat = grabnum::Matrix3d(rot_mat.begin(), rot_mat.end()).Transpose();
-  platform.h_mat   = grabnum::Matrix3d(h_mat.begin(), h_mat.end()).Transpose();
-  platform.dh_mat  = grabnum::Matrix3d(dh_mat.begin(), dh_mat.end()).Transpose();
+  grabcdpr::PlatformVars platform(params_.platform.rot_parametrization);
+  // Get platform properties
+  platform.position = matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "position");
+  platform.pos_PG_glob =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "pos_PG_glob");
+  platform.pos_OG_glob =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "pos_OG_glob");
+  platform.linear_vel =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "velocity");
+  platform.angular_vel =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "angular_vel");
+  platform.vel_OG_glob =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "vel_OG_glob");
+  platform.linear_acc =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "acceleration");
+  platform.angular_acc =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "angular_acc");
+  platform.acc_OG_glob =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "acc_OG_glob");
+  platform.orientation =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "orientation");
+  platform.orientation_dot =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "orientation_deriv");
+  platform.orientation_ddot =
+    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "orientation_deriv_2");
+  platform.pose     = matlabProperty2GrabVec6(matlab_ptr_, platform_matlab, "pose");
+  platform.ext_load = matlabProperty2GrabVec6(matlab_ptr_, platform_matlab, "ext_load");
+  platform.dyn_load = matlabProperty2GrabVec6(matlab_ptr_, platform_matlab, "dyn_load");
+  platform.total_load =
+    matlabProperty2GrabVec6(matlab_ptr_, platform_matlab, "total_load");
+  platform.ext_load_ss =
+    matlabProperty2GrabVec6(matlab_ptr_, platform_matlab, "ext_load_ss");
+  platform.dyn_load_ss =
+    matlabProperty2GrabVec6(matlab_ptr_, platform_matlab, "dyn_load_ss");
+  platform.total_load_ss =
+    matlabProperty2GrabVec6(matlab_ptr_, platform_matlab, "total_load_ss");
+  platform.rot_mat = matlabProperty2GrabMat33(matlab_ptr_, platform_matlab, "rot_mat");
+  platform.h_mat   = matlabProperty2GrabMat33(matlab_ptr_, platform_matlab, "H_mat");
+  platform.dh_mat =
+    matlabProperty2GrabMat33(matlab_ptr_, platform_matlab, "H_mat_deriv");
+  platform.inertia_mat_glob =
+    matlabProperty2GrabMat33(matlab_ptr_, platform_matlab, "inertia_matrix_global");
+  platform.mass_mat_glob =
+    matlabProperty2GrabMat66(matlab_ptr_, platform_matlab, "mass_matrix_global");
+  platform.mass_mat_glob_ss =
+    matlabProperty2GrabMat66(matlab_ptr_, platform_matlab, "mass_matrix_global_ss");
 
   return platform;
 }
 
-grabcdpr::UnderActuatedRobotVars LibcdprTest::getRobotFromWS(const std::string& var_name)
+void LibcdprTest::getUnderActuatedPlatformFromWS(
+  const std::string& var_name, grabcdpr::UnderActuatedPlatformVars& platform)
+{
+  // Get under-actuated platform object
+  matlab::data::Array underactuated_matlab =
+    matlab_ptr_->getVariable(convertUTF8StringToUTF16String(var_name));
+
+  // Update under-actuated platform properties
+  platform.actuated_vars =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "actuated");
+  platform.unactuated_vars =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "unactuated");
+  platform.actuated_deriv =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "actuated_deriv");
+  platform.unactuated_deriv =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "unactuated_deriv");
+  platform.actuated_deriv_2 =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "actuated_deriv_2");
+  platform.unactuated_deriv_2 =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "unactuated_deriv_2");
+  platform.mass_matrix_global_a =
+    matlabProperty2ArmaMat(matlab_ptr_, underactuated_matlab, "mass_matrix_global_a");
+  platform.mass_matrix_global_u =
+    matlabProperty2ArmaMat(matlab_ptr_, underactuated_matlab, "mass_matrix_global_u");
+  platform.mass_matrix_global_ss_a =
+    matlabProperty2ArmaMat(matlab_ptr_, underactuated_matlab, "mass_matrix_global_ss_a");
+  platform.mass_matrix_global_ss_u =
+    matlabProperty2ArmaMat(matlab_ptr_, underactuated_matlab, "mass_matrix_global_ss_u");
+  platform.external_load_a =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "external_load_a");
+  platform.external_load_u =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "external_load_u");
+  platform.external_load_ss_a =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "external_load_ss_a");
+  platform.external_load_ss_u =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "external_load_ss_u");
+  platform.total_load_a =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "total_load_a");
+  platform.total_load_u =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "total_load_u");
+  platform.total_load_ss_a =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "total_load_ss_a");
+  platform.total_load_ss_u =
+    matlabProperty2ArmaVec(matlab_ptr_, underactuated_matlab, "total_load_ss_u");
+}
+
+grabcdpr::RobotVars LibcdprTest::getRobotFromWS(const std::string& var_name)
 {
   auto var_name_u = convertUTF8StringToUTF16String(var_name);
-  grabcdpr::UnderActuatedRobotVars robot(params_.platform.rot_parametrization,
-                                         params_.controlled_vars_mask);
+  grabcdpr::RobotVars robot(params_.platform.rot_parametrization);
   // Get platform
-  matlab_ptr_->eval(var_name_u + u"_platform = cdpr_v.platform;");
-  robot.platform = getPlatformFromWS(var_name + "_platform");
+  matlab_ptr_->eval(u"platform = " + var_name_u + u".platform;");
+  robot.platform = getPlatformFromWS("platform");
   // Get cables
   for (uint i = 1; i <= params_.activeActuatorsNum(); i++)
   {
     auto idx_u = convertUTF8StringToUTF16String(std::to_string(i));
-    matlab_ptr_->eval(var_name_u + u"_cable = cdpr_v.cable(" + idx_u + u");");
-    robot.cables.push_back(getCableFromWS(var_name + "_cable"));
+    matlab_ptr_->eval(u"cable = " + var_name_u + u".cable(" + idx_u + u");");
+    robot.cables.push_back(getCableFromWS("cable"));
   }
-  // Get extra fields
   // Get robot object
   matlab::data::Array robot_matlab = matlab_ptr_->getVariable(var_name_u);
-  // Get platform properties (only array ones)
-  matlab::data::TypedArray<double> geometric_jacobian =
-    matlab_ptr_->getProperty(robot_matlab, u"geometric_jacobian");
-  matlab::data::TypedArray<double> analitic_jacobian =
-    matlab_ptr_->getProperty(robot_matlab, u"analitic_jacobian");
-  matlab::data::TypedArray<double> tension_vector =
-    matlab_ptr_->getProperty(robot_matlab, u"tension_vector");
-  // Update fields
-  std::vector<double> tension_vector_std(tension_vector.begin(), tension_vector.end());
-  robot.tension_vector = arma::vec(tension_vector_std.data(), tension_vector_std.size());
-  std::vector<double> geom_jabobian_std(geometric_jacobian.begin(),
-                                        geometric_jacobian.end());
-  matlab::data::ArrayDimensions dims = geometric_jacobian.getDimensions();
-  robot.geom_jacobian = arma::mat(geom_jabobian_std.data(), dims[0], dims[1]);
-  std::vector<double> anal_jabobian_std(analitic_jacobian.begin(),
-                                        analitic_jacobian.end());
-  dims                = analitic_jacobian.getDimensions();
-  robot.anal_jacobian = arma::mat(anal_jabobian_std.data(), dims[0], dims[1]);
+  // Get extra fields
+  robot.geom_jacobian =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "geometric_jacobian");
+  robot.anal_jacobian =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "analitic_jacobian");
+  robot.geom_jacobian_d =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "geometric_jacobian_d");
+  robot.anal_jacobian_d =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "analitic_jacobian_d");
+  robot.tension_vector =
+    matlabProperty2ArmaVec(matlab_ptr_, robot_matlab, "tension_vector");
+  return robot;
+}
+
+grabcdpr::UnderActuatedRobotVars
+LibcdprTest::getUnderActuatedRobotFromWS(const std::string& var_name)
+{
+  auto var_name_u = convertUTF8StringToUTF16String(var_name);
+  grabcdpr::UnderActuatedRobotVars robot(params_.platform.rot_parametrization);
+  // Get platform
+  matlab_ptr_->eval(u"platform = " + var_name_u + u".platform;");
+  robot.platform = getPlatformFromWS("platform");
+  // Get under-actuated platform
+  getUnderActuatedPlatformFromWS(var_name + ".underactuated_platform", robot.platform);
+  // Get cables
+  for (uint i = 1; i <= params_.activeActuatorsNum(); i++)
+  {
+    auto idx_u = convertUTF8StringToUTF16String(std::to_string(i));
+    matlab_ptr_->eval(u"cable = " + var_name_u + u".cable(" + idx_u + u");");
+    robot.cables.push_back(getCableFromWS("cable"));
+  }
+  // Get robot object
+  matlab::data::Array robot_matlab = matlab_ptr_->getVariable(var_name_u);
+  // Get extra fields
+  robot.geom_jacobian =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "geometric_jacobian");
+  robot.anal_jacobian =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "analitic_jacobian");
+  robot.geom_jacobian_d =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "geometric_jacobian_d");
+  robot.anal_jacobian_d =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "analitic_jacobian_d");
+  robot.tension_vector =
+    matlabProperty2ArmaVec(matlab_ptr_, robot_matlab, "tension_vector");
+  // Some under-actuated-related field which don't belong to the platform are inside
+  // underactuated_platform property, so we first need to get it
+  matlab::data::Array underactuated_matlab = matlab_ptr_->getVariable(
+    convertUTF8StringToUTF16String(var_name + ".underactuated_platform"));
+  // Extract missing properties
+  robot.geom_jacobian_a =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "geometric_jacobian_a");
+  robot.geom_jacobian_u =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "geometric_jacobian_u");
+  robot.geom_orthogonal =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "geometric_orthogonal");
+  robot.anal_jacobian_a =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "analitic_jacobian_a");
+  robot.anal_jacobian_u =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "analitic_jacobian_u");
+  robot.anal_orthogonal =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "analitic_orthogonal");
+  robot.gamma_mat =
+    matlabProperty2ArmaMat(matlab_ptr_, robot_matlab, "analitic_orthogonal");
+
   return robot;
 }
 
@@ -523,12 +694,12 @@ arma::vec LibcdprTest::nonLinsolveJacGeomStatic(
   // the iterative process)
   arma::vec init_guess_arma = toArmaVec(init_guess);
   arma::vec fixed_coord(init_guess_arma.elem(arma::find(mask == 1)));
-  arma::vec var_coord(init_guess_arma.elem(arma::find(mask == 1)));
+  arma::vec var_coord(init_guess_arma.elem(arma::find(mask == 0)));
 
   // First round to init function value and jacobian
   arma::vec func_val;
   arma::mat func_jacob;
-  grabcdpr::OptFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
+  grabcdpr::optFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
 
   // Init iteration variables
   arma::vec s;
@@ -541,7 +712,7 @@ arma::vec LibcdprTest::nonLinsolveJacGeomStatic(
     iter++;
     s = arma::solve(func_jacob, func_val);
     var_coord -= s;
-    grabcdpr::OptFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
+    grabcdpr::optFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
     err  = arma::norm(s);
     cond = kXtol * (1 + arma::norm(var_coord));
   }
@@ -586,7 +757,7 @@ void LibcdprTest::testRobotConfigJsonParser()
   //  parser.PrintConfig();
 }
 
-//--------- Kinematics ---------------//
+//--------- Inverse Kinematics ---------------//
 
 void LibcdprTest::testUpdatePlatformPose()
 {
@@ -833,7 +1004,7 @@ void LibcdprTest::testUpdateCableZeroOrd()
   QVERIFY(cable.anal_jacob_row.IsApprox(matlab_cable.anal_jacob_row));
 }
 
-void LibcdprTest::testUpdateUpdateIKZeroOrd()
+void LibcdprTest::testUpdateIK0()
 {
   // Setup dummy input
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
@@ -856,7 +1027,7 @@ void LibcdprTest::testUpdateUpdateIKZeroOrd()
   matlab_ptr_->eval(u"cdpr_v = UpdateIKZeroOrd(position, orientation, cdpr_p, cdpr_v);");
 
   // Get matlab results
-  grabcdpr::UnderActuatedRobotVars matlab_robot = getRobotFromWS("cdpr_v");
+  grabcdpr::RobotVars matlab_robot = getRobotFromWS("cdpr_v");
 
   // Check they are the same
   QCOMPARE(robot.platform.pose, matlab_robot.platform.pose);
@@ -865,8 +1036,7 @@ void LibcdprTest::testUpdateUpdateIKZeroOrd()
   {
     QCOMPARE(robot.cables[i].swivel_ang, matlab_robot.cables[i].swivel_ang);
     QCOMPARE(robot.cables[i].tan_ang, matlab_robot.cables[i].tan_ang);
-    //  QCOMPARE(robot.cables[i].length, matlab_robot.cables[i].length); // different
-    //  implementation!!
+    QCOMPARE(robot.cables[i].length, matlab_robot.cables[i].length);
     QVERIFY(robot.cables[i].vers_u.IsApprox(matlab_robot.cables[i].vers_u));
     QVERIFY(robot.cables[i].vers_n.IsApprox(matlab_robot.cables[i].vers_n));
     QVERIFY(robot.cables[i].vers_t.IsApprox(matlab_robot.cables[i].vers_t));
@@ -888,6 +1058,99 @@ void LibcdprTest::testUpdateUpdateIKZeroOrd()
                              EPSILON));
 }
 
+//--------- Direct Kinematics ---------------//
+
+void LibcdprTest::testCalcJacobianL()
+{
+  // Setup dummy input
+  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+                            params_.platform.rot_parametrization);
+  grabnum::Vector6d pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  grabcdpr::updateIK0(pose, params_, robot);
+  // Load dummy input to Matlab workspace
+  addRobot2WS(robot, "cdpr_v");
+
+  // Call C++ function implementation to be tested
+  arma::mat jacobian_l;
+  QBENCHMARK { jacobian_l = grabcdpr::calcJacobianL(robot); }
+  // Call the corresponding MATLAB
+  matlab_ptr_->eval(u"jacobian_l = CalcJacobianL(cdpr_v);");
+
+  // Get matlab results
+  arma::mat matlab_jacobian_l = matlab2ArmaMat(matlab_ptr_, u"jacobian_l");
+
+  // Check they are the same
+  QVERIFY(arma::approx_equal(jacobian_l, matlab_jacobian_l, "absdiff", EPSILON));
+}
+
+void LibcdprTest::testCalcJacobianSw()
+{
+  // Setup dummy input
+  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+                            params_.platform.rot_parametrization);
+  grabnum::Vector6d pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  grabcdpr::updateIK0(pose, params_, robot);
+  // Load dummy input to Matlab workspace
+  addRobot2WS(robot, "cdpr_v");
+
+  // Call C++ function implementation to be tested
+  arma::mat jacobian_sw;
+  QBENCHMARK { jacobian_sw = grabcdpr::calcJacobianSw(robot); }
+  // Call the corresponding MATLAB
+  matlab_ptr_->eval(u"jacobian_sw = CalcJacobianSw(cdpr_v);");
+
+  // Get matlab results
+  arma::mat matlab_jacobian_sw = matlab2ArmaMat(matlab_ptr_, u"jacobian_sw");
+
+  // Check they are the same
+  QVERIFY(arma::approx_equal(jacobian_sw, matlab_jacobian_sw, "absdiff", EPSILON));
+}
+
+void LibcdprTest::testOptFunDK0()
+{
+  // Setup dummy input
+  const size_t num_cables = params_.activeActuatorsNum();
+  grabcdpr::RobotVars robot(num_cables, params_.platform.rot_parametrization);
+  arma::vec6 pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  grabcdpr::updateIK0(pose, params_, robot);
+  std::vector<double> cables_length(num_cables, 0);
+  std::vector<double> swivel_angles(num_cables, 0);
+  for (uint i = 0; i < num_cables; ++i)
+  {
+    cables_length[i] = robot.cables[i].length;
+    swivel_angles[i] = robot.cables[i].swivel_ang;
+  }
+  // Load dummy input to Matlab workspace
+  auto cables_length_matlab =
+    factory_.createArray({num_cables, 1}, cables_length.begin(), cables_length.end());
+  auto swivel_angles_matlab =
+    factory_.createArray({num_cables, 1}, swivel_angles.begin(), swivel_angles.end());
+  auto pose_matlab = factory_.createArray({6, 1}, pose.begin(), pose.end());
+  // Put variables in the MATLAB workspace
+  matlab_ptr_->setVariable(u"cables_length", std::move(cables_length_matlab));
+  matlab_ptr_->setVariable(u"swivel_angles", std::move(swivel_angles_matlab));
+  matlab_ptr_->setVariable(u"pose", std::move(pose_matlab));
+
+  // Call C++ function implementation to be tested
+  arma::vec func_val;
+  arma::mat func_jacob;
+  QBENCHMARK
+  {
+    optFunDK0(params_, cables_length, swivel_angles, pose, func_jacob, func_val);
+  }
+  // Call the corresponding MATLAB
+  matlab_ptr_->eval(
+    u"[vector, matrix] = FunDkSwL(cdpr_p, cables_length, swivel_angles, pose);");
+
+  // Get matlab results
+  arma::vec matlab_func_val   = matlab2ArmaVec(matlab_ptr_, u"vector");
+  arma::mat matlab_func_jacob = matlab2ArmaMat(matlab_ptr_, u"matrix");
+
+  // Check they are the same
+  QVERIFY(arma::approx_equal(func_val, matlab_func_val, "absdiff", EPSILON));
+  QVERIFY(arma::approx_equal(func_jacob, matlab_func_jacob, "absdiff", EPSILON));
+}
+
 void LibcdprTest::testUpdateDK0()
 {
   // Setup dummy input
@@ -896,6 +1159,83 @@ void LibcdprTest::testUpdateDK0()
   arma::vec3 true_orientation = nonLinsolveJacGeomStatic(init_guess, mask);
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
+  grabnum::Vector3d position = init_guess.HeadRows<3>();
+  grabnum::Vector3d orientation(true_orientation.begin(), true_orientation.end());
+  grabcdpr::updateIK0(position, orientation, params_, robot);
+  // Perturbate pose
+  robot.platform.pose +=
+    grabnum::VectorXd<POSE_DIM>({0.01, -0.02, 0.001, 0.001, 0.002, -0.008});
+
+  bool ret = false;
+
+  // Perform fast direct kinematics
+  QBENCHMARK { ret = grabcdpr::updateDK0(params_, robot); }
+
+  if (ret)
+  {
+    // Verify roundtrip
+    QVERIFY(position.IsApprox(position));
+    QVERIFY(orientation.IsApprox(orientation));
+  }
+  else
+    std::cout << "could not solve fast DK0" << std::endl;
+}
+
+void LibcdprTest::testOptFunDK0GS()
+{
+  // Setup dummy input
+  const size_t num_cables = params_.activeActuatorsNum();
+  grabcdpr::UnderActuatedRobotVars robot(num_cables,
+                                         params_.platform.rot_parametrization,
+                                         params_.controlled_vars_mask);
+  arma::vec6 pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  grabcdpr::updateIK0(pose, params_, robot);
+  std::vector<double> cables_length(num_cables, 0);
+  std::vector<double> swivel_angles(num_cables, 0);
+  for (uint i = 0; i < num_cables; ++i)
+  {
+    cables_length[i] = robot.cables[i].length;
+    swivel_angles[i] = robot.cables[i].swivel_ang;
+  }
+  // Load dummy input to Matlab workspace
+  auto cables_length_matlab =
+    factory_.createArray({num_cables, 1}, cables_length.begin(), cables_length.end());
+  auto swivel_angles_matlab =
+    factory_.createArray({num_cables, 1}, swivel_angles.begin(), swivel_angles.end());
+  auto pose_matlab = factory_.createArray({6, 1}, pose.begin(), pose.end());
+  // Put variables in the MATLAB workspace
+  matlab_ptr_->setVariable(u"cables_length", std::move(cables_length_matlab));
+  matlab_ptr_->setVariable(u"swivel_angles", std::move(swivel_angles_matlab));
+  matlab_ptr_->setVariable(u"pose", std::move(pose_matlab));
+
+  // Call C++ function implementation to be tested
+  arma::vec func_val;
+  arma::mat func_jacob;
+  QBENCHMARK
+  {
+    optFunDK0GS(params_, cables_length, swivel_angles, pose, func_jacob, func_val);
+  }
+  // Call the corresponding MATLAB
+  matlab_ptr_->eval(
+    u"[vector, matrix] = FunDkGsSwL(cdpr_p, cables_length, swivel_angles, pose);");
+
+  // Get matlab results
+  arma::vec matlab_func_val   = matlab2ArmaVec(matlab_ptr_, u"vector");
+  arma::mat matlab_func_jacob = matlab2ArmaMat(matlab_ptr_, u"matrix");
+
+  // Check they are the same
+  QVERIFY(arma::approx_equal(func_val, matlab_func_val, "absdiff", EPSILON));
+  QVERIFY(arma::approx_equal(func_jacob, matlab_func_jacob, "absdiff", EPSILON));
+}
+
+void LibcdprTest::testRobustUpdateDK0()
+{
+  // Setup dummy input
+  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
+  arma::vec3 true_orientation = nonLinsolveJacGeomStatic(init_guess, mask);
+  grabcdpr::UnderActuatedRobotVars robot(params_.activeActuatorsNum(),
+                                         params_.platform.rot_parametrization, mask);
   grabnum::Vector3d position = init_guess.GetBlock<3, 1>(1, 1);
   grabnum::Vector3d orientation(true_orientation.begin(), true_orientation.end());
   grabcdpr::updateIK0(position, orientation, params_, robot);
@@ -916,21 +1256,6 @@ void LibcdprTest::testUpdateDK0()
   }
   else
     std::cout << "could not solve fast DK0" << std::endl;
-
-  // Reset to original pose
-  grabcdpr::updateIK0(position, orientation, params_, robot);
-
-  // Perform robust direct kinematics
-  QBENCHMARK { ret = grabcdpr::updateDK0(params_, robot, true); }
-
-  if (ret)
-  {
-    // Verify roundtrip
-    QVERIFY(position.IsApprox(position));
-    QVERIFY(orientation.IsApprox(orientation));
-  }
-  else
-    std::cout << "could not solve robust DK0" << std::endl;
 }
 
 //--------- Dynamics ---------------//
@@ -953,7 +1278,7 @@ void LibcdprTest::testUpdateExternalLoads()
   matlab_ptr_->eval(u"cdpr_v = CalcExternalLoadsStateSpace(cdpr_v, cdpr_p);");
 
   // Get matlab results
-  grabcdpr::UnderActuatedRobotVars matlab_platform = getRobotFromWS("cdpr_v");
+  grabcdpr::RobotVars matlab_platform = getRobotFromWS("cdpr_v");
 
   // Check they are the same
   QCOMPARE(robot.platform.ext_load, matlab_platform.platform.ext_load);
@@ -978,7 +1303,7 @@ void LibcdprTest::testUpdateCablesStaticTension()
   matlab_ptr_->eval(u"cdpr_v = CalcCablesStaticTension(cdpr_v);");
 
   // Get matlab results
-  grabcdpr::UnderActuatedRobotVars matlab_robot = getRobotFromWS("cdpr_v");
+  grabcdpr::RobotVars matlab_robot = getRobotFromWS("cdpr_v");
 
   // Check they are the same
   QVERIFY(arma::approx_equal(robot.tension_vector, matlab_robot.tension_vector, "absdiff",
@@ -1006,10 +1331,7 @@ void LibcdprTest::testCalcJacobiansGS()
   matlab_ptr_->eval(u"J_q = CalcJacobianGs(cdpr_v);");
 
   // Get matlab results
-  matlab::data::TypedArray<double> J_q = matlab_ptr_->getVariable(u"J_q");
-  std::vector<double> J_q_std(J_q.begin(), J_q.end());
-  matlab::data::ArrayDimensions dims = J_q.getDimensions();
-  arma::mat matlab_J_q(J_q_std.data(), dims[0], dims[1]);
+  arma::mat matlab_J_q = matlab2ArmaMat(matlab_ptr_, u"J_q");
 
   // Check they are the same
   QVERIFY(arma::approx_equal(Jq, matlab_J_q, "absdiff", EPSILON));
@@ -1035,19 +1357,14 @@ void LibcdprTest::testOptFunGS()
   // Call C++ function implementation to be tested
   QBENCHMARK
   {
-    grabcdpr::OptFunGS(params_, fixed_coord, var_coord, fun_jacobian, fun_val);
+    grabcdpr::optFunGS(params_, fixed_coord, var_coord, fun_jacobian, fun_val);
   }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"[fun_val, fun_jacobian] = FunGs(cdpr_p, act_vars, unact_vars);");
 
   // Get matlab results
-  matlab::data::TypedArray<double> J = matlab_ptr_->getVariable(u"fun_jacobian");
-  std::vector<double> J_std(J.begin(), J.end());
-  matlab::data::ArrayDimensions dims = J.getDimensions();
-  arma::mat matlab_fun_jacobian(J_std.data(), dims[0], dims[1]);
-  matlab::data::TypedArray<double> f = matlab_ptr_->getVariable(u"fun_val");
-  std::vector<double> f_std(f.begin(), f.end());
-  arma::vec matlab_fun_val(f_std.data(), f.getNumberOfElements());
+  arma::mat matlab_fun_jacobian = matlab2ArmaMat(matlab_ptr_, u"fun_jacobian");
+  arma::vec matlab_fun_val      = matlab2ArmaVec(matlab_ptr_, u"fun_val");
 
   // Check they are the same
   QVERIFY(arma::approx_equal(fun_jacobian, matlab_fun_jacobian, "absdiff", EPSILON));
@@ -1057,8 +1374,8 @@ void LibcdprTest::testOptFunGS()
 void LibcdprTest::testNonLinsolveJacGeomStatic()
 {
   // Setup dummy input
-  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
-  //  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0, 0, 0});
+  //  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0, 0, 0});
   const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
   // Load dummy input to Matlab workspace
   auto p =
@@ -1074,8 +1391,9 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   // Run once outside benchmark to obtain iterations
   orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
   printf("Iterations: %d\n", iterations);
-  QBENCHMARK { orientation = nonLinsolveJacGeomStatic(init_guess, mask); }
+  std::cout << "Orientation: " << orientation << std::endl;
   return;
+  QBENCHMARK { orientation = nonLinsolveJacGeomStatic(init_guess, mask); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"fsolve_options_grad = "
@@ -1087,9 +1405,7 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
                     u"mask), in_guess, fsolve_options_grad);");
 
   // Get matlab results
-  matlab::data::TypedArray<double> orient = matlab_ptr_->getVariable(u"orient");
-  std::vector<double> orient_std(orient.begin(), orient.end());
-  arma::vec matlab_orientation(orient_std.data(), orient.getNumberOfElements());
+  arma::vec matlab_orientation = matlab2ArmaVec(matlab_ptr_, u"orient");
 
   // Check they are the same
   QVERIFY(arma::approx_equal(orientation, matlab_orientation, "absdiff", 1e-3));

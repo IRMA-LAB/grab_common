@@ -1,6 +1,8 @@
 #ifndef GRABCOMMON_LIBCDPR_STATICS_H
 #define GRABCOMMON_LIBCDPR_STATICS_H
 
+#include <assert.h>
+
 #include "grabcommon.h"
 #include "matrix_utilities.h"
 

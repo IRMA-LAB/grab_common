@@ -46,20 +46,22 @@ struct UnderActuatedPlatformVars: PlatformVars
   arma::mat mass_matrix_global_ss_a;
   arma::mat mass_matrix_global_ss_u;
 
-  arma::vec total_load_a;
-  arma::vec total_load_u;
-
-  arma::vec total_load_ss_a;
-  arma::vec total_load_ss_u;
-
   arma::vec external_load_a;
   arma::vec external_load_u;
 
   arma::vec external_load_ss_a;
   arma::vec external_load_ss_u;
+
+  arma::vec total_load_a;
+  arma::vec total_load_u;
+
+  arma::vec total_load_ss_a;
+  arma::vec total_load_ss_u;
   /** @} */ // end of Dynamics group
 
   UnderActuatedPlatformVars(const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
+  UnderActuatedPlatformVars(const PlatformVars vars,
+                            const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
   UnderActuatedPlatformVars(const RotParametrization _angles_type = TILT_TORSION,
                             const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
   UnderActuatedPlatformVars(const grabnum::Vector3d& _position,
@@ -95,8 +97,7 @@ struct UnderActuatedPlatformVars: PlatformVars
   void updateAcc(const grabnum::Vector3d& _acceleration,
                  const grabnum::Vector3d& _orientation_ddot,
                  const grabnum::Vector3d& _orientation_dot,
-                 const grabnum::Vector3d& _orientation,
-                 const grabnum::Matrix3d& _h_mat);
+                 const grabnum::Vector3d& _orientation, const grabnum::Matrix3d& _h_mat);
   void updateAcc(const grabnum::Vector3d& _acceleration,
                  const grabnum::Vector3d& _orientation_ddot);
 
@@ -161,19 +162,39 @@ struct UnderActuatedRobotVars
   void updateJacobians();
 };
 
-grabnum::Matrix3d calcMatrixT(const CableVarsBase& cable);
-
-arma::mat calcJacobianGS(const UnderActuatedRobotVars& vars);
-
 void updateIK0(const Vector3d& position, const Vector3d& orientation,
                const RobotParams& params, UnderActuatedRobotVars& vars);
+void updateIK0(const Vector6d& pose, const RobotParams& params,
+               UnderActuatedRobotVars& vars);
+void updateIK0(const arma::vec6& _pose, const RobotParams& params,
+               UnderActuatedRobotVars& vars);
 
 void updateCablesStaticTension(UnderActuatedRobotVars& vars);
 
+grabnum::Matrix3d calcMatrixT(const CableVarsBase& cable);
+
 arma::vec calcStaticConstraint(const UnderActuatedRobotVars& vars);
 
-void OptFunGS(const RobotParams& params, const arma::vec& act_vars,
+inline arma::mat calcJacobianL(const UnderActuatedRobotVars& vars);
+
+arma::mat calcJacobianSw(const UnderActuatedRobotVars& vars);
+
+arma::mat calcJacobianGS(const UnderActuatedRobotVars& vars);
+
+void optFunGS(const RobotParams& params, const arma::vec& act_vars,
               const arma::vec& unact_vars, arma::mat& fun_jacobian, arma::vec& fun_val);
+
+void optFunDK0GS(const RobotParams& params, const arma::vec& cables_length,
+                 const arma::vec& swivel_angles, const arma::vec6& pose,
+                 arma::mat& fun_jacobian, arma::vec& fun_val);
+
+bool solveDK0GS(const std::vector<double>& cables_length,
+                const std::vector<double>& swivel_angles,
+                const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
+                const RobotParams& params, VectorXd<POSE_DIM>& platform_pose,
+                const uint8_t nmax = 100, uint8_t* iter_out = nullptr);
+
+bool updateDK0(const RobotParams& params, UnderActuatedRobotVars& vars);
 
 } // end namespace grabcdpr
 

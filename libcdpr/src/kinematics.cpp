@@ -197,6 +197,17 @@ void updateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orien
   vars.updateJacobians();
 }
 
+void updateIK0(const Vector6d& pose, const RobotParams& params, RobotVars& vars)
+{
+  updateIK0(pose.HeadRows<3>(), pose.TailRows<3>(), params, vars);
+}
+
+void updateIK0(const arma::vec6& _pose, const RobotParams& params, RobotVars& vars)
+{
+  grabnum::Vector6d pose(_pose.begin(), _pose.end());
+  updateIK0(pose, params, vars);
+}
+
 void updateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& orientation,
                const RobotParams& params, RobotVarsQuat& vars)
 {
@@ -208,209 +219,51 @@ void updateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& or
   vars.updateJacobians();
 }
 
-void calcDK0Jacobians(const RobotVars& vars, const arma::mat& Ja, arma::mat& J_sl)
+arma::mat calcJacobianL(const RobotVars& vars) { return vars.anal_jacobian; }
+
+arma::mat calcJacobianSw(const RobotVars& vars)
 {
-  static constexpr ulong m = POSE_DIM;  // DOF
-  const ulong n            = Ja.n_cols; // num cables
-
-  J_sl = arma::mat(2 * n, m, arma::fill::zeros);
-  for (ulong i = 0; i < static_cast<ulong>(n); i++)
+  arma::mat jacobian_sw(arma::size(vars.anal_jacobian), arma::fill::none);
+  for (uint i = 0; i < jacobian_sw.n_rows; ++i)
   {
-    grabnum::MatrixXd<3, m> dadq(1.0); // set diagonal to 1
-    dadq.SetBlock<3, m - 3>(1, 4,
-                            -Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat);
-    grabnum::MatrixXd<1, m> dsdq =
-      vars.cables[i].vers_w.Transpose() * dadq /
-      grabnum::Dot(vars.cables[i].pos_DA_glob, vars.cables[i].vers_u);
-    grabnum::MatrixXd<1, m> dldq = vars.cables[i].vers_t.Transpose() * dadq;
-
-    J_sl.row(i)     = arma::rowvec6(dsdq.Data());
-    J_sl.row(n + i) = arma::rowvec6(dldq.Data());
+    arma::rowvec temp =
+      arma::join_horiz(toArmaVec(vars.cables[i].vers_w).t(),
+                       toArmaVec(-vars.cables[i].vers_w.Transpose() *
+                                 Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat));
+    jacobian_sw.row(i) =
+      temp / grabnum::Dot(vars.cables[i].vers_u, vars.cables[i].pos_DA_glob);
   }
+  return jacobian_sw;
 }
 
-void calcDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja, arma::mat& J_sl)
-{
-  static constexpr ulong m = POSE_QUAT_DIM; // DOF
-  const ulong n            = Ja.n_cols;     // num cables
-
-  J_sl = arma::mat(2 * n, m, arma::fill::zeros);
-  for (ulong i = 0; i < static_cast<ulong>(n); i++)
-  {
-    grabnum::MatrixXd<3, m> dadq(1.0); // set diagonal to 1
-    dadq.SetBlock<3, m - 3>(1, 4,
-                            -Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat);
-    grabnum::MatrixXd<1, m> dsdq =
-      vars.cables[i].vers_w.Transpose() * dadq /
-      grabnum::Dot(vars.cables[i].pos_DA_glob, vars.cables[i].vers_u);
-    grabnum::MatrixXd<1, m> dldq = vars.cables[i].vers_t.Transpose() * dadq;
-
-    J_sl.row(i)     = arma::rowvec7(dsdq.Data());
-    J_sl.row(n + i) = arma::rowvec7(dldq.Data());
-  }
-}
-
-static void DK0OptimizationFunc(const RobotParams& params, const arma::vec& cables_length,
-                                const arma::vec& swivel_angles, const arma::vec6& pose,
-                                arma::mat& fun_jacobian, arma::vec& func_val)
+void optFunDK0(const RobotParams& params, const arma::vec& cables_length,
+               const arma::vec& swivel_angles, const arma::vec6& pose,
+               arma::mat& fun_jacobian, arma::vec& fun_val)
 {
   const ulong kNumCables = params.activeActuatorsNum();
   RobotVars vars(kNumCables, params.platform.rot_parametrization);
-  updateIK0(fromArmaVec3(pose.head(3)), fromArmaVec3(pose.tail(3)), params, vars);
+  updateIK0(pose, params, vars);
 
-  arma::mat Ja = vars.geom_jacobian.cols(arma::span(0, kNumCables - 1));
-  arma::mat J_sl;
-  calcDK0Jacobians(vars, Ja, J_sl); // only kinematics
-
-  func_val = arma::zeros(2 * kNumCables);
+  arma::vec l_constraints(kNumCables, arma::fill::none);
+  arma::vec sw_constraints(kNumCables, arma::fill::none);
   for (uint i = 0; i < kNumCables; ++i)
   {
-    func_val(i)              = vars.cables[i].swivel_ang - swivel_angles(i);
-    func_val(i + kNumCables) = vars.cables[i].length - cables_length(i);
+    l_constraints(i)  = vars.cables[i].length - cables_length[i];
+    sw_constraints(i) = vars.cables[i].swivel_ang - swivel_angles[i];
   }
 
-  fun_jacobian = J_sl; // [J_sigma; J_l] --> J_sl --> (2 * NumCables, POSE_DIM)
-}
+  arma::mat l_jacobian  = calcJacobianL(vars);
+  arma::mat sw_jacobian = calcJacobianSw(vars);
 
-void calcRobustDK0Jacobians(const RobotVars& vars, const arma::mat& Ja,
-                            const arma::mat& Ju, const Vector3d& mg, arma::mat& J_q,
-                            arma::mat& J_sl)
-{
-  static constexpr ulong m = POSE_DIM;  // DOF
-  const ulong n            = Ja.n_cols; // num cables = controlled DOF
-
-  J_sl = arma::mat(2 * n, m, arma::fill::zeros);
-  grabnum::MatrixXd<m, m> dJT;     // init to zeros by default
-  grabnum::MatrixXd<m, m> dJT_add; // init to zeros by default
-  for (ulong i = 0; i < static_cast<ulong>(n); i++)
-  {
-    grabnum::MatrixXd<3, m> dadq(1.0); // set diagonal to 1
-    dadq.SetBlock<3, m - 3>(1, 4,
-                            -Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat);
-    grabnum::MatrixXd<1, m> dsdq =
-      vars.cables[i].vers_w.Transpose() * dadq /
-      grabnum::Dot(vars.cables[i].pos_DA_glob, vars.cables[i].vers_u);
-    grabnum::MatrixXd<1, m> dphidq =
-      vars.cables[i].vers_n.Transpose() * dadq / Norm(vars.cables[i].pos_BA_glob);
-    grabnum::MatrixXd<1, m> dldq = vars.cables[i].vers_t.Transpose() * dadq;
-    grabnum::MatrixXd<3, m> dtdq =
-      sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w * dsdq +
-      vars.cables[i].vers_n * dphidq; // 3xm
-    dadq.SetBlock<3, 3>(1, 1, grabnum::Matrix3d(0.0));
-
-    dJT_add.SetBlock<3, m>(1, 1, dtdq);
-    dJT_add.SetBlock<m - 3, m>(
-      4, 1,
-      (Skew(vars.cables[i].pos_PA_glob) * dtdq - Skew(vars.cables[i].vers_t) * dadq));
-    dJT += (dJT_add * vars.tension_vector(i));
-
-    J_sl.row(i)     = arma::rowvec6(dsdq.Data());
-    J_sl.row(n + i) = arma::rowvec6(dldq.Data());
-  }
-
-  grabnum::MatrixXd<m, m> dfdq; // init to zeros by default
-  dfdq.SetBlock<3, m - 3>(
-    4, 4, Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat);
-  arma::mat dfdq_arma = arma::mat(dfdq.Data(), m, m).t();
-
-  // J_q = (m-n)xm
-  arma::mat dJT_arma = arma::mat(dJT.Data(), m, m).t();
-  J_q                = dJT_arma.tail_rows(m - n) +
-        Ju.t() * arma::solve(Ja.t(), dfdq_arma.head_rows(n) - dJT_arma.head_rows(n)) -
-        dfdq_arma.tail_rows(m - n);
-}
-
-void calcRobustDK0Jacobians(const RobotVarsQuat& vars, const arma::mat& Ja,
-                            const arma::mat& Ju, const Vector3d& mg, arma::mat& J_q,
-                            arma::mat& J_sl)
-{
-  static constexpr ulong m = POSE_QUAT_DIM; // DOF
-  const ulong n            = Ja.n_cols;     // num cables
-
-  J_sl = arma::mat(2 * n, m, arma::fill::zeros);
-  grabnum::MatrixXd<m, m> dJT;     // init to zeros by default
-  grabnum::MatrixXd<m, m> dJT_add; // init to zeros by default
-  for (ulong i = 0; i < static_cast<ulong>(n); i++)
-  {
-    grabnum::MatrixXd<3, m> dadq(1.0); // set diagonal to 1
-    dadq.SetBlock<3, m - 3>(1, 4,
-                            -Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat);
-    grabnum::MatrixXd<1, m> dsdq =
-      vars.cables[i].vers_w.Transpose() * dadq /
-      grabnum::Dot(vars.cables[i].pos_DA_glob, vars.cables[i].vers_u);
-    grabnum::MatrixXd<1, m> dphidq =
-      vars.cables[i].vers_n.Transpose() * dadq / Norm(vars.cables[i].pos_BA_glob);
-    grabnum::MatrixXd<1, m> dldq = vars.cables[i].vers_t.Transpose() * dadq;
-    grabnum::MatrixXd<3, m> dtdq =
-      sin(vars.cables[i].tan_ang) * vars.cables[i].vers_w * dsdq +
-      vars.cables[i].vers_n * dphidq; // 3xm
-    dadq.SetBlock<3, 3>(1, 1, grabnum::Matrix3d(0.0));
-
-    dJT_add.SetBlock<3, m>(1, 1, dtdq);
-    // TODO: solve this dims mismatch
-    //    dJT_add.SetBlock<m - 3, m>(
-    //      4, 1,
-    //      (Skew(vars.cables[i].pos_PA_glob) * dtdq - Skew(vars.cables[i].vers_t) *
-    //      dadq));
-    dJT += (dJT_add * vars.tension_vector(i));
-
-    J_sl.row(i)     = arma::rowvec7(dsdq.Data());
-    J_sl.row(n + i) = arma::rowvec7(dldq.Data());
-  }
-
-  grabnum::MatrixXd<m, m> dfdq; // init to zeros by default
-  dfdq.SetBlock<3, m - 3>(
-    4, 4, Skew(mg) * Skew(vars.platform.pos_PG_glob) * vars.platform.h_mat);
-  arma::mat dfdq_arma = arma::mat(dfdq.Data(), m, m).t();
-
-  // J_q = (m-n)xm
-  arma::mat dJT_arma = arma::mat(dJT.Data(), m, m).t();
-  J_q                = dJT_arma.tail_rows(m - n) +
-        Ju.t() * arma::solve(Ja.t(), dfdq_arma.head_rows(n) - dJT_arma.head_rows(n)) -
-        dfdq_arma.tail_rows(m - n);
-}
-
-static void robustDK0OptimizationFunc(const RobotParams& params,
-                                      const arma::vec& cables_length,
-                                      const arma::vec& swivel_angles,
-                                      const arma::vec6& pose, arma::mat& fun_jacobian,
-                                      arma::vec& func_val)
-{
-  const ulong kNumCables          = params.activeActuatorsNum(); // = num. controlled DOF
-  const ulong kNumUncontrolledDof = POSE_DIM - kNumCables;
-  RobotVars vars(kNumCables, params.platform.rot_parametrization);
-  updateIK0(fromArmaVec3(pose.head(3)), fromArmaVec3(pose.tail(3)), params, vars);
-  updateExternalLoads(params.platform, vars.platform);
-
-  arma::mat Ja        = vars.geom_jacobian.head_cols(kNumCables);
-  arma::mat Ju        = vars.geom_jacobian.tail_cols(kNumUncontrolledDof);
-  arma::vec ext_load  = toArmaVec(vars.platform.ext_load);
-  arma::vec Wa        = ext_load.head(kNumCables);
-  arma::vec Wu        = ext_load.tail(kNumUncontrolledDof);
-  vars.tension_vector = arma::solve(Ja.t(), Wa); // linsolve Ax = b
-  arma::mat J_sl, J_q;
-  calcRobustDK0Jacobians(vars, Ja, Ju, params.platform.mass * params.platform.gravity_acc,
-                         J_q, J_sl); // kinematics + statics
-
-  func_val = arma::zeros(kNumCables + POSE_DIM); // = 2*NumCables+(NumUncontrolledDof)
-  for (uint i = 0; i < kNumCables; ++i)
-  {
-    func_val(i)              = vars.cables[i].swivel_ang - swivel_angles(i); // f_sigma
-    func_val(i + kNumCables) = vars.cables[i].length - cables_length(i);     // f_l
-  }
-  func_val.tail(kNumUncontrolledDof) = Ju.t() * vars.tension_vector - Wu;
-
-  fun_jacobian                           = arma::zeros(kNumCables + POSE_DIM, POSE_DIM);
-  fun_jacobian.head_rows(2 * kNumCables) = J_sl; // [J_sigma; J_l] --> J_sl (kinematics)
-  fun_jacobian.tail_rows(kNumUncontrolledDof) = J_q; // (statics)
+  fun_val      = arma::join_vert(l_constraints, sw_constraints);
+  fun_jacobian = arma::join_vert(l_jacobian, sw_jacobian);
 }
 
 bool solveDK0(const std::vector<double>& cables_length,
               const std::vector<double>& swivel_angles,
               const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
               const RobotParams& params, VectorXd<POSE_DIM>& platform_pose,
-              const bool use_gs_jacob /*=false*/, const uint8_t nmax /*= 100*/,
-              uint8_t* iter_out /*= nullptr*/)
+              const uint8_t nmax /*= 100*/, uint8_t* iter_out /*= nullptr*/)
 {
   static const double kFtol = 1e-6;
   static const double kXtol = 1e-6;
@@ -419,12 +272,7 @@ bool solveDK0(const std::vector<double>& cables_length,
   arma::vec func_val;
   arma::mat func_jacob;
   arma::vec6 pose = toArmaVec(init_guess_pose);
-  if (use_gs_jacob)
-    grabcdpr::robustDK0OptimizationFunc(params, cables_length, swivel_angles, pose,
-                                        func_jacob, func_val);
-  else
-    grabcdpr::DK0OptimizationFunc(params, cables_length, swivel_angles, pose, func_jacob,
-                                  func_val);
+  optFunDK0(params, cables_length, swivel_angles, pose, func_jacob, func_val);
 
   // Init iteration variables
   arma::vec s;
@@ -439,12 +287,7 @@ bool solveDK0(const std::vector<double>& cables_length,
     iter++;
     s = arma::solve(func_jacob, func_val);
     pose -= s;
-    if (use_gs_jacob)
-      grabcdpr::robustDK0OptimizationFunc(params, cables_length, swivel_angles, pose,
-                                          func_jacob, func_val);
-    else
-      grabcdpr::DK0OptimizationFunc(params, cables_length, swivel_angles, pose,
-                                    func_jacob, func_val);
+    optFunDK0(params, cables_length, swivel_angles, pose, func_jacob, func_val);
     err  = arma::norm(s);
     cond = kXtol * (1 + arma::norm(pose));
   }
@@ -457,8 +300,7 @@ bool solveDK0(const std::vector<double>& cables_length,
   return true;
 }
 
-bool updateDK0(const RobotParams& params, RobotVars& vars,
-               const bool use_gs_jacob /*=false*/)
+bool updateDK0(const RobotParams& params, RobotVars& vars)
 {
   // Extract starting conditions from latest robot configuration
   // Cable's variables are expected to be up-to-date
@@ -474,12 +316,10 @@ bool updateDK0(const RobotParams& params, RobotVars& vars,
 
   // Solve direct kinematics
   grabnum::VectorXd<POSE_DIM> new_pose;
-  if (solveDK0(cables_length, swivel_angles, init_guess_pose, params, new_pose,
-               use_gs_jacob))
+  if (solveDK0(cables_length, swivel_angles, init_guess_pose, params, new_pose))
   {
     // Update inverse kinematics
-    grabcdpr::updateIK0(new_pose.GetBlock<3, 1>(1, 1), new_pose.GetBlock<3, 1>(4, 1),
-                        params, vars);
+    updateIK0(new_pose, params, vars);
     return true;
   }
   // Could not solve optimization (failed direct kinematics)

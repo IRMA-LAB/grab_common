@@ -9,6 +9,13 @@ UnderActuatedPlatformVars::UnderActuatedPlatformVars(
 }
 
 UnderActuatedPlatformVars::UnderActuatedPlatformVars(
+  const PlatformVars vars, const arma::uvec6& _mask /*=arma::uvec6(arma::fill::ones)*/)
+  : PlatformVars(vars)
+{
+  setMask(_mask);
+}
+
+UnderActuatedPlatformVars::UnderActuatedPlatformVars(
   const RotParametrization _angles_type /*=TILT_TORSION*/,
   const arma::uvec6& _mask /*=arma::uvec6(arma::fill::ones)*/)
   : PlatformVars(_angles_type)
@@ -366,12 +373,64 @@ void UnderActuatedRobotVars::updateJacobians()
   anal_orthogonal.rows(unact_indeces) = temp_eye;
 }
 
+void updateIK0(const Vector3d& position, const Vector3d& orientation,
+               const RobotParams& params, UnderActuatedRobotVars& vars)
+{
+  updatePlatformPose(position, orientation, params.platform, vars.platform);
+  std::vector<id_t> active_actuators_id = params.activeActuatorsId();
+  for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
+    updateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
+                       vars.cables[i]);
+  vars.updateJacobians();
+}
+
+void updateIK0(const Vector6d& pose, const RobotParams& params,
+               UnderActuatedRobotVars& vars)
+{
+  updateIK0(pose.HeadRows<3>(), pose.TailRows<3>(), params, vars);
+}
+
+void updateIK0(const arma::vec6& _pose, const RobotParams& params,
+               UnderActuatedRobotVars& vars)
+{
+  grabnum::Vector6d pose(_pose.begin(), _pose.end());
+  updateIK0(pose, params, vars);
+}
+
+void updateCablesStaticTension(UnderActuatedRobotVars& vars)
+{
+  vars.tension_vector =
+    calcCablesStaticTension(vars.geom_jacobian, vars.platform.ext_load);
+}
+
 grabnum::Matrix3d calcMatrixT(const CableVarsBase& cable)
 {
   grabnum::Matrix3d T = cable.vers_w * cable.vers_w.Transpose() * sin(cable.tan_ang) /
                         (cable.vers_u.Transpose() * cable.pos_DA_glob)(1, 1);
   T += cable.vers_n * cable.vers_n.Transpose() / grabnum::Norm(cable.pos_BA_glob);
   return T;
+}
+
+arma::vec calcStaticConstraint(const UnderActuatedRobotVars& vars)
+{
+  return vars.geom_orthogonal.t() * toArmaVec(vars.platform.ext_load);
+}
+
+arma::mat calcJacobianL(const UnderActuatedRobotVars& vars) { return vars.anal_jacobian; }
+
+arma::mat calcJacobianSw(const UnderActuatedRobotVars& vars)
+{
+  arma::mat jacobian_sw(arma::size(vars.anal_jacobian), arma::fill::none);
+  for (uint i = 0; i < jacobian_sw.n_rows; ++i)
+  {
+    arma::rowvec temp =
+      arma::join_horiz(toArmaVec(vars.cables[i].vers_w).t(),
+                       toArmaVec(-vars.cables[i].vers_w.Transpose() *
+                                 Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat));
+    jacobian_sw.row(i) =
+      temp / grabnum::Dot(vars.cables[i].vers_u, vars.cables[i].pos_DA_glob);
+  }
+  return jacobian_sw;
 }
 
 arma::mat calcJacobianGS(const UnderActuatedRobotVars& vars)
@@ -398,29 +457,7 @@ arma::mat calcJacobianGS(const UnderActuatedRobotVars& vars)
   return jacobian_gs;
 }
 
-void updateIK0(const Vector3d& position, const Vector3d& orientation,
-               const RobotParams& params, UnderActuatedRobotVars& vars)
-{
-  updatePlatformPose(position, orientation, params.platform, vars.platform);
-  std::vector<id_t> active_actuators_id = params.activeActuatorsId();
-  for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
-    updateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
-                       vars.cables[i]);
-  vars.updateJacobians();
-}
-
-void updateCablesStaticTension(UnderActuatedRobotVars& vars)
-{
-  vars.tension_vector =
-    calcCablesStaticTension(vars.geom_jacobian, vars.platform.ext_load);
-}
-
-arma::vec calcStaticConstraint(const UnderActuatedRobotVars& vars)
-{
-  return vars.geom_orthogonal.t() * toArmaVec(vars.platform.ext_load);
-}
-
-void OptFunGS(const RobotParams& params, const arma::vec& act_vars,
+void optFunGS(const RobotParams& params, const arma::vec& act_vars,
               const arma::vec& unact_vars, arma::mat& fun_jacobian, arma::vec& fun_val)
 {
   const ulong kNumCables = params.activeActuatorsNum();
@@ -433,6 +470,101 @@ void OptFunGS(const RobotParams& params, const arma::vec& act_vars,
 
   fun_val      = calcStaticConstraint(vars);
   fun_jacobian = calcJacobianGS(vars).cols(arma::find(params.controlled_vars_mask == 0));
+}
+
+void optFunDK0GS(const RobotParams& params, const arma::vec& cables_length,
+                 const arma::vec& swivel_angles, const arma::vec6& pose,
+                 arma::mat& fun_jacobian, arma::vec& fun_val)
+{
+  const ulong kNumCables = params.activeActuatorsNum();
+  UnderActuatedRobotVars vars(kNumCables, params.platform.rot_parametrization,
+                              params.controlled_vars_mask);
+  updateIK0(pose, params, vars);
+  updateExternalLoads(params.platform, vars.platform);
+  updateCablesStaticTension(vars);
+
+  arma::vec l_constraints(kNumCables, arma::fill::none);
+  arma::vec sw_constraints(kNumCables, arma::fill::none);
+  for (uint i = 0; i < kNumCables; ++i)
+  {
+    l_constraints(i)  = vars.cables[i].length - cables_length[i];
+    sw_constraints(i) = vars.cables[i].swivel_ang - swivel_angles[i];
+  }
+  arma::vec gs_contraints = calcStaticConstraint(vars);
+
+  arma::mat l_jacobian  = calcJacobianL(vars);
+  arma::mat sw_jacobian = calcJacobianSw(vars);
+  arma::mat gs_jacobian = calcJacobianGS(vars);
+
+  fun_val      = arma::join_vert(l_constraints, sw_constraints, gs_contraints);
+  fun_jacobian = arma::join_vert(l_jacobian, sw_jacobian, gs_jacobian);
+}
+
+bool solveDK0GS(const std::vector<double>& cables_length,
+                const std::vector<double>& swivel_angles,
+                const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
+                const RobotParams& params, VectorXd<POSE_DIM>& platform_pose,
+                const uint8_t nmax /*= 100*/, uint8_t* iter_out /*= nullptr*/)
+{
+  static const double kFtol = 1e-6;
+  static const double kXtol = 1e-6;
+
+  // First round to init function value and jacobian
+  arma::vec func_val;
+  arma::mat func_jacob;
+  arma::vec6 pose = toArmaVec(init_guess_pose);
+  optFunDK0GS(params, cables_length, swivel_angles, pose, func_jacob, func_val);
+
+  // Init iteration variables
+  arma::vec s;
+  uint8_t iter = 0;
+  double err   = 1.0;
+  double cond  = 0.0;
+  // Start iterative process
+  while (arma::norm(func_val) > kFtol && err > cond)
+  {
+    if (iter >= nmax)
+      return false; // did not converge
+    iter++;
+    s = arma::solve(func_jacob, func_val);
+    pose -= s;
+    optFunDK0GS(params, cables_length, swivel_angles, pose, func_jacob, func_val);
+    err  = arma::norm(s);
+    cond = kXtol * (1 + arma::norm(pose));
+  }
+
+  if (iter_out != nullptr)
+    *iter_out = iter;
+
+  platform_pose.Fill(pose.begin(), pose.end());
+
+  return true;
+}
+
+bool updateDK0(const RobotParams& params, UnderActuatedRobotVars& vars)
+{
+  // Extract starting conditions from latest robot configuration
+  // Cable's variables are expected to be up-to-date
+  std::vector<double> cables_length(vars.cables.size(), 0);
+  std::vector<double> swivel_angles(vars.cables.size(), 0);
+  for (uint i = 0; i < vars.cables.size(); ++i)
+  {
+    cables_length[i] = vars.cables[i].length;
+    swivel_angles[i] = vars.cables[i].swivel_ang;
+  }
+  // While platform pose is expected to be the latest known/computed value, so not updated
+  grabnum::VectorXd<POSE_DIM> init_guess_pose = vars.platform.pose;
+
+  // Solve direct kinematics
+  grabnum::VectorXd<POSE_DIM> new_pose;
+  if (solveDK0GS(cables_length, swivel_angles, init_guess_pose, params, new_pose))
+  {
+    // Update inverse kinematics
+    updateIK0(new_pose.GetBlock<3, 1>(1, 1), new_pose.GetBlock<3, 1>(4, 1), params, vars);
+    return true;
+  }
+  // Could not solve optimization (failed direct kinematics)
+  return false;
 }
 
 } // namespace grabcdpr

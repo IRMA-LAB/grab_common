@@ -187,6 +187,7 @@
 using namespace grabnum;
 
 
+arma::rowvec3 toArmaVec(RowVectorXd<3> vect, bool copy = true);
 arma::vec toArmaVec(Vector3d vect, bool copy = true);
 arma::vec toArmaVec(VectorXd<POSE_DIM> vect, bool copy = true);
 arma::vec toArmaVec(VectorXd<POSE_QUAT_DIM> vect, bool copy = true);
