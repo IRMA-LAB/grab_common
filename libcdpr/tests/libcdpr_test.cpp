@@ -511,8 +511,7 @@ grabcdpr::PlatformVars LibcdprTest::getPlatformFromWS(const std::string& var_nam
     matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "pos_PG_glob");
   platform.pos_OG_glob =
     matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "pos_OG_glob");
-  platform.linear_vel =
-    matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "velocity");
+  platform.linear_vel = matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "velocity");
   platform.angular_vel =
     matlabProperty2GrabVec3(matlab_ptr_, platform_matlab, "angular_vel");
   platform.vel_OG_glob =
@@ -542,8 +541,7 @@ grabcdpr::PlatformVars LibcdprTest::getPlatformFromWS(const std::string& var_nam
     matlabProperty2GrabVec6(matlab_ptr_, platform_matlab, "total_load_ss");
   platform.rot_mat = matlabProperty2GrabMat33(matlab_ptr_, platform_matlab, "rot_mat");
   platform.h_mat   = matlabProperty2GrabMat33(matlab_ptr_, platform_matlab, "H_mat");
-  platform.dh_mat =
-    matlabProperty2GrabMat33(matlab_ptr_, platform_matlab, "H_mat_deriv");
+  platform.dh_mat = matlabProperty2GrabMat33(matlab_ptr_, platform_matlab, "H_mat_deriv");
   platform.inertia_mat_glob =
     matlabProperty2GrabMat33(matlab_ptr_, platform_matlab, "inertia_matrix_global");
   platform.mass_mat_glob =
@@ -1185,8 +1183,7 @@ void LibcdprTest::testOptFunDK0GS()
 {
   // Setup dummy input
   const size_t num_cables = params_.activeActuatorsNum();
-  grabcdpr::UnderActuatedRobotVars robot(num_cables,
-                                         params_.platform.rot_parametrization,
+  grabcdpr::UnderActuatedRobotVars robot(num_cables, params_.platform.rot_parametrization,
                                          params_.controlled_vars_mask);
   arma::vec6 pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   grabcdpr::updateIK0(pose, params_, robot);
@@ -1374,8 +1371,8 @@ void LibcdprTest::testOptFunGS()
 void LibcdprTest::testNonLinsolveJacGeomStatic()
 {
   // Setup dummy input
-  //  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
-  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0, 0, 0});
+  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
+  //  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0, 0, 0});
   const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
   // Load dummy input to Matlab workspace
   auto p =
@@ -1387,28 +1384,26 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
 
   // Call C++ function implementation to be tested
   arma::vec3 orientation;
-  uint8_t iterations;
   // Run once outside benchmark to obtain iterations
-  orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
-  printf("Iterations: %d\n", iterations);
-  std::cout << "Orientation: " << orientation << std::endl;
-  return;
+  //  uint8_t iterations;
+  //  orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
+  //  printf("Iterations: %d\n", iterations);
   QBENCHMARK { orientation = nonLinsolveJacGeomStatic(init_guess, mask); }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"fsolve_options_grad = "
-    u"optimoptions('fsolve','Algorithm','levenberg-marquardt','FunctionTolerance',1e-8,'"
-    u"MaxFunctionEvaluation',1000000,'MaxIterations',1000000,'OptimalityTolerance',1e-8,'"
-    u"display','none','StepTolerance',1e-8,'SpecifyObjectiveGradient',true,'UseParallel',"
-    u"true);");
-  matlab_ptr_->eval(u"orient = fsolve(@(v) CalcWPGeometricStatic(cdpr_p, p, v, "
-                    u"mask), in_guess, fsolve_options_grad);");
+    u"optimoptions('fsolve', 'Algorithm', 'levenberg-marquardt', 'FunctionTolerance',"
+    u"1e-8, 'MaxFunctionEvaluation', 1000000, 'MaxIterations', 1000000,"
+    u"'OptimalityTolerance', 1e-8, 'display', 'none', 'StepTolerance', 1e-8,"
+    u"'SpecifyObjectiveGradient', true, 'UseParallel', true);");
+  matlab_ptr_->eval(u"orient = fsolve(@(v) FunGsNoCheck(cdpr_p, p, v), in_guess,"
+                    u"fsolve_options_grad);");
 
   // Get matlab results
   arma::vec matlab_orientation = matlab2ArmaVec(matlab_ptr_, u"orient");
 
   // Check they are the same
-  QVERIFY(arma::approx_equal(orientation, matlab_orientation, "absdiff", 1e-3));
+  QVERIFY(arma::approx_equal(orientation, matlab_orientation, "absdiff", 1e-5));
 }
 
 QTEST_APPLESS_MAIN(LibcdprTest)
