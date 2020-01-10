@@ -5,16 +5,19 @@ HEADERS += \
     $$PWD/inc/diff2kinematics.h \
     $$PWD/inc/statics.h \
     $$PWD/inc/dynamics.h \
+    $$PWD/inc/under_actuated_utils.h \
     $$PWD/tools/json.hpp \
     $$PWD/tools/robotconfigjsonparser.h \
     $$PWD/../grabcommon.h
 
 SOURCES += \
+    $$PWD/src/cdpr_types.cpp \
     $$PWD/src/kinematics.cpp \
     $$PWD/src/diffkinematics.cpp \
     $$PWD/src/diff2kinematics.cpp \
     $$PWD/src/statics.cpp \
     $$PWD/src/dynamics.cpp \
+    $$PWD/src/under_actuated_utils.cpp \
     $$PWD/tools/robotconfigjsonparser.cpp \
     $$PWD/../grabcommon.cpp
 

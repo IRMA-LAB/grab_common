@@ -10,6 +10,8 @@
 #ifndef GRABCOMMON_LIBGEOM_QUATERNIONS_H
 #define GRABCOMMON_LIBGEOM_QUATERNIONS_H
 
+#include "assert.h"
+
 #include "matrix_utilities.h"
 #include "rotations.h"
 
