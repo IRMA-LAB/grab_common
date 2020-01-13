@@ -1,7 +1,7 @@
 /**
  * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 29 Nov 2019
+ * @date 13 Jan 2020
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -259,7 +259,7 @@ struct PulleyParams
   grabnum::Vector3d vers_k; /**< versor @f$\hat{\mathbf{k}}_i@f$ of _i-th_ swivel pulley
                                expressed in global frame. */
   double radius = 0.0;      /**< [m] _i-th_ swivel pulley radius length @f$r_i@f$ */
-  uint32_t transmission_ratio; /**< _i-th_ pulley counts-to-radians transmittion ratio. */
+  double transmission_ratio; /**< _i-th_ pulley counts-to-radians transmittion ratio. */
 
   /**
    * @brief PulleyAngleFactorRad
