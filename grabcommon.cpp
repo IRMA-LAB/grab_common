@@ -130,12 +130,12 @@ void RunMatlabScript(const std::string& script_location, const bool display /*= 
   args[3] = (char*)("-nodesktop");
   args[4] = (char*)("-r");
   args[5] = (char*)cmd.c_str();
-  args[6] = NULL;
+  args[6] = nullptr;
 
   pid_t pid = vfork();
   if (pid == 0)
     if (execvp(args[0], args) == -1) // child
       perror("exec");
   if (pid > 0)
-    wait(0); // parent
+    wait(nullptr); // parent
 }
