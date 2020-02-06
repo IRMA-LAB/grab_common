@@ -1,3 +1,11 @@
+/**
+ * @file under_actuated_utils.cpp
+ * @author Simone Comari
+ * @date 06 Feb 2020
+ * @brief This file includes definitions of structures and functions declared in
+ * under_actuated_utils.h.
+ */
+
 #include "under_actuated_utils.h"
 
 namespace grabcdpr {

@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.cpp
  * @author Simone Comari
- * @date 28 Nov 2019
+ * @date 06 Feb 2020
  * @brief This file includes definitions of class declared in robotconfigjsonparser.h.
  */
 
@@ -81,6 +81,11 @@ bool RobotConfigJsonParser::ParseFile(const QString& filename,
                                       const bool verbose /*= false*/)
 {
   return ParseFile(filename.toStdString(), params, verbose);
+}
+
+void RobotConfigJsonParser::GetConfigStruct(grabcdpr::RobotParams* const params) const
+{
+  *params = config_params_;
 }
 
 void RobotConfigJsonParser::PrintConfig() const
@@ -249,8 +254,7 @@ bool RobotConfigJsonParser::ExtractMask(const json& raw_data)
   try
   {
     for (uint8_t i = 0; i < 6; i++)
-      config_params_.controlled_vars_mask(i) =
-        raw_data["controlled_vars_mask"].at(i);
+      config_params_.controlled_vars_mask(i) = raw_data["controlled_vars_mask"].at(i);
   }
   catch (json::type_error)
   {

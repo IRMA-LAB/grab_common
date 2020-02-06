@@ -1,7 +1,7 @@
 /**
  * @file statics.cpp
- * @author Edoardo Idà, Simone Comari
- * @date 31 Oct 2019
+ * @author Simone Comari
+ * @date 06 Feb 2020
  * @brief File containing definitions of functions declared in statics.h.
  */
 

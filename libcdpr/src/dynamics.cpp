@@ -1,3 +1,10 @@
+/**
+ * @file dynamics.cpp
+ * @author Simone Comari
+ * @date 06 Feb 2020
+ * @brief File containing definitions of functions declared in dynamics.h.
+ */
+
 #include "dynamics.h"
 
 namespace grabcdpr {

@@ -1,3 +1,10 @@
+/**
+ * @file statics.h
+ * @author Simone Comari
+ * @date 06 Feb 2020
+ * @brief This file include functions strictly related to CDPR statics.
+ */
+
 #ifndef GRABCOMMON_LIBCDPR_STATICS_H
 #define GRABCOMMON_LIBCDPR_STATICS_H
 
@@ -21,17 +28,25 @@ namespace grabcdpr {
  * @{
  */
 
+/**
+ * @brief Calculate cables static tension.
+ * @param[in] geom_jacobian Geometric jacobian of the CDPR.
+ * @param[in] ext_load External loads acting on the platform.
+ * @return A vector of cables static tension.
+ */
 arma::vec calcCablesStaticTension(const arma::mat& geom_jacobian,
                                   const Vector6d& ext_load);
 
 /**
- * @brief CalCablesTensionStat
- * @param vars
+ * @brief Update cables static tension given a certain CDPR status using 3-angle
+ * orientation parametrization.
+ * @param[in, out] vars A reference to the robot variables structure to be updated.
  */
 void updateCablesStaticTension(RobotVars& vars);
 /**
- * @brief CalCablesTensionStat
- * @param vars
+ * @brief Update cables static tension given a certain CDPR status using quaternion
+ * orientation parametrization.
+ * @param[in, out] vars A reference to the robot variables structure to be updated.
  */
 void updateCablesStaticTension(RobotVarsQuat& vars);
 

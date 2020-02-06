@@ -1,7 +1,7 @@
 /**
  * @file kinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 07 Nov 2019
+ * @date 06 Feb 2020
  * @brief File containing kinematics-related functions to be included in the GRAB CDPR
  * library.
  */
@@ -42,7 +42,7 @@ namespace grabcdpr {
  * @param[in] orientation [rad] Platform global orientation expressed by angles
  * @f$\boldsymbol{\varepsilon}@f$.
  * @param[in] pos_PG_loc [m] Local CoG position @f$^\mathcal{P}\mathbf{p}'_G@f$.
- * @param[out] platform A pointer to the platform variables structure to be updated.
+ * @param[out] platform A reference to the platform variables structure to be updated.
  * @note See @ref legend for symbols reference.
  */
 void updatePlatformPose(const Vector3d& position, const Vector3d& orientation,
@@ -62,7 +62,7 @@ void updatePlatformPose(const Vector3d& position, const Vector3d& orientation,
  * @param[in] orientation [rad] Platform global orientation expressed by angles
  * @f$\boldsymbol{\varepsilon}@f$.
  * @param[in] pos_PG_loc [m] Local CoG position @f$^\mathcal{P}\mathbf{p}'_G@f$.
- * @param[out] platform A pointer to the platform variables structure to be updated.
+ * @param[out] platform A reference to the platform variables structure to be updated.
  * @note See @ref legend for symbols reference.
  */
 void updatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& orientation,
@@ -72,8 +72,8 @@ void updatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& or
  * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
  * @param[in] orientation [rad] Platform global orientation expressed by angles
  * @f$\boldsymbol{\varepsilon}@f$.
- * @param[in] params A pointer to the platform parameters structure.
- * @param[out] platform A pointer to the platform variables structure to be updated.
+ * @param[in] params A reference to the platform parameters structure.
+ * @param[out] platform A reference to the platform variables structure to be updated.
  * @see UpdatePlatformPose()
  */
 void updatePlatformPose(const Vector3d& position, const Vector3d& orientation,
@@ -83,8 +83,8 @@ void updatePlatformPose(const Vector3d& position, const Vector3d& orientation,
  * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
  * @param[in] orientation Platform global orientation expressed by quaternion
  * @f$\boldsymbol{\varepsilon}_q@f$.
- * @param[in] params A pointer to the platform parameters structure.
- * @param[out] platform A pointer to the platform variables structure to be updated.
+ * @param[in] params A reference to the platform parameters structure.
+ * @param[out] platform A reference to the platform variables structure to be updated.
  * @see UpdatePlatformPose()
  */
 void updatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& orientation,
@@ -132,7 +132,8 @@ void updatePosA(const ActuatorParams& params, const PlatformVarsBase& platform,
  * being @f$\hat{\mathbf{i}}_i, \hat{\mathbf{j}}_i@f$ known parameters.
  * @param[in] params Swivel pulley parameters.
  * @param[in] swivel_ang [rad] Swivel angle @f$\sigma_i@f$.
- * @param[out] cable A pointer to the cable structure including the versors to be updated.
+ * @param[out] cable A reference to the cable structure including the versors to be
+ * updated.
  * @note See @ref legend for symbols reference.
  * @note This expression results from the fact that, by definition,
  * @f$ \hat{\mathbf{u}}_i \perp \hat{\mathbf{w}}_i \perp \hat{\mathbf{k}}_i @f$.
@@ -143,7 +144,7 @@ void calcPulleyVersors(const PulleyParams& params, const double swivel_ang,
 /**
  * @brief Calculate swivel pulley versors @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i@f$.
  * @param[in] params Swivel pulley parameters.
- * @param[in,out] cable A pointer to the cable structure including the versors to be
+ * @param[in,out] cable A reference to the cable structure including the versors to be
  * updated.
  * @see CalcPulleyVersors()
  */
@@ -172,7 +173,7 @@ double calcSwivelAngle(const PulleyParams& params, const Vector3d& pos_DA_glob);
 /**
  * @brief Calculate pulley swivel angle @f$\sigma_i@f$.
  * @param[in] params Swivel pulley parameters.
- * @param[in] cable A pointer to the cable structure.
+ * @param[in] cable A reference to the cable structure.
  * @return Swivel angle @f$\sigma_i@f$ in radians.
  * @see CalcSwivelAngle()
  */
@@ -205,7 +206,7 @@ double calcTangentAngle(const PulleyParams& params, const Vector3d& vers_u,
 /**
  * @brief Calculate pulley tangent angle @f$\psi_i@f$.
  * @param[in] params Swivel pulley parameters.
- * @param[in] cable A pointer to the cable structure.
+ * @param[in] cable A reference to the cable structure.
  * @return Tangent angle @f$\psi_i@f$  in radians.
  * @see CalcTangentAngle()
  */
@@ -233,7 +234,7 @@ void updateTangentAngle(const PulleyParams& params, CableVarsBase& cable);
  * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
  * @param[in] pos_DA_glob [m] Vector @f$\boldsymbol{\rho}^*_i@f$.
  * @param[in] tan_ang [rad] Tangent angle @f$\psi_i@f$.
- * @param[out] cable A pointer to the cable structure including the variables to be
+ * @param[out] cable A reference to the cable structure including the variables to be
  * calculated.
  * @note See @ref legend for symbols reference.
  * @note This expressions result from the application of the 1<sup>st</sup> kinematic
@@ -250,7 +251,7 @@ void calcCableVectors(const PulleyParams& params, const Vector3d& vers_u,
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\mathbf{t}}_i@f$ and
  * cable vector @f$\boldsymbol{\rho}_i@f$.
  * @param[in] params Swivel pulley parameters.
- * @param[in,out] cable A pointer to the cable structure including the variables to be
+ * @param[in,out] cable A reference to the cable structure including the variables to be
  * calculated.
  * @see CalcCableVectors()
  */
@@ -283,7 +284,7 @@ double calcCableLen(const double pulley_radius, const Vector3d& pos_BA_glob,
  * l_i = \|\boldsymbol{\rho}_i\| + r_i(\pi - \psi_i)
  * @f]
  * @param[in] params Swivel pulley parameters.
- * @param[in] cable A pointer to the cable structure.
+ * @param[in] cable A reference to the cable structure.
  * @return Cable length @f$l_i@f$ in meters.
  * @note See @ref legend for symbols reference.
  * @note This expression results from the application of the 3<sup>rd</sup> kinematic
@@ -316,7 +317,7 @@ double calcMotorCounts(const double tau, const double cable_len,
 /**
  * @brief Calculate motor counts @f$q_i@f$.
  * @param[in,out] params Actuator parameters.
- * @param[in] cable A pointer to cable variables structure.
+ * @param[in] cable A reference to cable variables structure.
  * @return Motor counts @f$q_i@f$.
  * @see CalcCableLen()
  */
@@ -337,18 +338,18 @@ void updateJacobiansRow(const MatrixXd<3, 4> H_mat, CableVarsQuat& cable);
 
 /**
  * @brief Update all zero-order variables of a single cable at once.
- * @param[in] platform A pointer to the updated platform structure.
- * @param[in] params A pointer to _i-th_ cable parameters.
- * @param[out] cable A pointer to _i-th_ cable variables structure to be updated.
+ * @param[in] platform A reference to the updated platform structure.
+ * @param[in] params A reference to _i-th_ cable parameters.
+ * @param[out] cable A reference to _i-th_ cable variables structure to be updated.
  */
 void updateCableZeroOrd(const ActuatorParams& params, const PlatformVars& platform,
                         CableVars& cable);
 /**
  * @brief Update all zero-order variables of a single cable at once when using
  * quaternions.
- * @param[in] platform A pointer to the updated platform structure.
- * @param[in] params A pointer to _i-th_ cable parameters.
- * @param[out] cable A pointer to _i-th_ cable variables structure to be updated.
+ * @param[in] platform A reference to the updated platform structure.
+ * @param[in] params A reference to _i-th_ cable parameters.
+ * @param[out] cable A reference to _i-th_ cable variables structure to be updated.
  */
 void updateCableZeroOrd(const ActuatorParams& params, const PlatformVarsQuat& platform,
                         CableVarsQuat& cable);
@@ -358,23 +359,23 @@ void updateCableZeroOrd(const ActuatorParams& params, const PlatformVarsQuat& pl
  * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
  * @param[in] orientation [rad] Platform global orientation expressed by angles
  * @f$\boldsymbol{\varepsilon}@f$.
- * @param[in] params A pointer to the robot parameters structure.
- * @param[out] vars A pointer to the robot variables structure to be updated.
+ * @param[in] params A reference to the robot parameters structure.
+ * @param[out] vars A reference to the robot variables structure to be updated.
  */
 void updateIK0(const Vector3d& position, const Vector3d& orientation,
                const RobotParams& params, RobotVars& vars);
 /**
- * @brief updateIK0
- * @param pose
- * @param params
- * @param vars
+ * @brief Update all robots zero-order variables at once (inverse kinematics problem).
+ * @param[in] pose Platform pose @f$\mathbf{x}@f$in GRAB format.
+ * @param[in] params A reference to the robot parameters structure.
+ * @param[out] vars A reference to the robot variables structure to be updated.
  */
 void updateIK0(const Vector6d& pose, const RobotParams& params, RobotVars& vars);
 /**
- * @brief updateIK0
- * @param _pose
- * @param params
- * @param vars
+ * @brief Update all robots zero-order variables at once (inverse kinematics problem).
+ * @param[in] pose Platform pose @f$\mathbf{x}@f$in armadillo format.
+ * @param[in] params A reference to the robot parameters structure.
+ * @param[out] vars A reference to the robot variables structure to be updated.
  */
 void updateIK0(const arma::vec6& _pose, const RobotParams& params, RobotVars& vars);
 /**
@@ -383,44 +384,77 @@ void updateIK0(const arma::vec6& _pose, const RobotParams& params, RobotVars& va
  * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
  * @param[in] orientation [rad] Platform global orientation expressed by angles
  * @f$\boldsymbol{\varepsilon}@f$.
- * @param[in] params A pointer to the robot parameters structure.
- * @param[out] vars A pointer to the robot variables structure to be updated.
+ * @param[in] params A reference to the robot parameters structure.
+ * @param[out] vars A reference to the robot variables structure to be updated.
  */
 void updateIK0(const Vector3d& position, const grabgeom::Quaternion& orientation,
                const RobotParams& params, RobotVarsQuat& vars);
 
-arma::mat calcJacobianL(const RobotVars &vars);
+/**
+ * @brief Calculate cable length jacobian.
+ * @param[in] vars CDPR variables/status.
+ * @return Cable length jacobian matrix.
+ */
+arma::mat calcJacobianL(const RobotVars& vars);
 
-arma::mat calcJacobianSw(const RobotVars &vars);
+/**
+ * @brief Calculate swivel angles jacobian.
+ * @param[in] vars CDPR variables/status.
+ * @return Swivel angles jacobian matrix.
+ */
+arma::mat calcJacobianSw(const RobotVars& vars);
 
+/**
+ * @brief Optimization function to be iterated in order to solve direct kinematics problem
+ * using only geometric constraints.
+ * @param[in] params A reference to the robot parameters structure.
+ * @param[in] cables_length A vector of cable lengths.
+ * @param[in] swivel_angles A vector of swivel angles.
+ * @param[out] fun_jacobian Resulting jacobian function for this one optimization cycle.
+ * @param[out] fun_val Resulting vectorial function for this one optimization cycle.
+ * @see solveDK0() updateDK0()
+ */
 void optFunDK0(const RobotParams& params, const arma::vec& cables_length,
                const arma::vec& swivel_angles, const arma::vec6& pose,
                arma::mat& fun_jacobian, arma::vec& fun_val);
 
 /**
- * @brief SolveDK0
- * @param cables_length
- * @param swivel_angles
- * @param init_guess_pose
- * @param params
- * @param platform_pose
- * @param use_gs_jacob
- * @param nmax
- * @param iter_out
- * @return
+ * @brief Solve direct kinematics problem for a CDPR using only geometric constraints.
+ *
+ * Direct kinematics problem consists of computing the platform pose out of cable lengths
+ * and swivel angles values. Because for a generic CDPR there are multiple analytical
+ * soluion to this problem, an optimization routine is employed to provide a single
+ * outcome.
+ * @param[in] cables_length A vector of cable lengths.
+ * @param[in] swivel_angles A vector of swivel angles.
+ * @param[in] init_guess_pose Initial pose guess, typically the previous computed result.
+ * @param[in] params A reference to the robot parameters structure.
+ * @param[out] platform_pose Platform pose resulting from the optimal solution of the
+ * problem.
+ * @param[int] nmax Maximum number of iterations.
+ * @param[out] iter_out Number of iterations done to converge to optimal solution, if
+ * found.
+ * @return _True_ if problem converged to an optimal solution (local minimum), _False_
+ * otherwise.
+ * @see optFunDK0() updateDK0()
  */
 bool solveDK0(const std::vector<double>& cables_length,
               const std::vector<double>& swivel_angles,
               const VectorXd<POSE_DIM>& init_guess_pose, const RobotParams& params,
-              VectorXd<POSE_DIM>& platform_pose,
-              const uint8_t nmax = 100, uint8_t* iter_out = nullptr);
+              VectorXd<POSE_DIM>& platform_pose, const uint8_t nmax = 100,
+              uint8_t* iter_out = nullptr);
 
 /**
- * @brief UpdateDK0
- * @param params
- * @param vars
- * @param use_gs_jacob
- * @return
+ * @brief Use current CDPR status to update platform pose (direct kinematics problem).
+ *
+ * Cable lengths and swivel angles within the given input structure are used to solve the
+ * optimization problem starting from an initial guess given by the current (i.e. latest)
+ * pose.
+ * @param[in] params A reference to the robot parameters structure.
+ * @param[in] vars CDPR variables/status.
+ * @return _True_ if direct kinematics converged to an optimal solution (local minimum),
+ * _False_ otherwise.
+ * @see solveDK0()
  */
 bool updateDK0(const RobotParams& params, RobotVars& vars);
 
