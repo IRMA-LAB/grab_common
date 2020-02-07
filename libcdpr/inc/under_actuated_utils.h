@@ -1,7 +1,7 @@
 ﻿/**
  * @file under_actuated_utils.h
  * @author Simone Comari
- * @date 06 Feb 2020
+ * @date 07 Feb 2020
  * @brief This file include several functions and structures strictly related to
  * under-actuated CDPRs.
  */
@@ -26,7 +26,7 @@ namespace grabcdpr {
  */
 struct UnderActuatedPlatformVars: PlatformVars
 {
-  arma::uvec6 mask;
+  arma::uvec6 mask; /**< actuation binary mask (1=actuated, 0=unactuated). */
 
   /** @addtogroup ZeroOrderKinematics
    * @{
@@ -77,27 +77,27 @@ struct UnderActuatedPlatformVars: PlatformVars
 
   /**
    * @brief Default constructor, possibly predefining the actuation mask.
-   * @param[in] _mask The mask defining which elements are actuated and which are not. If
+   * @param[in] mask The mask defining which elements are actuated and which are not. If
    * not given this is equivalent to a standard fully actuated platform.
    */
-  UnderActuatedPlatformVars(const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
+  UnderActuatedPlatformVars(const arma::uvec6& mask = arma::uvec6(arma::fill::ones));
   /**
    * @brief Constructor for initializing all actuated/unactuated variables from a standard
    * platform according to a given mask.
    * @param[in] vars Variable of a standard platform.
-   * @param[in] _mask The mask defining which elements are actuated and which are not. If
+   * @param[in] mask The mask defining which elements are actuated and which are not. If
    * not given this is equivalent to a standard fully actuated platform.
    */
   UnderActuatedPlatformVars(const PlatformVars vars,
-                            const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
+                            const arma::uvec6& mask = arma::uvec6(arma::fill::ones));
   /**
    * @brief Constructor to possibly define both mask and rotation parametrization.
    * @param[in] _angles_type Desired rotation parametrization.
-   * @param[in] _mask The mask defining which elements are actuated and which are not. If
+   * @param[in] mask The mask defining which elements are actuated and which are not. If
    * not given this is equivalent to a standard fully actuated platform.
    */
   UnderActuatedPlatformVars(const RotParametrization _angles_type = TILT_TORSION,
-                            const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
+                            const arma::uvec6& mask = arma::uvec6(arma::fill::ones));
   /**
    * @brief Constructor to initialize all platform zero-order variables from position,
    * angles and a suitable mask.
@@ -105,13 +105,13 @@ struct UnderActuatedPlatformVars: PlatformVars
    * @param[in] _orientation [rad] Platform global orientation expressed by angles
    * @f$\boldsymbol{\varepsilon}@f$.
    * @param[in] _angles_type Desired rotation parametrization.
-   * @param[in] _mask The mask defining which elements are actuated and which are not. If
+   * @param[in] mask The mask defining which elements are actuated and which are not. If
    * not given this is equivalent to a standard fully actuated platform.
    */
   UnderActuatedPlatformVars(const grabnum::Vector3d& _position,
                             const grabnum::Vector3d& _orientation,
                             const RotParametrization _angles_type = TILT_TORSION,
-                            const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
+                            const arma::uvec6& mask = arma::uvec6(arma::fill::ones));
   /**
    * @brief Constructor to initialize all platform zero and first-order variables from
    * position, angles, their first derivatives and a suitable mask.
@@ -122,7 +122,7 @@ struct UnderActuatedPlatformVars: PlatformVars
    * @param[in] _orientation_dot [rad/s] Platform orientation time-derivative
    * @f$\dot{\boldsymbol{\varepsilon}}@f$.
    * @param[in] _angles_type Desired rotation parametrization.
-   * @param[in] _mask The mask defining which elements are actuated and which are not. If
+   * @param[in] mask The mask defining which elements are actuated and which are not. If
    * not given this is equivalent to a standard fully actuated platform.
    */
   UnderActuatedPlatformVars(const grabnum::Vector3d& _position,
@@ -130,7 +130,7 @@ struct UnderActuatedPlatformVars: PlatformVars
                             const grabnum::Vector3d& _orientation,
                             const grabnum::Vector3d& _orientation_dot,
                             const RotParametrization _angles_type = TILT_TORSION,
-                            const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
+                            const arma::uvec6& mask = arma::uvec6(arma::fill::ones));
   /**
    * @brief Constructor to initialize all platform zero, first and second-order variables
    * from position, angles, their first and second derivatives and a suitable mask.
@@ -145,7 +145,7 @@ struct UnderActuatedPlatformVars: PlatformVars
    * @param[in] _orientation_ddot [rad/s<sup>2</sup>] Platform orientation 2nd
    * time-derivative @f$\ddot{\boldsymbol{\varepsilon}}@f$.
    * @param[in] _angles_type Desired rotation parametrization.
-   * @param[in] _mask The mask defining which elements are actuated and which are not. If
+   * @param[in] mask The mask defining which elements are actuated and which are not. If
    * not given this is equivalent to a standard fully actuated platform.
    */
   UnderActuatedPlatformVars(const grabnum::Vector3d& _position,
@@ -155,11 +155,11 @@ struct UnderActuatedPlatformVars: PlatformVars
                             const grabnum::Vector3d& _orientation_dot,
                             const grabnum::Vector3d& _orientation_ddot,
                             const RotParametrization _angles_type = TILT_TORSION,
-                            const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
+                            const arma::uvec6& mask = arma::uvec6(arma::fill::ones));
   /**
    * @brief Set platform pose and distribute it to actuated and unactuated corresponding
    * field.
-   * @param[in] pose Platform pose, including both position and orientation.
+   * @param[in] _pose Platform pose, including both position and orientation.
    * @ingroup ZeroOrderKinematics
    * @see UpdatePose()
    */
@@ -276,10 +276,10 @@ struct UnderActuatedPlatformVars: PlatformVars
 
   /**
    * @brief Set actuation mask.
-   * @param[in] _mask Actuation binary mask, where 1 means _actuated_ and 0 means
+   * @param[in] mask Actuation binary mask, where 1 means _actuated_ and 0 means
    * _unactuated_.
    */
-  void setMask(const arma::uvec6& _mask);
+  void setMask(const arma::uvec6& mask);
 };
 
 /**
@@ -310,7 +310,7 @@ struct UnderActuatedRobotVars
                                 unactuated variables. */
   arma::mat anal_orthogonal; /**< analytical jacobian orthogonal. */
 
-  arma::mat gamma_mat; /** @f$\boldsymbol{\Gamma}}@f$ matrix. */
+  arma::mat gamma_mat; /**< @f$\boldsymbol{\Gamma}}@f$ matrix. */
   /** @} */            // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
@@ -328,45 +328,45 @@ struct UnderActuatedRobotVars
 
   /**
    * @brief Default empty contructor, possibly predefining actuation mask.
-   * @param[in] _mask Actuation binary mask, where 1 means _actuated_ and 0 means
+   * @param[in] mask Actuation binary mask, where 1 means _actuated_ and 0 means
    * _unactuated_. By default, this is equivalent to a fully actuated system (i.e. all 1).
    */
-  UnderActuatedRobotVars(const arma::uvec6& _mask = arma::uvec6(arma::fill::ones))
-    : platform(_mask)
+  UnderActuatedRobotVars(const arma::uvec6& mask = arma::uvec6(arma::fill::ones))
+    : platform(mask)
   {}
   /**
    * @brief Constructor to define the rotation parametrization and the actuation mask.
    * @param[in] _angles_type Desired rotation parametrization.
-   * @param[in] _mask Actuation binary mask, where 1 means _actuated_ and 0 means
+   * @param[in] mask Actuation binary mask, where 1 means _actuated_ and 0 means
    * _unactuated_. By default, this is equivalent to a fully actuated system (i.e. all 1).
    */
   UnderActuatedRobotVars(const RotParametrization _angles_type,
-                         const arma::uvec6& _mask = arma::uvec6(arma::fill::ones))
-    : platform(_angles_type, _mask)
+                         const arma::uvec6& mask = arma::uvec6(arma::fill::ones))
+    : platform(_angles_type, mask)
   {}
   /**
    * @brief Constructor to predefine number of cables attached to the platform and the
    * actuation mask.
    * @param[in] num_cables Number of cables attached to the platform.
-   * @param[in] _mask Actuation binary mask, where 1 means _actuated_ and 0 means
+   * @param[in] mask Actuation binary mask, where 1 means _actuated_ and 0 means
    * _unactuated_. By default, this is equivalent to a fully actuated system (i.e. all 1).
    */
   UnderActuatedRobotVars(const size_t num_cables,
-                         const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
+                         const arma::uvec6& mask = arma::uvec6(arma::fill::ones));
   /**
    * @brief Constructor to predefine number of cables attached to the platform,
    * rotation parametrization and the actuation mask.
    * @param[in] num_cables Number of cables attached to the platform.
    * @param[in] _angles_type Desired rotation parametrization.
-   * @param[in] _mask Actuation binary mask, where 1 means _actuated_ and 0 means
+   * @param[in] mask Actuation binary mask, where 1 means _actuated_ and 0 means
    * _unactuated_. By default, this is equivalent to a fully actuated system (i.e. all 1).
    */
   UnderActuatedRobotVars(const size_t num_cables, const RotParametrization _angles_type,
-                         const arma::uvec6& _mask = arma::uvec6(arma::fill::ones));
+                         const arma::uvec6& mask = arma::uvec6(arma::fill::ones));
 
   /**
    * @brief Set actuation mask.
-   * @param[in] _mask Actuation binary mask, where 1 means _actuated_ and 0 means
+   * @param[in] mask Actuation binary mask, where 1 means _actuated_ and 0 means
    * _unactuated_.
    */
   void setMask(const arma::uvec6& mask);
@@ -423,7 +423,7 @@ void updateIK0(const Vector6d& pose, const RobotParams& params,
                UnderActuatedRobotVars& vars);
 /**
  * @brief Update all robots zero-order variables at once (inverse kinematics problem).
- * @param[in] pose Platform pose @f$\mathbf{x}@f$in armadillo format.
+ * @param[in] _pose Platform pose @f$\mathbf{x}@f$in armadillo format.
  * @param[in] params A reference to the robot parameters structure.
  * @param[out] vars A reference to the underactuated robot variables structure to be
  * updated.
@@ -440,7 +440,7 @@ void updateCablesStaticTension(UnderActuatedRobotVars& vars);
 
 /**
  * @brief Calculate @f$\mathbf{T}@f$ matrix.
- * @param[in] Generic single cable variables.
+ * @param[in] cable Generic single cable variables.
  * @return @f$\mathbf{T}@f$ matrix.
  */
 grabnum::Matrix3d calcMatrixT(const CableVarsBase& cable);
@@ -491,6 +491,7 @@ void optFunGS(const RobotParams& params, const arma::vec& act_vars,
  * @param[in] params A reference to the robot parameters structure.
  * @param[in] cables_length A vector of cable lengths.
  * @param[in] swivel_angles A vector of swivel angles.
+ * @param[in] pose Platform pose.
  * @param[out] fun_jacobian Resulting jacobian function for this one optimization cycle.
  * @param[out] fun_val Resulting vectorial function for this one optimization cycle.
  * @see solveDK0GS() optFunGS()
@@ -513,7 +514,7 @@ void optFunDK0GS(const RobotParams& params, const arma::vec& cables_length,
  * @param[in] params A reference to the robot parameters structure.
  * @param[out] platform_pose Platform pose resulting from the optimal solution of the
  * problem.
- * @param[int] nmax Maximum number of iterations.
+ * @param[in] nmax Maximum number of iterations.
  * @param[out] iter_out Number of iterations done to converge to optimal solution, if
  * found.
  * @return _True_ if problem converged to an optimal solution (local minimum), _False_

@@ -1,7 +1,7 @@
 /**
  * @file diff2kinematics.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 02 Dec 2019
+ * @date 07 Feb 2020
  * @brief File containing definitions of functions declared in diff2kinematics.h.
  */
 
@@ -9,9 +9,7 @@
 
 namespace grabcdpr {
 
-///////////////////////////////////////////////////////////////////////////////
-//// Functions second-order kinematics
-///////////////////////////////////////////////////////////////////////////////
+//------ Functions second-order kinematics -------------------------------------------//
 
 void updatePlatformAcc(const Vector3d& acceleration, const Vector3d& orientation_ddot,
                        const Vector3d& pos_PG_glob, PlatformVars& platform)
@@ -128,18 +126,15 @@ void updateIK2(const Vector3d& acceleration, const Vector3d& orientation_ddot,
     updateCableSecondOrd(params.actuators[i].pulley, vars.platform, vars.cables[i]);
 }
 
-void updateIK2(const Vector3d& acceleration, const grabgeom::Quaternion& orientation_ddot,
+void updateIK2(const Vector3d& acceleration, const grabgeom::Quaternion& quat_acc,
                const RobotParams& params, RobotVarsQuat& vars)
 {
-  updatePlatformAcc(acceleration, orientation_ddot, vars.platform);
+  updatePlatformAcc(acceleration, quat_acc, vars.platform);
   for (uint8_t i = 0; i < vars.cables.size(); ++i)
     updateCableSecondOrd(params.actuators[i].pulley, vars.platform, vars.cables[i]);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-//// Functions full kinematics
-///////////////////////////////////////////////////////////////////////////////
+//------ Functions full kinematics ---------------------------------------------------//
 
 void updateIK(const Vector3d& position, const Vector3d& orientation,
               const Vector3d& velocity, const Vector3d& orientation_dot,

@@ -1,7 +1,7 @@
 /**
  * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 06 Feb 2020
+ * @date 07 Feb 2020
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -180,8 +180,9 @@
 #include "quaternions.h"
 #include "rotations.h"
 
-#define POSE_DIM 6
-#define POSE_QUAT_DIM 7
+#define POSE_DIM 6 /**< pose dim. of a body in space with 3-angle parametrization */
+#define POSE_QUAT_DIM                                                                    \
+  7 /**< pose dim. of a body in space with quaternion parametrization */
 
 using namespace grabnum;
 
@@ -222,7 +223,7 @@ arma::vec toArmaVec(VectorXd<POSE_QUAT_DIM> vect, bool copy = true);
 
 /**
  * @brief Convert a 3D matrix from GRAB format to armadillo format.
- * @param[in] vect A 3D matrix of double in GRAB format.
+ * @param[in] mat A 3D matrix of double in GRAB format.
  * @param[in] copy If _True_ values are copied, otherwise the same piece of memory is
  * used. Be careful when doing so.
  * @return A 3D matrix of double in armadillo format.
@@ -230,7 +231,7 @@ arma::vec toArmaVec(VectorXd<POSE_QUAT_DIM> vect, bool copy = true);
 arma::mat toArmaMat(Matrix3d mat, bool copy = true);
 /**
  * @brief Convert a 6D matrix from GRAB format to armadillo format.
- * @param[in] vect A 6D matrix of double in GRAB format.
+ * @param[in] mat A 6D matrix of double in GRAB format.
  * @param[in] copy If _True_ values are copied, otherwise the same piece of memory is
  * used. Be careful when doing so.
  * @return A 6D matrix of double in armadillo format.
@@ -546,7 +547,7 @@ struct PlatformVars: PlatformVarsBase
 
   /**
    * @brief Set platform pose.
-   * @param[in] pose Platform pose, including both position and orientation.
+   * @param[in] _pose Platform pose, including both position and orientation.
    * @ingroup ZeroOrderKinematics
    * @see UpdatePose()
    */
@@ -940,20 +941,20 @@ struct RobotVarsBase
    */
   arma::mat geom_jacobian; /**< geometric jacobian. */
   arma::mat anal_jacobian; /**< analytical jacobian. */
-  /** @} */ // end of ZeroOrderKinematics group
+  /** @} */                // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
    * @{
    */
   arma::mat geom_jacobian_d; /**< geometric jacobian first derivative. */
   arma::mat anal_jacobian_d; /**< analytical jacobian first derivative. */
-  /** @} */ // end of FirstOrderKinematics group
+  /** @} */                  // end of FirstOrderKinematics group
 
   /** @addtogroup Dynamics
    * @{
    */
   arma::vec tension_vector; /**< [N] tensions vector, collecting tension on each cable.*/
-  /** @} */ // end of Dynamics group
+  /** @} */                 // end of Dynamics group
 };
 
 /**
@@ -1022,7 +1023,7 @@ struct RobotVarsQuat: RobotVarsBase
   RobotVarsQuat() {}
   /**
    * @brief Constructor to predefine number of cables attached to the platform.
-   * @param num_cables[in] Number of cables attached to the platform.
+   * @param[in] num_cables Number of cables attached to the platform.
    */
   RobotVarsQuat(const size_t num_cables);
 

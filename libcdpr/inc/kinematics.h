@@ -1,7 +1,7 @@
 /**
  * @file kinematics.h
  * @author Edoardo Idà, Simone Comari
- * @date 06 Feb 2020
+ * @date 07 Feb 2020
  * @brief File containing kinematics-related functions to be included in the GRAB CDPR
  * library.
  */
@@ -59,8 +59,8 @@ void updatePlatformPose(const Vector3d& position, const Vector3d& orientation,
  * @f]
  * being @f$^\mathcal{P}\mathbf{p}'_G@f$ a known parameter.
  * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
- * @param[in] orientation [rad] Platform global orientation expressed by angles
- * @f$\boldsymbol{\varepsilon}@f$.
+ * @param[in] orientation Platform global orientation expressed by quaternion
+ * @f$\boldsymbol{\varepsilon}_q@f$.
  * @param[in] pos_PG_loc [m] Local CoG position @f$^\mathcal{P}\mathbf{p}'_G@f$.
  * @param[out] platform A reference to the platform variables structure to be updated.
  * @note See @ref legend for symbols reference.
@@ -132,17 +132,18 @@ void updatePosA(const ActuatorParams& params, const PlatformVarsBase& platform,
  * being @f$\hat{\mathbf{i}}_i, \hat{\mathbf{j}}_i@f$ known parameters.
  * @param[in] params Swivel pulley parameters.
  * @param[in] swivel_ang [rad] Swivel angle @f$\sigma_i@f$.
- * @param[out] cable A reference to the cable structure including the versors to be
- * updated.
+ * @param[out] vers_u A reference to versor @f$\hat{\mathbf{u}}_i@f$.
+ * @param[out] vers_w A reference to versor @f$\hat{\mathbf{w}}_i@f$.
  * @note See @ref legend for symbols reference.
  * @note This expression results from the fact that, by definition,
  * @f$ \hat{\mathbf{u}}_i \perp \hat{\mathbf{w}}_i \perp \hat{\mathbf{k}}_i @f$.
+ * @see updatePulleyVersors()
  */
 void calcPulleyVersors(const PulleyParams& params, const double swivel_ang,
                        Vector3d& vers_u, Vector3d& vers_w);
 
 /**
- * @brief Calculate swivel pulley versors @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i@f$.
+ * @brief Update swivel pulley versors @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i@f$.
  * @param[in] params Swivel pulley parameters.
  * @param[in,out] cable A reference to the cable structure including the versors to be
  * updated.
@@ -234,8 +235,9 @@ void updateTangentAngle(const PulleyParams& params, CableVarsBase& cable);
  * @param[in] vers_u Versor @f$\hat{\mathbf{u}}_i@f$.
  * @param[in] pos_DA_glob [m] Vector @f$\boldsymbol{\rho}^*_i@f$.
  * @param[in] tan_ang [rad] Tangent angle @f$\psi_i@f$.
- * @param[out] cable A reference to the cable structure including the variables to be
- * calculated.
+ * @param[out] vers_n A reference to versor @f$\hat{\mathbf{n}}_i@f$
+ * @param[out] vers_t A reference to versor @f$\hat{\mathbf{t}}_i@f$
+ * @param[out] pos_BA_glob A reference to vector @f$\boldsymbol{\rho}_i@f$.
  * @note See @ref legend for symbols reference.
  * @note This expressions result from the application of the 1<sup>st</sup> kinematic
  * constraint
@@ -373,7 +375,7 @@ void updateIK0(const Vector3d& position, const Vector3d& orientation,
 void updateIK0(const Vector6d& pose, const RobotParams& params, RobotVars& vars);
 /**
  * @brief Update all robots zero-order variables at once (inverse kinematics problem).
- * @param[in] pose Platform pose @f$\mathbf{x}@f$in armadillo format.
+ * @param[in] _pose Platform pose @f$\mathbf{x}@f$in armadillo format.
  * @param[in] params A reference to the robot parameters structure.
  * @param[out] vars A reference to the robot variables structure to be updated.
  */
@@ -410,6 +412,7 @@ arma::mat calcJacobianSw(const RobotVars& vars);
  * @param[in] params A reference to the robot parameters structure.
  * @param[in] cables_length A vector of cable lengths.
  * @param[in] swivel_angles A vector of swivel angles.
+ * @param[in] pose Platform pose.
  * @param[out] fun_jacobian Resulting jacobian function for this one optimization cycle.
  * @param[out] fun_val Resulting vectorial function for this one optimization cycle.
  * @see solveDK0() updateDK0()
@@ -431,7 +434,7 @@ void optFunDK0(const RobotParams& params, const arma::vec& cables_length,
  * @param[in] params A reference to the robot parameters structure.
  * @param[out] platform_pose Platform pose resulting from the optimal solution of the
  * problem.
- * @param[int] nmax Maximum number of iterations.
+ * @param[in] nmax Maximum number of iterations.
  * @param[out] iter_out Number of iterations done to converge to optimal solution, if
  * found.
  * @return _True_ if problem converged to an optimal solution (local minimum), _False_

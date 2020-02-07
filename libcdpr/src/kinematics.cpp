@@ -1,7 +1,7 @@
 /**
  * @file kinematics.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 28 Nov 2019
+ * @date 07 Feb 2020
  * @brief File containing definitions of functions declared in kinematics.h.
  */
 
@@ -9,9 +9,9 @@
 
 namespace grabcdpr {
 
-void updatePlatformPose(const grabnum::Vector3d& position,
-                        const grabnum::Vector3d& orientation,
-                        const grabnum::Vector3d& pos_PG_loc, PlatformVars& platform)
+void updatePlatformPose(const Vector3d& position,
+                        const Vector3d& orientation,
+                        const Vector3d& pos_PG_loc, PlatformVars& platform)
 {
   // Update platform pose.
   platform.updatePose(position, orientation);
@@ -20,9 +20,9 @@ void updatePlatformPose(const grabnum::Vector3d& position,
   platform.pos_OG_glob = platform.position + platform.pos_PG_glob;
 }
 
-void updatePlatformPose(const grabnum::Vector3d& position,
+void updatePlatformPose(const Vector3d& position,
                         const grabgeom::Quaternion& orientation,
-                        const grabnum::Vector3d& pos_PG_loc, PlatformVarsQuat& platform)
+                        const Vector3d& pos_PG_loc, PlatformVarsQuat& platform)
 {
   // Update platform pose.
   platform.updatePose(position, orientation);
@@ -31,14 +31,14 @@ void updatePlatformPose(const grabnum::Vector3d& position,
   platform.pos_OG_glob = platform.position + platform.pos_PG_glob;
 }
 
-void updatePlatformPose(const grabnum::Vector3d& position,
-                        const grabnum::Vector3d& orientation,
+void updatePlatformPose(const Vector3d& position,
+                        const Vector3d& orientation,
                         const PlatformParams& params, PlatformVars& platform)
 {
   updatePlatformPose(position, orientation, params.pos_PG_loc, platform);
 }
 
-void updatePlatformPose(const grabnum::Vector3d& position,
+void updatePlatformPose(const Vector3d& position,
                         const grabgeom::Quaternion& orientation,
                         const PlatformParams& params, PlatformVarsQuat& platform)
 {
@@ -73,10 +73,10 @@ void updatePulleyVersors(const PulleyParams& params, CableVarsBase& cable)
   calcPulleyVersors(params, cable.swivel_ang, cable.vers_u, cable.vers_w);
 }
 
-double calcSwivelAngle(const PulleyParams& params, const grabnum::Vector3d& pos_DA_glob)
+double calcSwivelAngle(const PulleyParams& params, const Vector3d& pos_DA_glob)
 {
-  return atan2(grabnum::Dot(params.vers_j, pos_DA_glob),
-               grabnum::Dot(params.vers_i, pos_DA_glob));
+  return atan2(Dot(params.vers_j, pos_DA_glob),
+               Dot(params.vers_i, pos_DA_glob));
 }
 
 void updateSwivelAngle(const PulleyParams& params, CableVarsBase& cable)
@@ -84,11 +84,11 @@ void updateSwivelAngle(const PulleyParams& params, CableVarsBase& cable)
   cable.swivel_ang = calcSwivelAngle(params, cable.pos_DA_glob);
 }
 
-double calcTangentAngle(const PulleyParams& params, const grabnum::Vector3d& vers_u,
-                        const grabnum::Vector3d& pos_DA_glob)
+double calcTangentAngle(const PulleyParams& params, const Vector3d& vers_u,
+                        const Vector3d& pos_DA_glob)
 {
-  double s       = grabnum::Dot(vers_u, pos_DA_glob);
-  double app_var = grabnum::Dot(params.vers_k, pos_DA_glob) / s;
+  double s       = Dot(vers_u, pos_DA_glob);
+  double app_var = Dot(params.vers_k, pos_DA_glob) / s;
   double psi = 2. * atan(app_var + sqrt(1. - 2. * params.radius / s + SQUARE(app_var)));
   return psi;
 }
@@ -98,8 +98,8 @@ void updateTangentAngle(const PulleyParams& params, CableVarsBase& cable)
   cable.tan_ang = calcTangentAngle(params, cable.vers_u, cable.pos_DA_glob);
 }
 
-void calcCableVectors(const PulleyParams& params, const grabnum::Vector3d& vers_u,
-                      const grabnum::Vector3d& pos_DA_glob, const double tan_ang,
+void calcCableVectors(const PulleyParams& params, const Vector3d& vers_u,
+                      const Vector3d& pos_DA_glob, const double tan_ang,
                       Vector3d& vers_n, Vector3d& vers_t, Vector3d& pos_BA_glob)
 {
   // Versors describing cable exit direction from swivel pulley.
@@ -117,10 +117,10 @@ void updateCableVectors(const PulleyParams& params, CableVarsBase& cable)
                    cable.vers_t, cable.pos_BA_glob);
 }
 
-double calcCableLen(const double pulley_radius, const grabnum::Vector3d& pos_BA_glob,
+double calcCableLen(const double pulley_radius, const Vector3d& pos_BA_glob,
                     const double tan_ang)
 {
-  return grabnum::Norm(pos_BA_glob) + pulley_radius * (M_PI - tan_ang);
+  return Norm(pos_BA_glob) + pulley_radius * (M_PI - tan_ang);
 }
 
 void updateCableLen(const PulleyParams& params, CableVarsBase& cable)
@@ -140,22 +140,22 @@ double calcMotorCounts(const ActuatorParams& params, const CableVarsBase& cable)
                          params.pulley.radius, cable.tan_ang);
 }
 
-void updateJacobiansRow(const grabnum::Matrix3d H_mat, CableVars& cable)
+void updateJacobiansRow(const Matrix3d H_mat, CableVars& cable)
 {
   cable.geom_jacob_row.SetBlock<1, 3>(1, 1, cable.vers_t.Transpose());
   cable.geom_jacob_row.SetBlock<1, 3>(
-    1, 4, -cable.vers_t.Transpose() * grabnum::Skew(cable.pos_PA_glob));
+    1, 4, -cable.vers_t.Transpose() * Skew(cable.pos_PA_glob));
 
   cable.anal_jacob_row = cable.geom_jacob_row;
   cable.anal_jacob_row.SetBlock<1, 3>(1, 4,
                                       cable.anal_jacob_row.GetBlock<1, 3>(1, 4) * H_mat);
 }
 
-void updateJacobiansRow(const grabnum::MatrixXd<3, 4> H_mat, CableVarsQuat& cable)
+void updateJacobiansRow(const MatrixXd<3, 4> H_mat, CableVarsQuat& cable)
 {
   cable.geom_jacob_row.SetBlock<1, 3>(1, 1, cable.vers_t.Transpose());
   cable.geom_jacob_row.SetBlock<1, 3>(
-    1, 4, -cable.vers_t.Transpose() * grabnum::Skew(cable.pos_PA_glob));
+    1, 4, -cable.vers_t.Transpose() * Skew(cable.pos_PA_glob));
 
   cable.anal_jacob_row.SetBlock<1, 3>(1, 1, cable.geom_jacob_row.GetBlock<1, 3>(1, 1));
   cable.anal_jacob_row.SetBlock<1, 4>(1, 4,
@@ -186,7 +186,7 @@ void updateCableZeroOrd(const ActuatorParams& params, const PlatformVarsQuat& pl
   updateJacobiansRow(platform.h_mat, cable);
 }
 
-void updateIK0(const grabnum::Vector3d& position, const grabnum::Vector3d& orientation,
+void updateIK0(const Vector3d& position, const Vector3d& orientation,
                const RobotParams& params, RobotVars& vars)
 {
   updatePlatformPose(position, orientation, params.platform, vars.platform);
@@ -204,11 +204,11 @@ void updateIK0(const Vector6d& pose, const RobotParams& params, RobotVars& vars)
 
 void updateIK0(const arma::vec6& _pose, const RobotParams& params, RobotVars& vars)
 {
-  grabnum::Vector6d pose(_pose.begin(), _pose.end());
+  Vector6d pose(_pose.begin(), _pose.end());
   updateIK0(pose, params, vars);
 }
 
-void updateIK0(const grabnum::Vector3d& position, const grabgeom::Quaternion& orientation,
+void updateIK0(const Vector3d& position, const grabgeom::Quaternion& orientation,
                const RobotParams& params, RobotVarsQuat& vars)
 {
   updatePlatformPose(position, orientation, params.platform, vars.platform);
@@ -231,7 +231,7 @@ arma::mat calcJacobianSw(const RobotVars& vars)
                        toArmaVec(-vars.cables[i].vers_w.Transpose() *
                                  Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat));
     jacobian_sw.row(i) =
-      temp / grabnum::Dot(vars.cables[i].vers_u, vars.cables[i].pos_DA_glob);
+      temp / Dot(vars.cables[i].vers_u, vars.cables[i].pos_DA_glob);
   }
   return jacobian_sw;
 }
@@ -261,7 +261,7 @@ void optFunDK0(const RobotParams& params, const arma::vec& cables_length,
 
 bool solveDK0(const std::vector<double>& cables_length,
               const std::vector<double>& swivel_angles,
-              const grabnum::VectorXd<POSE_DIM>& init_guess_pose,
+              const VectorXd<POSE_DIM>& init_guess_pose,
               const RobotParams& params, VectorXd<POSE_DIM>& platform_pose,
               const uint8_t nmax /*= 100*/, uint8_t* iter_out /*= nullptr*/)
 {
@@ -312,10 +312,10 @@ bool updateDK0(const RobotParams& params, RobotVars& vars)
     swivel_angles[i] = vars.cables[i].swivel_ang;
   }
   // While platform pose is expected to be the latest known/computed value, so not updated
-  grabnum::VectorXd<POSE_DIM> init_guess_pose = vars.platform.pose;
+  VectorXd<POSE_DIM> init_guess_pose = vars.platform.pose;
 
   // Solve direct kinematics
-  grabnum::VectorXd<POSE_DIM> new_pose;
+  VectorXd<POSE_DIM> new_pose;
   if (solveDK0(cables_length, swivel_angles, init_guess_pose, params, new_pose))
   {
     // Update inverse kinematics

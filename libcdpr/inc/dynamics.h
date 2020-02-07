@@ -1,7 +1,7 @@
 /**
  * @file dynamics.h
  * @author Simone Comari
- * @date 06 Feb 2020
+ * @date 07 Feb 2020
  * @brief This file include functions strictly related to CDPR dynamics.
  */
 
@@ -52,6 +52,7 @@ void calcInertialMatricesGlob(const PlatformParams& params, const Vector3d& pos_
  *
  * Calculate global inertia matrix and mass matrix at once implicitly.
  * @param[in] params Platform parameters.
+ * @param[in, out] platform CDPR platform to be updated.
  * @see calcInertialMatricesGlob()
  */
 void updateInertialMatricesGlob(const PlatformParams& params, PlatformVarsBase& platform);
@@ -76,7 +77,7 @@ void calcMassMatrixGlobSS(const Matrix6d& mass_mat_glob, const Matrix3d& h_mat,
  * @param[out] mass_mat_glob_ss State-space global mass matrix.
  * @see updateInertialMatricesGlobSS()
  */
-void calcMassMatrixGlobSS(const Matrix6d& mass_mat_glob, const Matrix3d& h_mat,
+void calcMassMatrixGlobSS(const Matrix6d& mass_mat_glob, const MatrixXd<3, 4>& h_mat,
                           MatrixXd<POSE_QUAT_DIM, POSE_QUAT_DIM>& mass_mat_glob_ss);
 
 /**
