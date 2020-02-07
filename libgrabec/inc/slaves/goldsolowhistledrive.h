@@ -147,10 +147,10 @@ class GoldSoloWhistleDriveData: public EventData
  */
 class GoldSoloWhistleDrive:
 #if USE_QT
-    public QObject,
+  public QObject,
 #endif
-    public virtual EthercatSlave,
-    public StateMachine
+  public virtual EthercatSlave,
+  public StateMachine
 {
 #if USE_QT
   Q_OBJECT
@@ -165,9 +165,10 @@ class GoldSoloWhistleDrive:
    */
   GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position
 #if USE_QT
-                       , QObject* parent = nullptr
+                       ,
+                       QObject* parent = nullptr
 #endif
-      );
+  );
 
   /**
    * @brief Get latest known physical drive state.
@@ -392,9 +393,9 @@ class GoldSoloWhistleDrive:
 
   GoldSoloWhistleDriveStates drive_state_; /**< physical drive state */
 
-  int32_t prev_pos_target_ = 0;
-  int32_t prev_vel_target_ = 0;
-  int16_t prev_torque_target_ = 0;
+  int32_t prev_pos_target_    = 0; /**< previous motor position target in counts. */
+  int32_t prev_vel_target_    = 0; /**< previous motor velocity target in counts/s. */
+  int16_t prev_torque_target_ = 0; /**< previous motor torque target in nominal points. */
 
   /**
    * @brief InitFun

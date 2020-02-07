@@ -77,8 +77,8 @@ template <typename T, uint rows, uint cols> class Matrix
    * Full constructor.
    * Fills the matrix row-by-row with the elements of @a values.
    *
-   * @param[in] iterator pointing at the beginning of the array data.
-   * @param[in] iterator pointing at the end of the array data.
+   * @param[in] it Iterator pointing at the beginning of the array data.
+   * @param[in] end Iterator pointing at the end of the array data.
    * @see Fill()
    */
   template <class IteratorType> Matrix(IteratorType it, IteratorType end);
@@ -323,6 +323,7 @@ template <typename T, uint rows, uint cols> class Matrix
    */
   Matrix_t& operator/=(const T& scalar);
 
+  template <uint block_rows, uint block_cols>
   /**
    * Replaces a block of @c *this with the elements of @a other.
    *
@@ -336,7 +337,6 @@ template <typename T, uint rows, uint cols> class Matrix
    * @see SetFromBlock()
    * @todo example
    */
-  template <uint block_rows, uint block_cols>
   Matrix_t& SetBlock(const uint start_row, const uint start_col,
                      const Matrix<T, block_rows, block_cols>& other);
   /**
@@ -439,8 +439,8 @@ template <typename T, uint rows, uint cols> class Matrix
   /**
    * Fills the matrix row-by-row with the elements of @a values.
    *
-   * @param[in] iterator pointing at the beginning of the array data.
-   * @param[in] iterator pointing at the end of the array data.
+   * @param[in] it Iterator pointing at the beginning of the array data.
+   * @param[in] end Iterator pointing at the end of the array data.
    * @return A reference to @c *this.
    */
   template <class IteratorType> Matrix_t& Fill(IteratorType it, IteratorType end);
@@ -476,24 +476,21 @@ template <typename T, uint rows, uint cols> class Matrix
    */
   Matrix<T, 1, cols> GetRow(const uint row) const;
   /**
-   * @brief GetRows
-   * @param start_row
-   * @return
+   * @brief Get multiple consequent rows from *this.
+   * @param start_row The initial row to start counting from.
+   * @return A num_rows x cols sub-matrix.
    */
-  template <uint num_rows>
-  Matrix<T, num_rows, cols> GetRows(const uint start_row) const;
+  template <uint num_rows> Matrix<T, num_rows, cols> GetRows(const uint start_row) const;
   /**
-   * @brief HeadRows
-   * @return
+   * @brief Get top num_rows rows from *this.
+   * @return A num_rows x cols sub-matrix.
    */
-  template <uint num_rows>
-  Matrix<T, num_rows, cols> HeadRows() const;
+  template <uint num_rows> Matrix<T, num_rows, cols> HeadRows() const;
   /**
-   * @brief HeadRows
-   * @return
+   * @brief Get bottom num_rows rows from *this.
+   * @return A num_rows x cols sub-matrix.
    */
-  template <uint num_rows>
-  Matrix<T, num_rows, cols> TailRows() const;
+  template <uint num_rows> Matrix<T, num_rows, cols> TailRows() const;
   /**
    * Extracts a column from the matrix.
    *
@@ -502,24 +499,21 @@ template <typename T, uint rows, uint cols> class Matrix
    */
   Matrix<T, rows, 1> GetCol(const uint col) const;
   /**
-   * @brief GetRows
-   * @param start_row
-   * @return
+   * @brief Get multiple consequent columns from *this.
+   * @param start_col The initial column to start counting from.
+   * @return A rows x num_cols sub-matrix.
    */
-  template <uint num_cols>
-  Matrix<T, rows, num_cols> GetCols(const uint start_col) const;
+  template <uint num_cols> Matrix<T, rows, num_cols> GetCols(const uint start_col) const;
   /**
-   * @brief HeadCols
-   * @return
+   * @brief Get left num_cols columns from *this.
+   * @return A rows x num_cols sub-matrix.
    */
-  template <uint num_cols>
-  Matrix<T, rows, num_cols> HeadCols() const;
+  template <uint num_cols> Matrix<T, rows, num_cols> HeadCols() const;
   /**
-   * @brief TailCols
-   * @return
+   * @brief Get right num_cols columns from *this.
+   * @return A rows x num_cols sub-matrix.
    */
-  template <uint num_cols>
-  Matrix<T, rows, num_cols> TailCols() const;
+  template <uint num_cols> Matrix<T, rows, num_cols> TailCols() const;
   /**
    * Extracts a block from the matrix.
    *
@@ -582,9 +576,7 @@ template <typename T, uint rows, uint cols> class Matrix
   T elements_[rows][cols]; /**< for easy internal access to matrix elements. */
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// Common typedef
-///////////////////////////////////////////////////////////////////////////////
+//----- Common typedef ---------------------------------------------------------------//
 
 template <typename T> using Vector2 = Matrix<T, 2, 1>; /**< generic 2D vector */
 using Vector2u                      = Vector2<uint>;   /**< 2D vector of unsigned int */

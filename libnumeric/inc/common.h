@@ -1,7 +1,7 @@
 /**
  * @file common.h
  * @author Simone Comari
- * @date 15 Mar 2019
+ * @date 07 Feb 2020
  * @brief File containing common basic utilities to be included in the GRAB numeric
  * library.
  */
@@ -23,9 +23,16 @@
  */
 namespace grabnum {
 
+/**
+ * @brief Custom lib numeric runtime error exception structure.
+ */
 struct Exception: public std::exception
 {
  public:
+  /**
+   * @brief Constructor.
+   * @param[in] message The optional detailed description of the error occured.
+   */
   explicit Exception(const std::string& message = "")
   {
     if (!message.empty())
@@ -34,7 +41,9 @@ struct Exception: public std::exception
       message_ = "GRAB numeric runtime error";
   }
 
+  // @cond DO_NOT_DOCUMENT
   virtual const char* what() const noexcept { return message_.c_str(); }
+  // @endcond
 
  private:
   std::string message_;

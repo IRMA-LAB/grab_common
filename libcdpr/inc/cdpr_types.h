@@ -67,7 +67,7 @@
  * <tr><th>Name     <th>Symbol     <th>Expression  <th>Description
  * <tr><td> _Number of cables_ <td> @f$N@f$ <td> - <td> Number of cables attached to the
  * platform.
- * <tr><td> _Cable length_ <td> @f$l_i@f$ <td> @f$\|A_i - B_i\| + \widearc{D_iB_i}@f$
+ * <tr><td> _Cable length_ <td> @f$l_i@f$ <td> @f$\|A_i - B_i\| + \overparen{D_iB_i}@f$
  * <td> Length of _i-th_ cable from point @f$D_i@f$ to point @f$A_i@f$, including winding
  * around swivel pulley. <tr><td> _Motor counts_ <td>@f$q_i@f$ <td> - <td> Motor counts
  * (i.e. position) of _i-th_ motor. <tr><td> _Swivel angle_ <td>@f$\sigma_i@f$ <td> - <td>
