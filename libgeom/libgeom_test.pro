@@ -1,4 +1,3 @@
-
 QT       += testlib
 QT       -= gui
 
@@ -22,14 +21,12 @@ HEADERS += \
 SOURCES += \
     $$PWD/src/rotations.cpp \
     $$PWD/src/quaternions.cpp \
-    $$PWD/test/libgeom_test.cpp
+    $$PWD/tests/libgeom_test.cpp
 
 INCLUDEPATH += $$PWD/inc
 
 # Lib numeric
 unix:!macx: LIBS += -L$$PWD/../libnumeric/lib/ -lnumeric
-
 INCLUDEPATH += $$PWD/../libnumeric $$PWD/../libnumeric/inc
 DEPENDPATH += $$PWD/../libnumeric
-
 unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/lib/libnumeric.a

@@ -1,11 +1,9 @@
 /**
  * @file matrix.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 26 Mar 2019
+ * @date 30 Aug 2019
  * @brief File containing definitions and implementation of matrix class.
  */
-
-#include <assert.h>
 
 #include "matrix.h"
 
@@ -38,6 +36,13 @@ template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols>::Matrix(const std::vector<T>& values)
 {
   Fill(values);
+}
+
+template <typename T, uint rows, uint cols>
+template <class IteratorType>
+Matrix<T, rows, cols>::Matrix(IteratorType it, IteratorType end)
+{
+  Fill(it, end);
 }
 
 template <typename T, uint rows, uint cols>
@@ -156,8 +161,10 @@ Matrix<T, rows, cols>&
 Matrix<T, rows, cols>::SetBlock(const uint start_row, const uint start_col,
                                 const Matrix<T, block_rows, block_cols>& other)
 {
-  assert(start_row + block_rows - 1 <= rows);
-  assert(start_col + block_cols - 1 <= cols);
+  if (start_row + block_rows - 1 > rows)
+    throw Exception("row index out of bounds");
+  if (start_col + block_cols - 1 > cols)
+    throw Exception("column index out of bounds");
 
   for (uint row = start_row; row < start_row + block_rows; ++row)
     for (uint col = start_col; col < start_col + block_cols; ++col)
@@ -166,38 +173,43 @@ Matrix<T, rows, cols>::SetBlock(const uint start_row, const uint start_col,
 }
 
 template <typename T, uint rows, uint cols>
-Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetCol(const uint cl,
+Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetCol(const uint col,
                                                      const Matrix<T, rows, 1>& matrix1d)
 {
+  if (col <= 0 || (col - 1) > cols)
+    throw Exception("column index out of bounds");
+
   for (uint i = 0; i < rows; ++i)
-  {
-    elements_[i][cl - 1] = matrix1d(i + 1);
-  }
+    elements_[i][col - 1] = matrix1d(i + 1);
   return *this;
 }
 
 template <typename T, uint rows, uint cols>
-Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetCol(const uint cl, const T* vect,
+Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetCol(const uint col, const T* vect,
                                                      const uint size)
 {
-  assert(size == rows);
+  if (col <= 0 || (col - 1) > cols)
+    throw Exception("column index out of bounds");
+  if (size != rows)
+    throw Exception("dimension mismatch");
 
   for (uint i = 0; i < rows; ++i)
-  {
-    elements_[i][cl - 1] = vect[i];
-  }
+    elements_[i][col - 1] = vect[i];
   return *this;
 }
 
 template <typename T, uint rows, uint cols>
-Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetCol(const uint cl,
+Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetCol(const uint col,
                                                      const std::vector<T>& vect)
 {
-  assert(vect.size() == rows);
+  if (col <= 0 || (col - 1) > cols)
+    throw Exception("column index out of bounds");
+  if (vect.size() != rows)
+    throw Exception("dimension mismatch");
 
   for (uint i = 0; i < rows; ++i)
   {
-    elements_[i][cl - 1] = vect[i];
+    elements_[i][col - 1] = vect[i];
   }
   return *this;
 }
@@ -208,8 +220,10 @@ Matrix<T, rows, cols>&
 Matrix<T, rows, cols>::SetFromBlock(const uint start_row, const uint start_col,
                                     const Matrix<T, _rows, _cols>& other)
 {
-  assert(start_row + rows - 1 <= _rows);
-  assert(start_col + cols - 1 <= _cols);
+  if (start_row + rows - 1 > _rows)
+    throw Exception("row index out of bounds");
+  if (start_col + cols - 1 > _cols)
+    throw Exception("column index out of bounds");
 
   for (uint row = 0; row < rows; ++row)
     for (uint col = 0; col < cols; ++col)
@@ -220,11 +234,12 @@ Matrix<T, rows, cols>::SetFromBlock(const uint start_row, const uint start_col,
 template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetIdentity()
 {
-#if (MCU_TARGET == 0)
+#ifdef GRABNUM_PRINT_ERRORS
   if (!IsSquare())
   {
-    std::cerr << "WARNING: Matrix is not square! Pseudo-identity matrix is generated."
-              << std::endl;
+    std::cerr
+      << "WARNING: grabnum::Matrix is not square! Pseudo-identity matrix is generated."
+      << std::endl;
   }
 #endif
   for (uint row = 0; row < rows; ++row)
@@ -239,39 +254,42 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetIdentity()
 }
 
 template <typename T, uint rows, uint cols>
-Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetRow(const uint rw,
+Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetRow(const uint row,
                                                      const Matrix<T, 1, cols>& matrix1d)
 {
+  if (row <= 0 && (row - 1) > rows)
+    throw Exception("row index out of bounds");
+
   for (uint i = 0; i < cols; ++i)
-  {
-    elements_[rw - 1][i] = matrix1d(i + 1);
-  }
+    elements_[row - 1][i] = matrix1d(i + 1);
   return *this;
 }
 
 template <typename T, uint rows, uint cols>
-Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetRow(const uint rw, const T* vect,
+Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetRow(const uint row, const T* vect,
                                                      const uint size)
 {
-  assert(size == cols);
+  if (row <= 0 && (row - 1) > rows)
+    throw Exception("row index out of bounds");
+  if (size != cols)
+    throw Exception("dimension mismatch");
 
   for (uint i = 0; i < cols; ++i)
-  {
-    elements_[rw - 1][i] = vect[i];
-  }
+    elements_[row - 1][i] = vect[i];
   return *this;
 }
 
 template <typename T, uint rows, uint cols>
-Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetRow(const uint rw,
+Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetRow(const uint row,
                                                      const std::vector<T>& vect)
 {
-  assert(vect.size() == cols);
+  if (row <= 0 && (row - 1) > rows)
+    throw Exception("row index out of bounds");
+  if (vect.size() != cols)
+    throw Exception("dimension mismatch");
 
   for (uint i = 0; i < cols; ++i)
-  {
-    elements_[rw - 1][i] = vect[i];
-  }
+    elements_[row - 1][i] = vect[i];
   return *this;
 }
 
@@ -287,7 +305,8 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::SetZero()
 template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols>& Matrix<T, rows, cols>::Fill(const T* values, const uint16_t size)
 {
-  assert(size == this->Size());
+  if (size != this->Size())
+    throw Exception("dimension mismatch");
 
   for (uint row = 0; row < rows; ++row)
     for (uint col = 0; col < cols; ++col)
@@ -298,11 +317,25 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::Fill(const T* values, const uint16
 template <typename T, uint rows, uint cols>
 Matrix<T, rows, cols>& Matrix<T, rows, cols>::Fill(const std::vector<T>& values)
 {
-  assert(values.size() == this->Size());
+  if (values.size() != this->Size())
+    throw Exception("dimension mismatch");
 
   for (uint row = 0; row < rows; ++row)
     for (uint col = 0; col < cols; ++col)
       elements_[row][col] = values[row * cols + col];
+  return *this;
+}
+
+template <typename T, uint rows, uint cols>
+template <class IteratorType>
+Matrix<T, rows, cols>& Matrix<T, rows, cols>::Fill(IteratorType it, IteratorType end)
+{
+  if (end - it != this->Size())
+    throw Exception("dimension mismatch");
+
+  for (uint row = 0; row < rows; ++row)
+    for (uint col = 0; col < cols; ++col)
+      elements_[row][col] = *(it++);
   return *this;
 }
 
@@ -349,6 +382,9 @@ Matrix<T, rows, cols>& Matrix<T, rows, cols>::SwapCol(const uint col1, const uin
 template <typename T, uint rows, uint cols>
 Matrix<T, 1, cols> Matrix<T, rows, cols>::GetRow(const uint row) const
 {
+  if (row <= 0 && (row - 1) > rows)
+    throw Exception("row index out of bounds");
+
   Matrix<T, 1, cols> row_vect;
   for (uint col = 0; col < cols; ++col)
     row_vect(col + 1) = elements_[row - 1][col];
@@ -356,8 +392,39 @@ Matrix<T, 1, cols> Matrix<T, rows, cols>::GetRow(const uint row) const
 }
 
 template <typename T, uint rows, uint cols>
+template <uint num_rows>
+Matrix<T, num_rows, cols> Matrix<T, rows, cols>::GetRows(const uint start_row) const
+{
+  if (start_row <= 0 && (start_row + num_rows - 1) > rows)
+    throw Exception("row index out of bounds");
+
+  uint row_counter = 1;
+  Matrix<T, num_rows, cols> block_rows;
+  for (uint i = start_row; i < start_row + num_rows; ++i)
+    block_rows.SetRow(row_counter++, this->GetRow(i));
+  return block_rows;
+}
+
+template <typename T, uint rows, uint cols>
+template <uint num_rows>
+Matrix<T, num_rows, cols> Matrix<T, rows, cols>::HeadRows() const
+{
+  return GetRows<num_rows>(1);
+}
+
+template <typename T, uint rows, uint cols>
+template <uint num_rows>
+Matrix<T, num_rows, cols> Matrix<T, rows, cols>::TailRows() const
+{
+  return GetRows<num_rows>(rows - num_rows + 1);
+}
+
+template <typename T, uint rows, uint cols>
 VectorX<T, rows> Matrix<T, rows, cols>::GetCol(const uint col) const
 {
+  if (col <= 0 || (col - 1) > cols)
+    throw Exception("column index out of bounds");
+
   VectorX<T, rows> col_vect;
   for (uint row = 0; row < rows; ++row)
     col_vect(row + 1) = elements_[row][col - 1];
@@ -365,10 +432,43 @@ VectorX<T, rows> Matrix<T, rows, cols>::GetCol(const uint col) const
 }
 
 template <typename T, uint rows, uint cols>
+template <uint num_cols>
+Matrix<T, rows, num_cols> Matrix<T, rows, cols>::GetCols(const uint start_col) const
+{
+  if (start_col <= 0 || (start_col + num_cols - 1) > cols)
+    throw Exception("column index out of bounds");
+
+  uint col_counter = 1;
+  Matrix<T, rows, num_cols> block_cols;
+  for (uint i = start_col; i < start_col + num_cols; ++i)
+    block_cols.SetCol(col_counter++, this->GetCol(i));
+  return block_cols;
+}
+
+template <typename T, uint rows, uint cols>
+template <uint num_cols>
+Matrix<T, rows, num_cols> Matrix<T, rows, cols>::HeadCols() const
+{
+  return GetCols<num_cols>(1);
+}
+
+template <typename T, uint rows, uint cols>
+template <uint num_cols>
+Matrix<T, rows, num_cols> Matrix<T, rows, cols>::TailCols() const
+{
+  return GetCols<num_cols>(cols - num_cols + 1);
+}
+
+template <typename T, uint rows, uint cols>
 template <uint blk_rows, uint blk_cols>
 Matrix<T, blk_rows, blk_cols> Matrix<T, rows, cols>::GetBlock(const uint start_row,
                                                               const uint start_col) const
 {
+  if (start_row <= 0 || (start_row + blk_rows - 1) > rows)
+    throw Exception("row index out of bounds");
+  if (start_col <= 0 || (start_col + blk_cols - 1) > cols)
+    throw Exception("column index out of bounds");
+
   Matrix<T, blk_rows, blk_cols> block;
   block.SetFromBlock(start_row, start_col, *this);
   return block;
@@ -458,6 +558,17 @@ template <typename T, uint rows, uint cols> uint16_t Matrix<T, rows, cols>::MinI
     }
   index = i_min * cols + j_min + 1;
   return index;
+}
+
+template <typename T, uint rows, uint cols>
+std::vector<std::vector<uint>> Matrix<T, rows, cols>::NonZeros() const
+{
+  std::vector<std::vector<uint>> indeces;
+  for (uint row = 0; row < rows; ++row)
+    for (uint col = 0; col < cols; ++col)
+      if (elements_[row][col] != 0)
+        indeces.push_back({row + 1, col + 1});
+  return indeces;
 }
 
 } // end namespace grabnum

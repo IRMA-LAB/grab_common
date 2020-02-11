@@ -1,11 +1,12 @@
-
 HEADERS += \
     $$PWD/inc/rotations.h \
-    $$PWD/inc/quaternions.h
+    $$PWD/inc/quaternions.h \
+    $$PWD/inc/homogeneous_transf.h
 
 SOURCES += \
     $$PWD/src/rotations.cpp \
-    $$PWD/src/quaternions.cpp
+    $$PWD/src/quaternions.cpp \
+    $$PWD/src/homogeneous_transf.cpp
 
 INCLUDEPATH += $$PWD/inc
 

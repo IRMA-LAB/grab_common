@@ -7,7 +7,8 @@ HEADERS += \
 SOURCES += \
     $$PWD/src/threads.cpp \
     $$PWD/src/clocks.cpp \
-    $$PWD/test/libgrabrt_test.cpp
+    $$PWD/tests/libgrabrt_test.cpp \
+    $$PWD/../grabcommon.cpp
 
 INCLUDEPATH += \
     $$PWD/inc \
@@ -31,8 +32,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 # Lib numeric
 unix:!macx: LIBS += -L$$PWD/../libnumeric/lib/ -lnumeric
-
 INCLUDEPATH += $$PWD/../libnumeric $$PWD/../libnumeric/inc/
 DEPENDPATH += $$PWD/../libnumeric
-
 unix:!macx: PRE_TARGETDEPS += $$PWD/../libnumeric/lib/libnumeric.a

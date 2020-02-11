@@ -1,7 +1,7 @@
 /**
  * @file matrix.h
  * @author Edoardo Idà, Simone Comari
- * @date 26 Mar 2019
+ * @date 11 Feb 2020
  * @brief File containing matrix class and utilities to be included in the GRAB numeric
  * library.
  *
@@ -15,17 +15,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 #include <typeinfo>
 
 #include "common.h"
 
-/**
- * Define whether the build target is a MCU or a device with a graphic interface.
- * @todo move this flag in the preprocessor flags
- */
-#define MCU_TARGET 0
-
-#if (MCU_TARGET == 0)
+#ifndef GRABNUM_MCU_TARGET
 #include <iomanip>
 #include <iostream>
 #endif
@@ -78,6 +73,15 @@ template <typename T, uint rows, uint cols> class Matrix
    * @see Fill()
    */
   Matrix(const std::vector<T>& values);
+  /**
+   * Full constructor.
+   * Fills the matrix row-by-row with the elements of @a values.
+   *
+   * @param[in] it Iterator pointing at the beginning of the array data.
+   * @param[in] end Iterator pointing at the end of the array data.
+   * @see Fill()
+   */
+  template <class IteratorType> Matrix(IteratorType it, IteratorType end);
   /**
    * Parametrized constructor from another matrix with the same shape and size.
    * Makes a copy of the given matrix. It also handle automatic casting in case of
@@ -158,6 +162,34 @@ template <typename T, uint rows, uint cols> class Matrix
    * @return A pointer to the data of the matrix.
    */
   inline const T* Data() const { return *elements_; }
+  /**
+   * Returns a pointer to beginning of the data.
+   *
+   * @return A pointer to beginning of the data.
+   * @see Data
+   */
+  inline T* Begin() { return this->Data(); }
+  /**
+   * Returns a constant pointer to beginning of the data.
+   *
+   * @return A constant pointer to beginning of the data.
+   * @see Data
+   */
+  inline const T* Begin() const { return this->Data(); }
+  /**
+   * Returns a pointer to beginning of the data.
+   *
+   * @return A pointer to beginning of the data.
+   * @see Data
+   */
+  inline T* End() { return this->Data() + this->Size(); }
+  /**
+   * Returns a constant pointer to beginning of the data.
+   *
+   * @return A constant pointer to beginning of the data.
+   * @see Data
+   */
+  inline const T* End() const { return this->Data() + this->Size(); }
 
   /**
    * Conversion operator.
@@ -305,8 +337,8 @@ template <typename T, uint rows, uint cols> class Matrix
    * @todo example
    */
   template <uint block_rows, uint block_cols>
-  Matrix_t& SetBlock(const uint start_row, const uint start_col,
-                     const Matrix<T, block_rows, block_cols>& other);
+  Matrix<T, rows, cols>& SetBlock(const uint start_row, const uint start_col,
+                                  const Matrix<T, block_rows, block_cols>& other);
   /**
    * Sets a column of @c *this with the elements of a 1D matrix.
    *
@@ -404,6 +436,15 @@ template <typename T, uint rows, uint cols> class Matrix
    * @return A reference to @c *this.
    */
   Matrix_t& Fill(const std::vector<T>& values);
+  /**
+   * Fills the matrix row-by-row with the elements of @a values.
+   *
+   * @param[in] it Iterator pointing at the beginning of the array data.
+   * @param[in] end Iterator pointing at the end of the array data.
+   * @return A reference to @c *this.
+   */
+  template <class IteratorType>
+  Matrix<T, rows, cols>& Fill(IteratorType it, IteratorType end);
 
   /**
    * Returns the transposed matrix.
@@ -436,12 +477,44 @@ template <typename T, uint rows, uint cols> class Matrix
    */
   Matrix<T, 1, cols> GetRow(const uint row) const;
   /**
+   * @brief Get multiple consequent rows from *this.
+   * @param start_row The initial row to start counting from.
+   * @return A num_rows x cols sub-matrix.
+   */
+  template <uint num_rows> Matrix<T, num_rows, cols> GetRows(const uint start_row) const;
+  /**
+   * @brief Get top num_rows rows from *this.
+   * @return A num_rows x cols sub-matrix.
+   */
+  template <uint num_rows> Matrix<T, num_rows, cols> HeadRows() const;
+  /**
+   * @brief Get bottom num_rows rows from *this.
+   * @return A num_rows x cols sub-matrix.
+   */
+  template <uint num_rows> Matrix<T, num_rows, cols> TailRows() const;
+  /**
    * Extracts a column from the matrix.
    *
    * @param[in] col The index of the column to be extracted.
    * @return A 1-dimensional matrix (aka a vertical vector).
    */
   Matrix<T, rows, 1> GetCol(const uint col) const;
+  /**
+   * @brief Get multiple consequent columns from *this.
+   * @param start_col The initial column to start counting from.
+   * @return A rows x num_cols sub-matrix.
+   */
+  template <uint num_cols> Matrix<T, rows, num_cols> GetCols(const uint start_col) const;
+  /**
+   * @brief Get left num_cols columns from *this.
+   * @return A rows x num_cols sub-matrix.
+   */
+  template <uint num_cols> Matrix<T, rows, num_cols> HeadCols() const;
+  /**
+   * @brief Get right num_cols columns from *this.
+   * @return A rows x num_cols sub-matrix.
+   */
+  template <uint num_cols> Matrix<T, rows, num_cols> TailCols() const;
   /**
    * Extracts a block from the matrix.
    *
@@ -493,38 +566,77 @@ template <typename T, uint rows, uint cols> class Matrix
    */
   bool IsApprox(const Matrix<T, rows, cols>& other, const double tol = EPSILON) const;
 
+  /**
+   * Return a vector of 2D vectors containing the 2D index of non-zero values of @c *this.
+   * @return A vector of 2D vectors containing the 2D index of non-zero values of @c
+   * *this.
+   */
+  std::vector<std::vector<uint>> NonZeros() const;
+
  private:
   T elements_[rows][cols]; /**< for easy internal access to matrix elements. */
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// Common typedef
-///////////////////////////////////////////////////////////////////////////////
+//----- Common typedef ---------------------------------------------------------------//
 
 template <typename T> using Vector2 = Matrix<T, 2, 1>; /**< generic 2D vector */
+using Vector2u                      = Vector2<uint>;   /**< 2D vector of unsigned int */
 using Vector2i                      = Vector2<int>;    /**< 2D vector of int */
 using Vector2l                      = Vector2<long>;   /**< 2D vector of long */
 using Vector2f                      = Vector2<float>;  /**< 2D vector of float */
 using Vector2d                      = Vector2<double>; /**< 2D vector of double */
 
 template <typename T> using Vector3 = Matrix<T, 3, 1>; /**< generic 3D vector */
+using Vector3u                      = Vector3<uint>;   /**< 3D vector of unsigned int */
 using Vector3i                      = Vector3<int>;    /**< 3D vector of int */
 using Vector3l                      = Vector3<long>;   /**< 3D vector of long */
 using Vector3f                      = Vector3<float>;  /**< 3D vector of float */
 using Vector3d                      = Vector3<double>; /**< 3D vector of double */
 
+template <typename T> using Vector4 = Matrix<T, 4, 1>; /**< generic 4D vector */
+using Vector4u                      = Vector4<uint>;   /**< 4D vector of unsigned int */
+using Vector4i                      = Vector4<int>;    /**< 4D vector of int */
+using Vector4l                      = Vector4<long>;   /**< 4D vector of long */
+using Vector4f                      = Vector4<float>;  /**< 4D vector of float */
+using Vector4d                      = Vector4<double>; /**< 4D vector of double */
+
+template <typename T> using Vector6 = Matrix<T, 6, 1>; /**< generic 6D vector */
+using Vector6u                      = Vector6<uint>;   /**< 6D vector of unsigned int */
+using Vector6i                      = Vector6<int>;    /**< 6D vector of int */
+using Vector6l                      = Vector6<long>;   /**< 6D vector of long */
+using Vector6f                      = Vector6<float>;  /**< 6D vector of float */
+using Vector6d                      = Vector6<double>; /**< 6D vector of double */
+
 template <typename T> using Matrix2 = Matrix<T, 2, 2>; /**< generic 2x2 matrix */
+using Matrix2u                      = Matrix2<uint>;   /**< 2x2 matrix of unsigned int */
 using Matrix2i                      = Matrix2<int>;    /**< 2x2 matrix of int */
 using Matrix2l                      = Matrix2<long>;   /**< 2x2 matrix of long */
 using Matrix2f                      = Matrix2<float>;  /**< 2x2 matrix of float */
 using Matrix2d                      = Matrix2<double>; /**< 2x2 matrix of double */
 
 template <typename T> using Matrix3 = Matrix<T, 3, 3>; /**< generic 3x3 matrix */
+using Matrix3u                      = Matrix3<uint>;   /**< 3x3 matrix of unsigned int */
 using Matrix3i                      = Matrix3<int>;    /**< 3x3 matrix of int */
 using Matrix3l                      = Matrix3<long>;   /**< 3x3 matrix of long */
 using Matrix3f                      = Matrix3<float>;  /**< 3x3 matrix of float */
 using Matrix3d                      = Matrix3<double>; /**< 3x3 matrix of double */
 
+template <typename T> using Matrix4 = Matrix<T, 4, 4>; /**< generic 4x4 matrix */
+using Matrix4u                      = Matrix4<uint>;   /**< 4x4 matrix of unsigned int */
+using Matrix4i                      = Matrix4<int>;    /**< 4x4 matrix of int */
+using Matrix4l                      = Matrix4<long>;   /**< 4x4 matrix of long */
+using Matrix4f                      = Matrix4<float>;  /**< 4x4 matrix of float */
+using Matrix4d                      = Matrix4<double>; /**< 4x4 matrix of double */
+
+template <typename T> using Matrix6 = Matrix<T, 6, 6>; /**< generic 6x6 matrix */
+using Matrix6u                      = Matrix6<uint>;   /**< 6x6 matrix of unsigned int */
+using Matrix6i                      = Matrix6<int>;    /**< 6x6 matrix of int */
+using Matrix6l                      = Matrix6<long>;   /**< 6x6 matrix of long */
+using Matrix6f                      = Matrix6<float>;  /**< 6x6 matrix of float */
+using Matrix6d                      = Matrix6<double>; /**< 6x6 matrix of double */
+
+template <uint rows, uint cols>
+using MatrixXu = Matrix<uint, rows, cols>; /**< generic mxn matrix of unsigned int */
 template <uint rows, uint cols>
 using MatrixXi = Matrix<int, rows, cols>; /**< generic mxn matrix of int */
 template <uint rows, uint cols>
@@ -534,13 +646,31 @@ using MatrixXf = Matrix<float, rows, cols>; /**< generic mxn matrix of float */
 template <uint rows, uint cols>
 using MatrixXd = Matrix<double, rows, cols>; /**< generic mxn matrix of double */
 
-template <typename T, uint dim> using VectorX = Matrix<T, dim, 1>; /**< generic vector */
-template <uint dim> using VectorXi = Matrix<int, dim, 1>;  /**< generic vector of int */
-template <uint dim> using VectorXl = Matrix<long, dim, 1>; /**< generic vector of long */
+template <typename T, uint dim>
+using VectorX = Matrix<T, dim, 1>; /**< generic vertical vector */
 template <uint dim>
-using VectorXf = Matrix<float, dim, 1>; /**< generic vector of float */
+using VectorXu = Matrix<uint, dim, 1>; /**< generic vertical vector of unsigned int */
 template <uint dim>
-using VectorXd = Matrix<double, dim, 1>; /**< generic vector of double */
+using VectorXi = Matrix<int, dim, 1>; /**< generic vertical vector of int */
+template <uint dim>
+using VectorXl = Matrix<long, dim, 1>; /**< generic vertical vector of long */
+template <uint dim>
+using VectorXf = Matrix<float, dim, 1>; /**< generic vertical vector of float */
+template <uint dim>
+using VectorXd = Matrix<double, dim, 1>; /**< generic vertical vector of double */
+
+template <typename T, uint dim>
+using RowVectorX = Matrix<T, 1, dim>; /**< generic horizontal vector */
+template <uint dim>
+using RowVectorXu = Matrix<uint, 1, dim>; /**< generic horizontal vector of uint */
+template <uint dim>
+using RowVectorXi = Matrix<int, 1, dim>; /**< generic horizontal vector of int */
+template <uint dim>
+using RowVectorXl = Matrix<long, 1, dim>; /**< generic horizontal vector of long */
+template <uint dim>
+using RowVectorXf = Matrix<float, 1, dim>; /**< generic horizontal vector of float */
+template <uint dim>
+using RowVectorXd = Matrix<double, 1, dim>; /**< generic horizontal vector of double */
 
 } //  end namespace grabnum
 

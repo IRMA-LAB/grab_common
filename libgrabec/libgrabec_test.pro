@@ -4,20 +4,15 @@ HEADERS += \
     $$PWD/../grabcommon.h \
     $$PWD/inc/ethercatmaster.h \
     $$PWD/inc/ethercatslave.h \
-    $$PWD/inc/types.h \
+    $$PWD/inc/grabec_types.h \
     $$PWD/inc/slaves/goldsolowhistledrive.h \
-    $$PWD/inc/slaves/easycat/TestEasyCAT1_slave.h \
-    $$PWD/inc/slaves/easycat/TestEasyCAT2_slave.h
 
 SOURCES += \
     $$PWD/../grabcommon.cpp \
     $$PWD/src/ethercatmaster.cpp \
     $$PWD/src/ethercatslave.cpp \
-    $$PWD/src/types.cpp \
     $$PWD/src/slaves/goldsolowhistledrive.cpp \
     $$PWD/tests/libgrabec_test.cpp \
-    $$PWD/src/slaves/easycat/TestEasyCAT1_slave.cpp \
-    $$PWD/src/slaves/easycat/TestEasyCAT2_slave.cpp
 
 INCLUDEPATH += \
       $$PWD/inc \

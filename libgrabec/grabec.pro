@@ -11,7 +11,7 @@ HEADERS += \
     $$PWD/../grabcommon.h \
     $$PWD/inc/ethercatmaster.h \
     $$PWD/inc/ethercatslave.h \
-    $$PWD/inc/types.h \
+    $$PWD/inc/grabec_types.h \
     $$PWD/inc/slaves/goldsolowhistledrive.h
 
 SOURCES += \

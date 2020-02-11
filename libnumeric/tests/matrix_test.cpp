@@ -2,30 +2,32 @@
 
 #include <cmath>
 
+#include "common.h"
 #include "matrix.h"
 #include "matrix_utilities.h"
-#include "common.h"
 
-class TestMatrix : public QObject
+#define DIM1 2
+#define DIM2 3
+
+class TestMatrix: public QObject
 {
   Q_OBJECT
 
-private:
-  static constexpr uint8_t kDim1_ = 2;
-  static constexpr uint8_t kDim2_ = 3;
-  const double DValues_[6] = {0.1, 1.1, 2.1, 3.1, 4.1, 5.1};
-  const int IValues_[6] = {0, 1, 2, 3, 4, 5};
+ private:
+  const double DValues_[6]        = {0.1, 1.1, 2.1, 3.1, 4.1, 5.1};
+  const int IValues_[6]           = {0, 1, 2, 3, 4, 5};
 
   grabnum::Matrix2d mat22d_;
   grabnum::Matrix2i mat22i_;
-  grabnum::MatrixXd<kDim1_, kDim2_> mat23d_;
-  grabnum::MatrixXi<kDim1_, kDim2_> mat23i_;
+  grabnum::MatrixXd<DIM1, DIM2> mat23d_;
+  grabnum::MatrixXi<DIM1, DIM2> mat23i_;
+  grabnum::MatrixXi<DIM2, DIM1> mat32i_;
   grabnum::Matrix2d identity2d_;
   grabnum::Matrix2i identity2i_;
   grabnum::Matrix2d zeros22d_;
   grabnum::Matrix2i zeros22i_;
 
-private slots:
+ private slots:
   void init();
 
   void Constructors();
@@ -50,6 +52,7 @@ void TestMatrix::init()
   mat22i_.Fill(IValues_, mat22i_.Size());
   mat23d_.Fill(DValues_, mat23d_.Size());
   mat23i_.Fill(IValues_, mat23i_.Size());
+  mat32i_.Fill(IValues_, mat32i_.Size());
   identity2d_.SetIdentity();
   identity2i_.SetIdentity();
   zeros22d_.SetZero();
@@ -86,7 +89,8 @@ void TestMatrix::Constructors()
 
   // Constructor from standard array (hard way).
   std::vector<float> std_vec(vec, vec + sizeof(vec) / sizeof(float));
-  grabnum::MatrixXf<n, m> mat_nxm_f2(&std_vec.front(), std_vec.size());
+  grabnum::MatrixXf<n, m> mat_nxm_f2(&std_vec.front(),
+                                     static_cast<uint16_t>(std_vec.size()));
   for (uint8_t i = 1; i <= n; ++i)
     for (uint8_t j = 1; j <= m; ++j)
       QCOMPARE(mat_nxm_f2(i, j), std_vec[(i - 1) * m + (j - 1)]);
@@ -132,18 +136,18 @@ void TestMatrix::ClassOperators()
   double values[ARRAY_SIZE(DValues_)];
   for (uint16_t i = 0; i < ARRAY_SIZE(DValues_); ++i)
     values[i] = DValues_[i] + scalar;
-  grabnum::MatrixXd<kDim1_, kDim2_> other(values, mat23d_.Size());
-  grabnum::MatrixXd<kDim1_, kDim2_> mat23d_copy(mat23d_);
-  grabnum::MatrixXd<kDim1_, kDim2_> other_copy(other);
+  grabnum::MatrixXd<DIM1, DIM2> other(values, mat23d_.Size());
+  grabnum::MatrixXd<DIM1, DIM2> mat23d_copy(mat23d_);
+  grabnum::MatrixXd<DIM1, DIM2> other_copy(other);
 
   // Test equal operator
   bool res = true;
-  for (uint8_t i = 0; i < kDim1_; ++i)
+  for (uint8_t i = 0; i < DIM1; ++i)
   {
     if (!res)
       break;
-    for (uint8_t j = 0; j < kDim2_; ++j)
-      if (!grabnum::IsClose(DValues_[i * kDim2_ + j], mat23d_copy(i + 1, j + 1)))
+    for (uint8_t j = 0; j < DIM2; ++j)
+      if (!grabnum::IsClose(DValues_[i * DIM2 + j], mat23d_copy(i + 1, j + 1)))
       {
         res = false;
         break;
@@ -153,11 +157,11 @@ void TestMatrix::ClassOperators()
 
   // Test not equal operator
   res = true;
-  for (uint8_t i = 1; i <= kDim1_; ++i)
+  for (uint8_t i = 1; i <= DIM1; ++i)
   {
     if (!res)
       break;
-    for (uint8_t j = 1; j <= kDim2_; ++j)
+    for (uint8_t j = 1; j <= DIM2; ++j)
       if (std::abs(mat23d_(i, j) - other(i, j)) <= std::numeric_limits<double>::epsilon())
       {
         res = false;
@@ -177,7 +181,7 @@ void TestMatrix::ClassOperators()
   // Test scalar multiplication
   for (uint16_t i = 0; i < ARRAY_SIZE(DValues_); ++i)
     values[i] = DValues_[i] * scalar;
-  grabnum::MatrixXd<kDim1_, kDim2_> mat23d_scaled(values, mat23d_.Size());
+  grabnum::MatrixXd<DIM1, DIM2> mat23d_scaled(values, mat23d_.Size());
   mat23d_copy *= scalar;
   QVERIFY(mat23d_copy.IsApprox(mat23d_scaled));
 
@@ -187,24 +191,24 @@ void TestMatrix::ClassOperators()
 
   // Test matrix addition
   double dvalues[6] = {-2.3, 0.0, 4.5, 6.77, -11.2, 0.1};
-  grabnum::MatrixXd<kDim1_, kDim2_> addendum(dvalues, mat23d_.Size());
+  grabnum::MatrixXd<DIM1, DIM2> addendum(dvalues, mat23d_.Size());
   addendum += mat23d_;
   double sum;
-  for (uint8_t i = 0; i < kDim1_; ++i)
-    for (uint8_t j = 0; j < kDim2_; ++j)
+  for (uint8_t i = 0; i < DIM1; ++i)
+    for (uint8_t j = 0; j < DIM2; ++j)
     {
-      sum = DValues_[i * kDim2_ + j] + dvalues[i * kDim2_ + j];
+      sum = DValues_[i * DIM2 + j] + dvalues[i * DIM2 + j];
       QVERIFY(std::abs(sum - addendum(i + 1, j + 1)) <= grabnum::EPSILON);
     }
 
   // Test matrix subtraction
-  grabnum::MatrixXd<kDim1_, kDim2_> mat(dvalues, mat23d_.Size());
+  grabnum::MatrixXd<DIM1, DIM2> mat(dvalues, mat23d_.Size());
   mat -= mat23d_;
   double diff;
-  for (uint8_t i = 0; i < kDim1_; ++i)
-    for (uint8_t j = 0; j < kDim2_; ++j)
+  for (uint8_t i = 0; i < DIM1; ++i)
+    for (uint8_t j = 0; j < DIM2; ++j)
     {
-      diff = dvalues[i * kDim2_ + j] - DValues_[i * kDim2_ + j];
+      diff = dvalues[i * DIM2 + j] - DValues_[i * DIM2 + j];
       QVERIFY(std::abs(diff - mat(i + 1, j + 1)) <= grabnum::EPSILON);
     }
 }
@@ -305,29 +309,72 @@ void TestMatrix::Setters()
 void TestMatrix::Getters()
 {
   // Test GetRow
-  grabnum::MatrixXi<1, kDim2_> row = mat23i_.GetRow(2);
+  grabnum::MatrixXi<1, DIM2> row = mat23i_.GetRow(2);
   QVERIFY(row(1, 1) == 3);
   QVERIFY(row(1, 2) == 4);
   QVERIFY(row(1, 3) == 5);
 
+  // Test GetRows
+  grabnum::MatrixXi<2, DIM1> rows = mat32i_.GetRows<2>(2);
+  QVERIFY(rows(1, 1) == 2);
+  QVERIFY(rows(1, 2) == 3);
+  QVERIFY(rows(2, 1) == 4);
+  QVERIFY(rows(2, 2) == 5);
+
+  // Test HeadRows
+  grabnum::MatrixXi<2, DIM1> head_rows = mat32i_.HeadRows<2>();
+  QVERIFY(head_rows(1, 1) == 0);
+  QVERIFY(head_rows(1, 2) == 1);
+  QVERIFY(head_rows(2, 1) == 2);
+  QVERIFY(head_rows(2, 2) == 3);
+
+  // Test GetRows
+  grabnum::MatrixXi<2, DIM1> tail_rows = mat32i_.TailRows<2>();
+  QVERIFY(rows == tail_rows);
+
   // Test GetCol
-  grabnum::VectorXi<kDim1_> col = mat23i_.GetCol(2);
+  grabnum::VectorXi<DIM1> col = mat23i_.GetCol(2);
   QVERIFY(col(1, 1) == 1);
   QVERIFY(col(2, 1) == 4);
+
+  // Test GetCols
+  grabnum::MatrixXi<DIM1, 2> cols = mat23i_.GetCols<2>(2);
+  QVERIFY(cols(1, 1) == 1);
+  QVERIFY(cols(1, 2) == 2);
+  QVERIFY(cols(2, 1) == 4);
+  QVERIFY(cols(2, 2) == 5);
+
+  // Test HeadCols
+  grabnum::MatrixXi<DIM1, 2> head_cols = mat23i_.HeadCols<2>();
+  QVERIFY(head_cols(1, 1) == 0);
+  QVERIFY(head_cols(1, 2) == 1);
+  QVERIFY(head_cols(2, 1) == 3);
+  QVERIFY(head_cols(2, 2) == 4);
+
+  // Test GetCols
+  grabnum::MatrixXi<DIM1, 2> tail_cols = mat23i_.TailCols<2>();
+  QVERIFY(cols == tail_cols);
+
+  // Test GetBlock
+  grabnum::MatrixXi<2, 2> block = mat23i_.GetBlock<2, 2>(1, 2);
+  QVERIFY(block(1, 1) == 1);
+  QVERIFY(block(1, 2) == 2);
+  QVERIFY(block(2, 1) == 4);
+  QVERIFY(block(2, 2) == 5);
 }
 
 void TestMatrix::Manipulations()
 {
   // Test Transpose
-  grabnum::MatrixXi<kDim2_, kDim1_> mat = mat23i_.Transpose();
-  for (uint8_t i = 1; i <= kDim1_; ++i)
-    for (uint8_t j = 1; j <= kDim2_; ++j)
+  grabnum::MatrixXi<DIM2, DIM1> mat = mat23i_.Transpose();
+  for (uint8_t i = 1; i <= DIM1; ++i)
+    for (uint8_t j = 1; j <= DIM2; ++j)
       QVERIFY(mat23i_(i, j) == mat(j, i));
 
   // Test SwapRow
-  grabnum::MatrixXi<kDim1_, kDim2_> mat23i_copy(mat23i_);
+  grabnum::MatrixXi<DIM1, DIM2> mat23i_copy(mat23i_);
   mat23i_copy.SwapRow(1, 2);
-  for (uint8_t j = 1; j <= kDim2_; ++j)
+  for (uint8_t j = 1; j <= DIM2; ++j)
   {
     QVERIFY(mat23i_copy(1, j) == mat23i_(2, j));
     QVERIFY(mat23i_copy(2, j) == mat23i_(1, j));
@@ -336,7 +383,7 @@ void TestMatrix::Manipulations()
   // Test SwapRow
   mat23i_copy = mat23i_;
   mat23i_copy.SwapCol(1, 2);
-  for (uint8_t i = 1; i <= kDim1_; ++i)
+  for (uint8_t i = 1; i <= DIM1; ++i)
   {
     QVERIFY(mat23i_copy(i, 1) == mat23i_(i, 2));
     QVERIFY(mat23i_copy(i, 2) == mat23i_(i, 1));
@@ -347,13 +394,13 @@ void TestMatrix::Operations()
 {
   // Test row-column multiplication.
   int result[6] = {3, 4, 5, 9, 14, 19};
-  grabnum::MatrixXi<kDim1_, kDim2_> res(result, ARRAY_SIZE(result));
+  grabnum::MatrixXi<DIM1, DIM2> res(result, ARRAY_SIZE(result));
   QVERIFY((mat22i_ * mat23i_) == res);
   QVERIFY((identity2d_ * mat23d_) == mat23d_);
   QVERIFY((zeros22d_ * mat22d_) == zeros22d_);
 
   // Test outer product
-  grabnum::VectorXi<kDim1_> col(IValues_, kDim1_);
+  grabnum::VectorXi<DIM1> col(IValues_, DIM1);
   grabnum::MatrixXi<1, 3> row(IValues_, 3);
   int result2[6] = {0, 0, 0, 0, 1, 2};
   res.Fill(result2, ARRAY_SIZE(result2));
@@ -367,7 +414,7 @@ void TestMatrix::Operations()
 
   // Test horizontal concatenation
   int results4[10] = {0, 1, 2, 0, 1, 3, 4, 5, 2, 3};
-  grabnum::MatrixXi<kDim1_, 5> hcat(results4, ARRAY_SIZE(results4));
+  grabnum::MatrixXi<DIM1, 5> hcat(results4, ARRAY_SIZE(results4));
   QVERIFY(grabnum::HorzCat(mat23i_, mat22i_) == hcat);
 
   // Test vertical concatenation

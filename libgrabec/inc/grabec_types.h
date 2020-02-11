@@ -1,12 +1,12 @@
 /**
- * @file libgrabec/inc/types.h
+ * @file grabec_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 15 Mar 2019
+ * @date 09 Jul 2019
  * @brief This file includes common types and struct of libgrabec.
  */
 
-#ifndef GRABCOMMON_LIBGRABEC_TYPES_H
-#define GRABCOMMON_LIBGRABEC_TYPES_H
+#ifndef GRABCOMMON_LIBGRABEC_GRABEC_TYPES_H
+#define GRABCOMMON_LIBGRABEC_GRABEC_TYPES_H
 
 #include <iostream>
 #include <stdarg.h>
@@ -51,4 +51,4 @@ enum Status : uint8_t
 
 } // end namespace grabec
 
-#endif // GRABCOMMON_LIBGRABEC_TYPES_H
+#endif // GRABCOMMON_LIBGRABEC_GRABEC_TYPES_H

@@ -1,269 +1,213 @@
 /**
  * @file diffkinematics.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 09 May 2019
+ * @date 02 Dec 2019
  * @brief File containing definitions of functions declared in diffkinematics.h.
  */
 
 #include "diffkinematics.h"
 
-namespace grabcdpr
-{
+namespace grabcdpr {
 
-///////////////////////////////////////////////////////////////////////////////
-//// Functions first-order kinematics
-///////////////////////////////////////////////////////////////////////////////
-
-template <class OrientationType, class PlatformVarsType>
-void UpdatePlatformVel(const grabnum::Vector3d& velocity,
-                       const OrientationType& orientation_dot,
-                       const grabnum::Vector3d& pos_PG_glob, PlatformVarsType* platform)
+void updatePlatformVel(const Vector3d& velocity, const Vector3d& orientation_dot,
+                       const Vector3d& pos_PG_glob, PlatformVars& platform)
 {
   // Update platform velocities.
-  platform->UpdateVel(velocity, orientation_dot);
+  platform.updateVel(velocity, orientation_dot);
   // Calculate platform baricenter velocity expressed in global frame.
-  platform->vel_OG_glob =
-    platform->velocity + grabnum::Cross(platform->angular_vel, pos_PG_glob);
+  platform.vel_OG_glob = platform.linear_vel + Cross(platform.angular_vel, pos_PG_glob);
 }
 
-template <class OrientationType, class PlatformVarsType>
-void UpdatePlatformVel(const grabnum::Vector3d& velocity,
-                       const OrientationType& orientation_dot, PlatformVarsType* platform)
+void updatePlatformVel(const Vector3d& velocity,
+                       const grabgeom::Quaternion& orientation_dot,
+                       const Vector3d& pos_PG_glob, PlatformVarsQuat& platform)
 {
-  UpdatePlatformVel(velocity, orientation_dot, platform->pos_PG_glob, platform);
+  // Update platform velocities.
+  platform.updateVel(velocity, orientation_dot);
+  // Calculate platform baricenter velocity expressed in global frame.
+  platform.vel_OG_glob = platform.linear_vel + Cross(platform.angular_vel, pos_PG_glob);
 }
 
-template <class PlatformVarsType>
-void UpdateVelA(const grabnum::Vector3d& pos_PA_glob, const PlatformVarsType* platform,
-                CableVars* cable)
+void updatePlatformVel(const Vector3d& velocity, const Vector3d& orientation_dot,
+                       PlatformVars& platform)
 {
-  cable->vel_OA_glob =
-    platform->velocity + grabnum::Dot(platform->angular_vel, pos_PA_glob);
+  updatePlatformVel(velocity, orientation_dot, platform.pos_PG_glob, platform);
 }
 
-template <class PlatformVarsType>
-void UpdateVelA(const PlatformVarsType* platform, CableVars* cable)
+void updatePlatformVel(const Vector3d& velocity,
+                       const grabgeom::Quaternion& orientation_dot,
+                       PlatformVarsQuat& platform)
 {
-  UpdateVelA(cable->pos_PA_glob, platform, cable);
+  updatePlatformVel(velocity, orientation_dot, platform.pos_PG_glob, platform);
 }
 
-void CalcPulleyVersorsDot(const grabnum::Vector3d& vers_u,
-                          const grabnum::Vector3d& vers_w, const double swivel_ang_vel,
-                          CableVars* cable)
+Vector3d calcVelA(const Vector3d& pos_PA_glob, const PlatformVarsBase& platform)
 {
-  cable->vers_u_dot = vers_w * swivel_ang_vel;
-  cable->vers_w_dot = -vers_u * swivel_ang_vel;
+  return platform.linear_vel + Cross(platform.angular_vel, pos_PA_glob);
 }
 
-void CalcPulleyVersorsDot(CableVars* cable)
+void updateVelA(const PlatformVarsBase& platform, CableVarsBase& cable)
 {
-  CalcPulleyVersorsDot(cable->vers_u, cable->vers_w, cable->swivel_ang_vel, cable);
+  cable.vel_OA_glob = calcVelA(cable.pos_PA_glob, platform);
 }
 
-double CalcSwivelAngSpeed(const grabnum::Vector3d& vers_u,
-                          const grabnum::Vector3d& vers_w,
-                          const grabnum::Vector3d& vel_OA_glob,
-                          const grabnum::Vector3d& pos_DA_glob)
+void calcPulleyVersorsDot(const Vector3d& vers_u, const Vector3d& vers_w,
+                          const double swivel_ang_vel, Vector3d& vers_u_dot,
+                          Vector3d& vers_w_dot)
 {
-  return grabnum::Dot(vers_w, vel_OA_glob) / grabnum::Dot(vers_u, pos_DA_glob);
+  vers_u_dot = vers_w * swivel_ang_vel;
+  vers_w_dot = -vers_u * swivel_ang_vel;
 }
 
-double CalcSwivelAngSpeed(const CableVars* cable)
+void updatePulleyVersorsDot(CableVarsBase& cable)
 {
-  return CalcSwivelAngSpeed(cable->vers_u, cable->vers_w, cable->vel_OA_glob,
-                            cable->pos_DA_glob);
+  calcPulleyVersorsDot(cable.vers_u, cable.vers_w, cable.swivel_ang_vel, cable.vers_u_dot,
+                       cable.vers_w_dot);
 }
 
-double CalcTangAngSpeed(const grabnum::Vector3d& vers_n,
-                        const grabnum::Vector3d& vel_OA_glob,
-                        const grabnum::Vector3d& pos_BA_glob)
+double calcSwivelAngSpeed(const Vector3d& vers_u, const Vector3d& vers_w,
+                          const Vector3d& vel_OA_glob, const Vector3d& pos_DA_glob)
 {
-  return grabnum::Dot(vers_n, vel_OA_glob) / grabnum::Norm(pos_BA_glob);
+  return Dot(vers_w, vel_OA_glob) / Dot(vers_u, pos_DA_glob);
 }
 
-double CalcTangAngSpeed(const CableVars* cable)
+void updateSwivelAngSpeed(CableVarsBase& cable)
 {
-  return CalcTangAngSpeed(cable->vers_n, cable->vel_OA_glob, cable->pos_BA_glob);
+  cable.swivel_ang_vel =
+    calcSwivelAngSpeed(cable.vers_u, cable.vers_w, cable.vel_OA_glob, cable.pos_DA_glob);
 }
 
-void CalcCableVersorsDot(const grabnum::Vector3d& vers_w, const grabnum::Vector3d& vers_n,
-                         const grabnum::Vector3d& vers_t, const double tan_ang,
+double calcTangAngSpeed(const Vector3d& vers_n, const Vector3d& vel_OA_glob,
+                        const Vector3d& pos_BA_glob)
+{
+  return Dot(vers_n, vel_OA_glob) / Norm(pos_BA_glob);
+}
+
+void updateTangAngSpeed(CableVarsBase& cable)
+{
+  cable.tan_ang_vel =
+    calcTangAngSpeed(cable.vers_n, cable.vel_OA_glob, cable.pos_BA_glob);
+}
+
+void calcCableVersorsDot(const double pulley_radius, const Vector3d& vers_w,
+                         const Vector3d& vers_n, const Vector3d& vers_t,
+                         const Vector3d& vel_OA_glob, const double tan_ang,
                          const double tan_ang_vel, const double swivel_ang_vel,
-                         CableVars* cable)
+                         Vector3d& vers_n_dot, Vector3d& vers_t_dot,
+                         Vector3d& vel_BA_glob)
 {
-  cable->vers_n_dot = vers_w * cos(tan_ang) * tan_ang_vel - vers_t * tan_ang_vel;
-  cable->vers_n_dot = vers_w * sin(tan_ang) * swivel_ang_vel + vers_n * tan_ang_vel;
+  vers_n_dot  = vers_w * cos(tan_ang) * swivel_ang_vel - vers_t * tan_ang_vel;
+  vers_t_dot  = vers_w * sin(tan_ang) * swivel_ang_vel + vers_n * tan_ang_vel;
+  vel_BA_glob = vel_OA_glob -
+                pulley_radius *
+                  (vers_w * (1. + cos(tan_ang)) * swivel_ang_vel - vers_t * tan_ang_vel);
 }
 
-void CalcCableVersorsDot(CableVars* cable)
+void updateCableVersorsDot(const PulleyParams& params, CableVarsBase& cable)
 {
-  CalcCableVersorsDot(cable->vers_w, cable->vers_n, cable->vers_t, cable->tan_ang,
-                      cable->tan_ang_vel, cable->swivel_ang_vel, cable);
+  calcCableVersorsDot(params.radius, cable.vers_w, cable.vers_n, cable.vers_t,
+                      cable.vel_OA_glob, cable.tan_ang, cable.tan_ang_vel,
+                      cable.swivel_ang_vel, cable.vers_n_dot, cable.vers_t_dot,
+                      cable.vel_BA_glob);
 }
 
-double CalcCableSpeed(const grabnum::Vector3d& vers_t,
-                      const grabnum::Vector3d& vel_OA_glob)
+double calcCableSpeed(const Vector3d& vers_t, const Vector3d& vel_OA_glob)
 {
-  return grabnum::Dot(vers_t, vel_OA_glob);
+  return Dot(vers_t, vel_OA_glob);
 }
 
-double CalcCableSpeed(const CableVars* cable)
+void updateCableSpeed(CableVarsBase& cable)
 {
-  return CalcCableSpeed(cable->vers_t, cable->vel_OA_glob);
+  cable.speed = calcCableSpeed(cable.vers_t, cable.vel_OA_glob);
 }
 
-template <class PlatformVarsType>
-void UpdateCableFirstOrd(const PlatformVarsType* platform, CableVars* cable)
+void updateJacobiansRowD(const PlatformVars& platform, CableVars& cable)
 {
-  UpdateVelA(platform, cable);
-  cable->swivel_ang_vel = CalcSwivelAngSpeed(cable);
-  CalcPulleyVersorsDot(cable);
-  cable->tan_ang_vel = CalcTangAngSpeed(cable);
-  CalcCableVersorsDot(cable);
-  cable->speed = CalcCableSpeed(cable);
+  cable.geom_jacob_d_row.SetBlock<1, 3>(1, 1, cable.vers_t_dot.Transpose());
+  cable.geom_jacob_d_row.SetBlock<1, 3>(
+    1, 4,
+    -cable.vers_t.Transpose() * Skew(platform.angular_vel) * Skew(cable.pos_PA_glob));
+
+  cable.anal_jacob_d_row = cable.geom_jacob_d_row;
+  cable.anal_jacob_d_row.SetBlock<1, 3>(
+    1, 4,
+    cable.anal_jacob_row.GetBlock<1, 3>(1, 4) * platform.h_mat -
+      cable.vers_t.Transpose() * Skew(cable.pos_PA_glob) * platform.dh_mat);
 }
 
-template <class OrientationType, class VarsType>
-void UpdateIK1(const grabnum::Vector3d& velocity, const OrientationType& orientation_dot,
-               VarsType* vars)
+void updateJacobiansRowD(const PlatformVarsQuat& platform, CableVarsQuat& cable)
 {
-  UpdatePlatformVel(velocity, orientation_dot, vars->platform);
-  for (uint8_t i = 0; i < vars->cables.size(); ++i)
-    UpdateCableFirstOrd(vars->platform, &(vars->cables[i]));
+  cable.geom_jacob_d_row.SetBlock<1, 3>(1, 1, cable.vers_t_dot.Transpose());
+  cable.geom_jacob_d_row.SetBlock<1, 3>(
+    1, 4,
+    -cable.vers_t.Transpose() * Skew(platform.angular_vel) * Skew(cable.pos_PA_glob));
+
+  cable.anal_jacob_row.SetBlock<1, 3>(1, 1, cable.geom_jacob_row.GetBlock<1, 3>(1, 1));
+  cable.anal_jacob_d_row.SetBlock<1, 4>(
+    1, 4,
+    cable.anal_jacob_row.GetBlock<1, 3>(1, 4) * platform.h_mat -
+      cable.vers_t.Transpose() * Skew(cable.pos_PA_glob) * platform.dh_mat);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//// Functions second-order kinematics
-///////////////////////////////////////////////////////////////////////////////
-
-template <class OrientationType, class PlatformVarsType>
-void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
-                       const OrientationType& orientation_ddot,
-                       const grabnum::Vector3d& pos_PG_glob, PlatformVarsType* platform)
+void updateCableFirstOrd(const PulleyParams& params, const PlatformVars& platform,
+                         CableVars& cable)
 {
-  // Update platform velocities.
-  platform->UpdateAcc(acceleration, orientation_ddot);
-  // Calculate platform baricenter velocity expressed in global frame.
-  grabnum::Matrix3d Omega = grabnum::Skew(platform->angular_vel);
-  platform->acc_OG_glob =
-    acceleration + (grabnum::Skew(platform->angular_acc) + Omega * Omega) * pos_PG_glob;
+  updateVelA(platform, cable);
+  updateSwivelAngSpeed(cable);
+  updatePulleyVersorsDot(cable);
+  updateTangAngSpeed(cable);
+  updateCableVersorsDot(params, cable);
+  updateCableSpeed(cable);
+  updateJacobiansRowD(platform, cable);
 }
 
-template <class OrientationType, class PlatformVarsType>
-void UpdatePlatformAcc(const grabnum::Vector3d& acceleration,
-                       const OrientationType& orientation_ddot,
-                       PlatformVarsType* platform)
+void updateCableFirstOrd(const PulleyParams& params, const PlatformVarsQuat& platform,
+                         CableVarsQuat& cable)
 {
-  UpdatePlatformAcc(acceleration, orientation_ddot, platform->pos_PG_glob, platform);
+  updateVelA(platform, cable);
+  updateSwivelAngSpeed(cable);
+  updatePulleyVersorsDot(cable);
+  updateTangAngSpeed(cable);
+  updateCableVersorsDot(params, cable);
+  updateCableSpeed(cable);
+  updateJacobiansRowD(platform, cable);
 }
 
-template <class PlatformVarsType>
-void UpdateAccA(const grabnum::Vector3d& pos_PA_glob, const PlatformVarsType* platform,
-                CableVars* cable)
+void updateIK1(const Vector3d& velocity, const Vector3d& orientation_dot,
+               const RobotParams& params, RobotVars& vars)
 {
-  grabnum::Matrix3d Omega = grabnum::Skew(platform->angular_vel);
-  cable->acc_OA_glob =
-    platform->acceleration +
-    (grabnum::Skew(platform->angular_acc) + Omega * Omega) * pos_PA_glob;
-}
-
-template <class PlatformVarsType>
-void UpdateAccA(const PlatformVarsType* platform, CableVars* cable)
-{
-  UpdateAccA(cable->pos_PA_glob, platform, cable);
-}
-
-double CalcSwivelAngAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& vers_w,
-                        const grabnum::Vector3d& vel_OA_glob,
-                        const grabnum::Vector3d& pos_DA_glob,
-                        const grabnum::Vector3d& acc_OA_glob, const double swivel_ang_vel)
-{
-  return (grabnum::Dot(vers_w, acc_OA_glob) -
-          2. * grabnum::Dot(vers_u, vel_OA_glob) * swivel_ang_vel) /
-         grabnum::Dot(vers_u, pos_DA_glob);
-}
-
-double CalcSwivelAngAcc(const CableVars* cable)
-{
-  return CalcSwivelAngAcc(cable->vers_u, cable->vers_w, cable->vel_OA_glob,
-                          cable->pos_DA_glob, cable->acc_OA_glob, cable->swivel_ang_vel);
-}
-
-double CalcTangAngAcc(const double pulley_radius, const grabnum::Vector3d& vers_u,
-                      const grabnum::Vector3d& vers_n,
-                      const grabnum::Vector3d& pos_DA_glob,
-                      const grabnum::Vector3d& pos_BA_glob,
-                      const grabnum::Vector3d& acc_OA_glob, const double speed,
-                      const double tan_ang, const double tan_ang_vel,
-                      const double swivel_ang_vel)
-{
-  return (grabnum::Dot(vers_n, acc_OA_glob) +
-          grabnum::Dot(vers_u, pos_DA_glob) * cos(tan_ang) * swivel_ang_vel *
-            swivel_ang_vel -
-          (2. * speed + pulley_radius * tan_ang_vel) * tan_ang_vel) /
-         grabnum::Norm(pos_BA_glob);
-}
-
-double CalcTangAngAcc(const double pulley_radius, const CableVars* cable)
-{
-  return CalcTangAngAcc(pulley_radius, cable->vers_u, cable->vers_n, cable->pos_DA_glob,
-                        cable->pos_BA_glob, cable->acc_OA_glob, cable->speed,
-                        cable->tan_ang, cable->tan_ang_vel, cable->swivel_ang_vel);
-}
-
-double CalcCableAcc(const grabnum::Vector3d& vers_u, const grabnum::Vector3d& vers_t,
-                    const grabnum::Vector3d& pos_DA_glob,
-                    const grabnum::Vector3d& pos_BA_glob,
-                    const grabnum::Vector3d& acc_OA_glob, const double tan_ang,
-                    const double tan_ang_vel, const double swivel_ang_vel)
-{
-  return grabnum::Dot(vers_u, pos_DA_glob) * sin(tan_ang) * SQUARE(swivel_ang_vel) +
-         grabnum::Norm(pos_BA_glob) * SQUARE(tan_ang_vel) +
-         grabnum::Dot(vers_t, acc_OA_glob);
-}
-
-double CalcCableAcc(const CableVars* cable)
-{
-  return CalcCableAcc(cable->vers_u, cable->vers_t, cable->pos_DA_glob,
-                      cable->pos_BA_glob, cable->acc_OA_glob, cable->tan_ang,
-                      cable->tan_ang_vel, cable->swivel_ang_vel);
-}
-
-template <class PlatformVarsType>
-void UpdateCableSecondOrd(const PulleyParams& params, const PlatformVarsType* platform,
-                          CableVars* cable)
-{
-  UpdateAccA(cable->pos_PA_glob, platform, cable);
-  cable->tan_ang_acc = CalcTangAngAcc(params.radius, cable);
-  cable->swivel_ang_acc = CalcSwivelAngAcc(cable);
-  cable->acceleration = CalcCableAcc(cable);
-}
-
-template <class OrientationType, class VarsType>
-void UpdateIK2(const grabnum::Vector3d& acceleration,
-               const OrientationType& orientation_ddot, const Params* params,
-               VarsType* vars)
-{
-  UpdatePlatformAcc(acceleration, orientation_ddot, vars->platform);
-  for (uint8_t i = 0; i < vars->cables.size(); ++i)
-    UpdateCableSecondOrd(&(params->actuators[i]), vars->platform, &(vars->cables[i]));
-}
-
-template <class OrientationType, class VarsType>
-void UpdateIK(const grabnum::Vector3d& position, const OrientationType& orientation,
-              const grabnum::Vector3d& velocity, const OrientationType& orientation_dot,
-              const grabnum::Vector3d& acceleration,
-              const OrientationType& orientation_ddot, const Params* params,
-              VarsType* vars)
-{
-  UpdatePlatformPose(position, orientation, params->platform, vars->platform);
-  UpdatePlatformVel(velocity, orientation_dot, vars->platform);
-  UpdatePlatformAcc(acceleration, orientation_ddot, vars->platform);
-  for (uint8_t i = 0; i < vars->cables.size(); ++i)
+  updatePlatformVel(velocity, orientation_dot, vars.platform);
+  // Safety check
+  std::vector<id_t> active_actuators_id = params.activeActuatorsId();
+  if (vars.geom_jacobian.n_rows != active_actuators_id.size())
+    vars.geom_jacobian.resize(active_actuators_id.size(), POSE_DIM);
+  if (vars.anal_jacobian.n_rows != active_actuators_id.size())
+    vars.anal_jacobian.resize(active_actuators_id.size(), POSE_DIM);
+  for (uint8_t i = 0; i < vars.cables.size(); ++i)
   {
-    UpdateCableZeroOrd(&(params->actuators[i]), vars->platform, &(vars->cables[i]));
-    UpdateCableFirstOrd(vars->platform, &(vars->cables[i]));
-    UpdateCableSecondOrd(&(params->actuators[i]), vars->platform, &(vars->cables[i]));
+    updateCableFirstOrd(params.actuators[active_actuators_id[i]].pulley, vars.platform,
+                        (vars.cables[i]));
+    vars.geom_jacobian_d.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_d_row.Data());
+    vars.anal_jacobian_d.row(i) = arma::rowvec6(vars.cables[i].anal_jacob_d_row.Data());
+  }
+}
+
+void updateIK1(const Vector3d& velocity, const Vector4d& orientation_dot,
+               const RobotParams& params, RobotVarsQuat& vars)
+{
+  updatePlatformVel(velocity, orientation_dot, vars.platform);
+  // Safety check
+  std::vector<id_t> active_actuators_id = params.activeActuatorsId();
+  if (vars.geom_jacobian.n_rows != active_actuators_id.size())
+    vars.geom_jacobian.resize(active_actuators_id.size(), POSE_DIM);
+  if (vars.anal_jacobian.n_rows != active_actuators_id.size())
+    vars.anal_jacobian.resize(active_actuators_id.size(), POSE_QUAT_DIM);
+  for (uint8_t i = 0; i < vars.cables.size(); ++i)
+  {
+    updateCableFirstOrd(params.actuators[active_actuators_id[i]].pulley, vars.platform,
+                        (vars.cables[i]));
+    vars.geom_jacobian_d.row(i) = arma::rowvec6(vars.cables[i].geom_jacob_d_row.Data());
+    vars.anal_jacobian_d.row(i) = arma::rowvec7(vars.cables[i].anal_jacob_d_row.Data());
   }
 }
 

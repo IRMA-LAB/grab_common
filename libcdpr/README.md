@@ -5,14 +5,15 @@
 The GRAB CDPR library includes:
 - Differential kinematics of order 0, 1 and 2 of a generic cable-driven parallel robot.
 - Robot components and parameters structures and types.
+- Dedicated structures and functions for under-actuated cable-driven parallel robots topology.
 
 Please note this library is a work in progress, and is not yet meant to be complete, but only essential to the requirements given by the parent project that make use of it.
 
 ## Compilation
 
-This library depends on [libgeom](../libgeom). Keeping this in mind, the user is free to integrate it in his/her own project as desired.
+This library depends on [libgeom](../libgeom) and [Armadillo](http://arma.sourceforge.net/download.html) open source C++ library for linear algebra & scientific computing. Keeping this in mind, the user is free to integrate it in his/her own project as desired.
 
-We provide here two Qt project files for compiling this package as a static library ([cdpr.pro](./cdpr.pro)) or for unit testing ([libcdpr_test.pro](libcdpr_test.pro)). For the former case, we suggest to build it in a new local folder inside the _libcdpr_ directory , such as "_~/libcdpr/lib/_". Please note that this builing process requires a compiled version of static library [libgeom](../libgeom).
+We provide here two Qt project files for compiling this package as a static library ([cdpr.pro](./cdpr.pro)) or for unit testing ([libcdpr_test.pro](libcdpr_test.pro)). For the former case, we suggest to build it in a new local folder inside the _libcdpr_ directory , such as "_~/libcdpr/lib/_". Please note that this builing process requires a compiled version of static library [libgeom](../libgeom) and _Armadillo_. Moreover, please note that the unit tests require a working version of _Matlab 2019b_ with _Optimization toolbox_ installed on the machine in order to run the Matlab engine used to verify the correctness of the functions implementation.
 
 ## Usage
 
@@ -20,8 +21,12 @@ If you compiled the library as static as suggested, from the project explorer ta
 
 To use this library include the following headers according to the functionalities you need:
 - `"kinematics.h"` for zero-order kinematics of a generic CDPR;
-- `"diffkinematics.h"` for first and second-order kinematics of a generic CDPR;
-- `"types.h"` for robot components and parameters structures.
+- `"diffkinematics.h"` for first-order kinematics of a generic CDPR;
+- `"diff2kinematics.h"` for second-order kinematics of a generic CDPR;
+- `"dynamics.h"` for dynamics of a generic CDPR;
+- `"statics.h"` for statics of a generic CDPR;
+- `"cdpr_types.h"` for robot components and parameters structures;
+- `"under_actuated_utils.h"` for all previous elements but specifically tailored for an under-actuated CDPR;
 
 Please refer to code documentation below to obtain more detailed information about usage of single functions and classes contained in this library.
 

@@ -277,6 +277,14 @@ Matrix<T, rows - 1, cols - 1> GetCofactor(const Matrix<T, rows, cols>& matrix,
  * @return The determinant of the matrix.
  */
 template <typename T, uint dim> T Det(const Matrix<T, dim, dim>& matrix);
+/**
+ * Base case for recursive calculation of determinant.
+ *
+ * @param[in] matrix A single-element matrix.
+ * @return The determinant of the single-element matrix, that is its only value.
+ * @see Det()
+ */
+template <typename T> T Det (const Matrix<T, 1, 1>& matrix);
 
 /**
  * Returns _Cholesky factor_ of given symmetric, positive-definite matrix.
@@ -321,6 +329,18 @@ template <typename T, uint dim> double Mean(const VectorX<T, dim>& vvect);
  * @return A scalar value.
  */
 template <typename T, uint dim> double Std(const VectorX<T, dim>& vvect);
+
+/**
+ * Returns a identity matrix of defined statis dimension.
+ * @return A matrix.
+ */
+template <uint dim> MatrixXd<dim, dim> Eye() { return MatrixXd<dim, dim>(1.0); }
+
+/**
+ * Returns a zero matrix of defined statis dimensions.
+ * @return A matrix.
+ */
+template <uint rows, uint cols> MatrixXd<rows, cols> Zeros();
 
 } //  end namespace grabnum
 
