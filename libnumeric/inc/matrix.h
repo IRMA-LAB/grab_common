@@ -1,7 +1,7 @@
 /**
  * @file matrix.h
  * @author Edoardo Idà, Simone Comari
- * @date 29 Nov 2019
+ * @date 11 Feb 2020
  * @brief File containing matrix class and utilities to be included in the GRAB numeric
  * library.
  *
@@ -323,7 +323,6 @@ template <typename T, uint rows, uint cols> class Matrix
    */
   Matrix_t& operator/=(const T& scalar);
 
-  template <uint block_rows, uint block_cols>
   /**
    * Replaces a block of @c *this with the elements of @a other.
    *
@@ -337,8 +336,9 @@ template <typename T, uint rows, uint cols> class Matrix
    * @see SetFromBlock()
    * @todo example
    */
-  Matrix_t& SetBlock(const uint start_row, const uint start_col,
-                     const Matrix<T, block_rows, block_cols>& other);
+  template <uint block_rows, uint block_cols>
+  Matrix<T, rows, cols>& SetBlock(const uint start_row, const uint start_col,
+                                  const Matrix<T, block_rows, block_cols>& other);
   /**
    * Sets a column of @c *this with the elements of a 1D matrix.
    *
@@ -443,7 +443,8 @@ template <typename T, uint rows, uint cols> class Matrix
    * @param[in] end Iterator pointing at the end of the array data.
    * @return A reference to @c *this.
    */
-  template <class IteratorType> Matrix_t& Fill(IteratorType it, IteratorType end);
+  template <class IteratorType>
+  Matrix<T, rows, cols>& Fill(IteratorType it, IteratorType end);
 
   /**
    * Returns the transposed matrix.
