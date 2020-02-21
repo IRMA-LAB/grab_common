@@ -159,9 +159,6 @@ class LibcdprTest: public QObject
   grabcdpr::UnderActuatedRobotVars
   getUnderActuatedRobotFromWS(const std::string& var_name);
 
-  arma::vec nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess,
-                                     const arma::uvec6& mask, const uint8_t nmax = 100,
-                                     uint8_t* iter_out = nullptr) const;
  private Q_SLOTS:
   void initTestCase();
 
@@ -681,46 +678,6 @@ LibcdprTest::getUnderActuatedRobotFromWS(const std::string& var_name)
   return robot;
 }
 
-arma::vec LibcdprTest::nonLinsolveJacGeomStatic(
-  const grabnum::VectorXd<POSE_DIM>& init_guess, const arma::uvec6& mask,
-  const uint8_t nmax /*= 100*/, uint8_t* iter_out /*= nullptr*/) const
-{
-  static const double kFtol = 1e-4;
-  static const double kXtol = 1e-3;
-
-  // Distribute initial guess between fixed and variable coordinates (i.e. the solution of
-  // the iterative process)
-  arma::vec init_guess_arma = toArmaVec(init_guess);
-  arma::vec fixed_coord(init_guess_arma.elem(arma::find(mask == 1)));
-  arma::vec var_coord(init_guess_arma.elem(arma::find(mask == 0)));
-
-  // First round to init function value and jacobian
-  arma::vec func_val;
-  arma::mat func_jacob;
-  grabcdpr::optFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
-
-  // Init iteration variables
-  arma::vec s;
-  uint8_t iter = 0;
-  double err   = 1.0;
-  double cond  = 0.0;
-  // Start iterative process
-  while (iter < nmax && arma::norm(func_val) > kFtol && err > cond)
-  {
-    iter++;
-    s = arma::solve(func_jacob, func_val);
-    var_coord -= s;
-    grabcdpr::optFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
-    err  = arma::norm(s);
-    cond = kXtol * (1 + arma::norm(var_coord));
-  }
-
-  if (iter_out != nullptr)
-    *iter_out = iter;
-
-  return var_coord;
-}
-
 //--------- Init ---------------//
 
 void LibcdprTest::initTestCase()
@@ -1154,7 +1111,8 @@ void LibcdprTest::testUpdateDK0()
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
-  arma::vec3 true_orientation = nonLinsolveJacGeomStatic(init_guess, mask);
+  arma::vec3 true_orientation =
+    grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_);
   grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
                             params_.platform.rot_parametrization);
   grabnum::Vector3d position = init_guess.HeadRows<3>();
@@ -1230,7 +1188,8 @@ void LibcdprTest::testRobustUpdateDK0()
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
-  arma::vec3 true_orientation = nonLinsolveJacGeomStatic(init_guess, mask);
+  arma::vec3 true_orientation =
+    grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_);
   grabcdpr::UnderActuatedRobotVars robot(params_.activeActuatorsNum(),
                                          params_.platform.rot_parametrization, mask);
   grabnum::Vector3d position = init_guess.GetBlock<3, 1>(1, 1);
@@ -1386,9 +1345,12 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   arma::vec3 orientation;
   // Run once outside benchmark to obtain iterations
   //  uint8_t iterations;
-  //  orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
-  //  printf("Iterations: %d\n", iterations);
-  QBENCHMARK { orientation = nonLinsolveJacGeomStatic(init_guess, mask); }
+  //  orientation = grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_, 100,
+  //  &iterations); printf("Iterations: %d\n", iterations);
+  QBENCHMARK
+  {
+    orientation = grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_);
+  }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"fsolve_options_grad = "

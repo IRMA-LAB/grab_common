@@ -1,7 +1,7 @@
 /**
  * @file under_actuated_utils.cpp
  * @author Simone Comari
- * @date 06 Feb 2020
+ * @date 21 Feb 2020
  * @brief This file includes definitions of structures and functions declared in
  * under_actuated_utils.h.
  */
@@ -573,6 +573,47 @@ bool updateDK0(const RobotParams& params, UnderActuatedRobotVars& vars)
   }
   // Could not solve optimization (failed direct kinematics)
   return false;
+}
+
+arma::vec nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess,
+                                   const arma::uvec6& mask, const RobotParams& params,
+                                   const uint8_t nmax /*= 100*/,
+                                   uint8_t* iter_out /*= nullptr*/)
+{
+  static const double kFtol = 1e-4;
+  static const double kXtol = 1e-3;
+
+  // Distribute initial guess between fixed and variable coordinates (i.e. the solution of
+  // the iterative process)
+  arma::vec init_guess_arma = toArmaVec(init_guess);
+  arma::vec fixed_coord(init_guess_arma.elem(arma::find(mask == 1)));
+  arma::vec var_coord(init_guess_arma.elem(arma::find(mask == 0)));
+
+  // First round to init function value and jacobian
+  arma::vec func_val;
+  arma::mat func_jacob;
+  grabcdpr::optFunGS(params, fixed_coord, var_coord, func_jacob, func_val);
+
+  // Init iteration variables
+  arma::vec s;
+  uint8_t iter = 0;
+  double err   = 1.0;
+  double cond  = 0.0;
+  // Start iterative process
+  while (iter < nmax && arma::norm(func_val) > kFtol && err > cond)
+  {
+    iter++;
+    s = arma::solve(func_jacob, func_val);
+    var_coord -= s;
+    grabcdpr::optFunGS(params, fixed_coord, var_coord, func_jacob, func_val);
+    err  = arma::norm(s);
+    cond = kXtol * (1 + arma::norm(var_coord));
+  }
+
+  if (iter_out != nullptr)
+    *iter_out = iter;
+
+  return var_coord;
 }
 
 } // namespace grabcdpr
