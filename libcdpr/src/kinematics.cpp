@@ -9,8 +9,7 @@
 
 namespace grabcdpr {
 
-void updatePlatformPose(const Vector3d& position,
-                        const Vector3d& orientation,
+void updatePlatformPose(const Vector3d& position, const Vector3d& orientation,
                         const Vector3d& pos_PG_loc, PlatformVars& platform)
 {
   // Update platform pose.
@@ -20,8 +19,7 @@ void updatePlatformPose(const Vector3d& position,
   platform.pos_OG_glob = platform.position + platform.pos_PG_glob;
 }
 
-void updatePlatformPose(const Vector3d& position,
-                        const grabgeom::Quaternion& orientation,
+void updatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& orientation,
                         const Vector3d& pos_PG_loc, PlatformVarsQuat& platform)
 {
   // Update platform pose.
@@ -31,15 +29,13 @@ void updatePlatformPose(const Vector3d& position,
   platform.pos_OG_glob = platform.position + platform.pos_PG_glob;
 }
 
-void updatePlatformPose(const Vector3d& position,
-                        const Vector3d& orientation,
+void updatePlatformPose(const Vector3d& position, const Vector3d& orientation,
                         const PlatformParams& params, PlatformVars& platform)
 {
   updatePlatformPose(position, orientation, params.pos_PG_loc, platform);
 }
 
-void updatePlatformPose(const Vector3d& position,
-                        const grabgeom::Quaternion& orientation,
+void updatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& orientation,
                         const PlatformParams& params, PlatformVarsQuat& platform)
 {
   updatePlatformPose(position, orientation, params.pos_PG_loc, platform);
@@ -75,8 +71,7 @@ void updatePulleyVersors(const PulleyParams& params, CableVarsBase& cable)
 
 double calcSwivelAngle(const PulleyParams& params, const Vector3d& pos_DA_glob)
 {
-  return atan2(Dot(params.vers_j, pos_DA_glob),
-               Dot(params.vers_i, pos_DA_glob));
+  return atan2(Dot(params.vers_j, pos_DA_glob), Dot(params.vers_i, pos_DA_glob));
 }
 
 void updateSwivelAngle(const PulleyParams& params, CableVarsBase& cable)
@@ -99,8 +94,8 @@ void updateTangentAngle(const PulleyParams& params, CableVarsBase& cable)
 }
 
 void calcCableVectors(const PulleyParams& params, const Vector3d& vers_u,
-                      const Vector3d& pos_DA_glob, const double tan_ang,
-                      Vector3d& vers_n, Vector3d& vers_t, Vector3d& pos_BA_glob)
+                      const Vector3d& pos_DA_glob, const double tan_ang, Vector3d& vers_n,
+                      Vector3d& vers_t, Vector3d& pos_BA_glob)
 {
   // Versors describing cable exit direction from swivel pulley.
   double cos_psi = cos(tan_ang);
@@ -190,10 +185,8 @@ void updateIK0(const Vector3d& position, const Vector3d& orientation,
                const RobotParams& params, RobotVars& vars)
 {
   updatePlatformPose(position, orientation, params.platform, vars.platform);
-  std::vector<id_t> active_actuators_id = params.activeActuatorsId();
-  for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
-    updateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
-                       vars.cables[i]);
+  for (uint8_t i = 0; i < vars.cables.size(); ++i)
+    updateCableZeroOrd(params.actuators[i], vars.platform, vars.cables[i]);
   vars.updateJacobians();
 }
 
@@ -212,10 +205,8 @@ void updateIK0(const Vector3d& position, const grabgeom::Quaternion& orientation
                const RobotParams& params, RobotVarsQuat& vars)
 {
   updatePlatformPose(position, orientation, params.platform, vars.platform);
-  std::vector<id_t> active_actuators_id = params.activeActuatorsId();
-  for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
-    updateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
-                       vars.cables[i]);
+  for (uint8_t i = 0; i < vars.cables.size(); ++i)
+    updateCableZeroOrd(params.actuators[i], vars.platform, vars.cables[i]);
   vars.updateJacobians();
 }
 
@@ -230,8 +221,7 @@ arma::mat calcJacobianSw(const RobotVars& vars)
       arma::join_horiz(toArmaVec(vars.cables[i].vers_w).t(),
                        toArmaVec(-vars.cables[i].vers_w.Transpose() *
                                  Skew(vars.cables[i].pos_PA_glob) * vars.platform.h_mat));
-    jacobian_sw.row(i) =
-      temp / Dot(vars.cables[i].vers_u, vars.cables[i].pos_DA_glob);
+    jacobian_sw.row(i) = temp / Dot(vars.cables[i].vers_u, vars.cables[i].pos_DA_glob);
   }
   return jacobian_sw;
 }
@@ -240,7 +230,7 @@ void optFunDK0(const RobotParams& params, const arma::vec& cables_length,
                const arma::vec& swivel_angles, const arma::vec6& pose,
                arma::mat& fun_jacobian, arma::vec& fun_val)
 {
-  const ulong kNumCables = params.activeActuatorsNum();
+  const ulong kNumCables = params.actuators.size();
   RobotVars vars(kNumCables, params.platform.rot_parametrization);
   updateIK0(pose, params, vars);
 
@@ -261,9 +251,9 @@ void optFunDK0(const RobotParams& params, const arma::vec& cables_length,
 
 bool solveDK0(const std::vector<double>& cables_length,
               const std::vector<double>& swivel_angles,
-              const VectorXd<POSE_DIM>& init_guess_pose,
-              const RobotParams& params, VectorXd<POSE_DIM>& platform_pose,
-              const uint8_t nmax /*= 100*/, uint8_t* iter_out /*= nullptr*/)
+              const VectorXd<POSE_DIM>& init_guess_pose, const RobotParams& params,
+              VectorXd<POSE_DIM>& platform_pose, const uint8_t nmax /*= 100*/,
+              uint8_t* iter_out /*= nullptr*/)
 {
   static const double kFtol = 1e-6;
   static const double kXtol = 1e-6;

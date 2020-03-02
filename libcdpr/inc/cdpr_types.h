@@ -1,7 +1,7 @@
 /**
  * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 07 Feb 2020
+ * @date 02 Mar 2020
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -375,6 +375,17 @@ struct RobotParams
    * @see activeActuatorsId()
    */
   size_t activeActuatorsNum() const;
+
+  /**
+   * @brief Get a subset of original parameters without inactive components.
+   * @return A subset of original CDPR parameters.
+   */
+  RobotParams getOnlyActiveComponents() const;
+
+  /**
+   * @brief Remove parameters of inactive actuators components.
+   */
+  void removeInactiveComponents();
 };
 
 //------ Variables Structs -----------------------------------------------------------//
