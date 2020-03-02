@@ -1,3 +1,10 @@
+/**
+ * @file cdpr_types.cpp
+ * @author Simone Comari
+ * @date 02 Mar 2020
+ * @brief File containing definitions of struct functions declared in cdpr_types.h.
+ */
+
 #include "cdpr_types.h"
 
 arma::rowvec3 toArmaVec(RowVectorXd<3> vect, bool copy /*= true*/)
@@ -57,6 +64,23 @@ size_t RobotParams::activeActuatorsNum() const
     if (actuators[i].active)
       active_actuators_counter++;
   return active_actuators_counter;
+}
+
+RobotParams RobotParams::getOnlyActiveComponents() const
+{
+  RobotParams params_active;
+  params_active.platform = platform;
+  for (const auto& actuator_params : actuators)
+    if (actuator_params.active)
+      params_active.actuators.push_back(actuator_params);
+  return params_active;
+}
+
+void RobotParams::removeInactiveComponents()
+{
+  for (long i = actuators.size() - 1; i >= 0; i--)
+    if (!actuators[i].active)
+      actuators.erase(actuators.begin() + i);
 }
 
 //------ Variables Structs -----------------------------------------------------------//

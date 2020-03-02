@@ -385,10 +385,8 @@ void updateIK0(const Vector3d& position, const Vector3d& orientation,
                const RobotParams& params, UnderActuatedRobotVars& vars)
 {
   updatePlatformPose(position, orientation, params.platform, vars.platform);
-  std::vector<id_t> active_actuators_id = params.activeActuatorsId();
-  for (uint8_t i = 0; i < active_actuators_id.size(); ++i)
-    updateCableZeroOrd(params.actuators[active_actuators_id[i]], vars.platform,
-                       vars.cables[i]);
+  for (uint8_t i = 0; i < vars.cables.size(); ++i)
+    updateCableZeroOrd(params.actuators[i], vars.platform, vars.cables[i]);
   vars.updateJacobians();
 }
 
@@ -468,7 +466,7 @@ arma::mat calcJacobianGS(const UnderActuatedRobotVars& vars)
 void optFunGS(const RobotParams& params, const arma::vec& act_vars,
               const arma::vec& unact_vars, arma::mat& fun_jacobian, arma::vec& fun_val)
 {
-  const ulong kNumCables = params.activeActuatorsNum();
+  const ulong kNumCables = params.actuators.size();
   UnderActuatedRobotVars vars(kNumCables, params.platform.rot_parametrization,
                               params.controlled_vars_mask);
   vars.platform.updatePose(act_vars, unact_vars);
@@ -484,7 +482,7 @@ void optFunDK0GS(const RobotParams& params, const arma::vec& cables_length,
                  const arma::vec& swivel_angles, const arma::vec6& pose,
                  arma::mat& fun_jacobian, arma::vec& fun_val)
 {
-  const ulong kNumCables = params.activeActuatorsNum();
+  const ulong kNumCables = params.actuators.size();
   UnderActuatedRobotVars vars(kNumCables, params.platform.rot_parametrization,
                               params.controlled_vars_mask);
   updateIK0(pose, params, vars);
