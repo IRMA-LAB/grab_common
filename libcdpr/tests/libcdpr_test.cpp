@@ -142,7 +142,7 @@ class LibcdprTest: public QObject
   std::unique_ptr<MATLABEngine> matlab_ptr_;
   // Create MATLAB data array factory
   matlab::data::ArrayFactory factory_;
-  grabcdpr::RobotParams params_;
+  grabcdpr::RobotParams params_; // only active actuators
 
   void addCable2WS(const grabcdpr::CableVars& cable, const std::string& var_name);
   void addPlatform2WS(const grabcdpr::PlatformVars& platform,
@@ -159,9 +159,6 @@ class LibcdprTest: public QObject
   grabcdpr::UnderActuatedRobotVars
   getUnderActuatedRobotFromWS(const std::string& var_name);
 
-  arma::vec nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess,
-                                     const arma::uvec6& mask, const uint8_t nmax = 100,
-                                     uint8_t* iter_out = nullptr) const;
  private Q_SLOTS:
   void initTestCase();
 
@@ -606,7 +603,7 @@ grabcdpr::RobotVars LibcdprTest::getRobotFromWS(const std::string& var_name)
   matlab_ptr_->eval(u"platform = " + var_name_u + u".platform;");
   robot.platform = getPlatformFromWS("platform");
   // Get cables
-  for (uint i = 1; i <= params_.activeActuatorsNum(); i++)
+  for (uint i = 1; i <= params_.actuators.size(); i++)
   {
     auto idx_u = convertUTF8StringToUTF16String(std::to_string(i));
     matlab_ptr_->eval(u"cable = " + var_name_u + u".cable(" + idx_u + u");");
@@ -639,7 +636,7 @@ LibcdprTest::getUnderActuatedRobotFromWS(const std::string& var_name)
   // Get under-actuated platform
   getUnderActuatedPlatformFromWS(var_name + ".underactuated_platform", robot.platform);
   // Get cables
-  for (uint i = 1; i <= params_.activeActuatorsNum(); i++)
+  for (uint i = 1; i <= params_.actuators.size(); i++)
   {
     auto idx_u = convertUTF8StringToUTF16String(std::to_string(i));
     matlab_ptr_->eval(u"cable = " + var_name_u + u".cable(" + idx_u + u");");
@@ -681,46 +678,6 @@ LibcdprTest::getUnderActuatedRobotFromWS(const std::string& var_name)
   return robot;
 }
 
-arma::vec LibcdprTest::nonLinsolveJacGeomStatic(
-  const grabnum::VectorXd<POSE_DIM>& init_guess, const arma::uvec6& mask,
-  const uint8_t nmax /*= 100*/, uint8_t* iter_out /*= nullptr*/) const
-{
-  static const double kFtol = 1e-4;
-  static const double kXtol = 1e-3;
-
-  // Distribute initial guess between fixed and variable coordinates (i.e. the solution of
-  // the iterative process)
-  arma::vec init_guess_arma = toArmaVec(init_guess);
-  arma::vec fixed_coord(init_guess_arma.elem(arma::find(mask == 1)));
-  arma::vec var_coord(init_guess_arma.elem(arma::find(mask == 0)));
-
-  // First round to init function value and jacobian
-  arma::vec func_val;
-  arma::mat func_jacob;
-  grabcdpr::optFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
-
-  // Init iteration variables
-  arma::vec s;
-  uint8_t iter = 0;
-  double err   = 1.0;
-  double cond  = 0.0;
-  // Start iterative process
-  while (iter < nmax && arma::norm(func_val) > kFtol && err > cond)
-  {
-    iter++;
-    s = arma::solve(func_jacob, func_val);
-    var_coord -= s;
-    grabcdpr::optFunGS(params_, fixed_coord, var_coord, func_jacob, func_val);
-    err  = arma::norm(s);
-    cond = kXtol * (1 + arma::norm(var_coord));
-  }
-
-  if (iter_out != nullptr)
-    *iter_out = iter;
-
-  return var_coord;
-}
-
 //--------- Init ---------------//
 
 void LibcdprTest::initTestCase()
@@ -731,6 +688,7 @@ void LibcdprTest::initTestCase()
   // Load robot parameters
   RobotConfigJsonParser parser;
   parser.ParseFile(SRCDIR "cdpr_matlab/config/Grab_prototype_33.json", &params_);
+  params_.removeInactiveComponents();
   // Load same robot parameters in matlab workspace
   matlab_ptr_->eval(
     u"cdpr_p = "
@@ -1005,7 +963,7 @@ void LibcdprTest::testUpdateCableZeroOrd()
 void LibcdprTest::testUpdateIK0()
 {
   // Setup dummy input
-  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+  grabcdpr::RobotVars robot(params_.actuators.size(),
                             params_.platform.rot_parametrization);
   grabnum::Vector3d position({1, 2, 3});
   grabnum::Vector3d orientation({0.1, 0.2, 0.3});
@@ -1061,7 +1019,7 @@ void LibcdprTest::testUpdateIK0()
 void LibcdprTest::testCalcJacobianL()
 {
   // Setup dummy input
-  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+  grabcdpr::RobotVars robot(params_.actuators.size(),
                             params_.platform.rot_parametrization);
   grabnum::Vector6d pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   grabcdpr::updateIK0(pose, params_, robot);
@@ -1084,7 +1042,7 @@ void LibcdprTest::testCalcJacobianL()
 void LibcdprTest::testCalcJacobianSw()
 {
   // Setup dummy input
-  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+  grabcdpr::RobotVars robot(params_.actuators.size(),
                             params_.platform.rot_parametrization);
   grabnum::Vector6d pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   grabcdpr::updateIK0(pose, params_, robot);
@@ -1107,7 +1065,7 @@ void LibcdprTest::testCalcJacobianSw()
 void LibcdprTest::testOptFunDK0()
 {
   // Setup dummy input
-  const size_t num_cables = params_.activeActuatorsNum();
+  const size_t num_cables = params_.actuators.size();
   grabcdpr::RobotVars robot(num_cables, params_.platform.rot_parametrization);
   arma::vec6 pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   grabcdpr::updateIK0(pose, params_, robot);
@@ -1154,8 +1112,9 @@ void LibcdprTest::testUpdateDK0()
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
-  arma::vec3 true_orientation = nonLinsolveJacGeomStatic(init_guess, mask);
-  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+  arma::vec3 true_orientation =
+    grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_);
+  grabcdpr::RobotVars robot(params_.actuators.size(),
                             params_.platform.rot_parametrization);
   grabnum::Vector3d position = init_guess.HeadRows<3>();
   grabnum::Vector3d orientation(true_orientation.begin(), true_orientation.end());
@@ -1182,7 +1141,7 @@ void LibcdprTest::testUpdateDK0()
 void LibcdprTest::testOptFunDK0GS()
 {
   // Setup dummy input
-  const size_t num_cables = params_.activeActuatorsNum();
+  const size_t num_cables = params_.actuators.size();
   grabcdpr::UnderActuatedRobotVars robot(num_cables, params_.platform.rot_parametrization,
                                          params_.controlled_vars_mask);
   arma::vec6 pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
@@ -1230,8 +1189,9 @@ void LibcdprTest::testRobustUpdateDK0()
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
-  arma::vec3 true_orientation = nonLinsolveJacGeomStatic(init_guess, mask);
-  grabcdpr::UnderActuatedRobotVars robot(params_.activeActuatorsNum(),
+  arma::vec3 true_orientation =
+    grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_);
+  grabcdpr::UnderActuatedRobotVars robot(params_.actuators.size(),
                                          params_.platform.rot_parametrization, mask);
   grabnum::Vector3d position = init_guess.GetBlock<3, 1>(1, 1);
   grabnum::Vector3d orientation(true_orientation.begin(), true_orientation.end());
@@ -1260,7 +1220,7 @@ void LibcdprTest::testRobustUpdateDK0()
 void LibcdprTest::testUpdateExternalLoads()
 {
   // Setup dummy input
-  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+  grabcdpr::RobotVars robot(params_.actuators.size(),
                             params_.platform.rot_parametrization);
   grabcdpr::updatePlatformPose(grabnum::Vector3d({1, 2, 3}),
                                grabnum::Vector3d({0.5, 1.0, 1.5}), params_.platform,
@@ -1285,7 +1245,7 @@ void LibcdprTest::testUpdateExternalLoads()
 void LibcdprTest::testUpdateCablesStaticTension()
 {
   // Setup dummy input
-  grabcdpr::RobotVars robot(params_.activeActuatorsNum(),
+  grabcdpr::RobotVars robot(params_.actuators.size(),
                             params_.platform.rot_parametrization);
   grabnum::Vector3d position({0.1, 1.5, 0.2});    // some feasible position
   grabnum::Vector3d orientation({0.0, 0.0, 0.0}); // FIND A FEASIBLE ORIENTATION
@@ -1311,7 +1271,7 @@ void LibcdprTest::testCalcJacobiansGS()
 {
   // Setup dummy input
   const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
-  grabcdpr::UnderActuatedRobotVars robot(params_.activeActuatorsNum(),
+  grabcdpr::UnderActuatedRobotVars robot(params_.actuators.size(),
                                          params_.platform.rot_parametrization, mask);
   grabnum::Vector3d position({0.1, 1.5, 0.2});        // some feasible position
   grabnum::Vector3d orientation({0.23, -0.16, 0.03}); // FIND A FEASIBLE ORIENTATION
@@ -1386,9 +1346,12 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   arma::vec3 orientation;
   // Run once outside benchmark to obtain iterations
   //  uint8_t iterations;
-  //  orientation = nonLinsolveJacGeomStatic(init_guess, mask, 100, &iterations);
-  //  printf("Iterations: %d\n", iterations);
-  QBENCHMARK { orientation = nonLinsolveJacGeomStatic(init_guess, mask); }
+  //  orientation = grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_, 100,
+  //  &iterations); printf("Iterations: %d\n", iterations);
+  QBENCHMARK
+  {
+    orientation = grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_);
+  }
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"fsolve_options_grad = "
