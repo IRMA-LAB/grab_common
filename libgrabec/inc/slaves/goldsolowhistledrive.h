@@ -226,6 +226,7 @@ class GoldSoloWhistleDrive:
    * @{
    */
   //------- External events resembling the ones internal to physical drive -----------//
+
   /**
    * @brief Disable Voltage external event.
    *
@@ -285,6 +286,7 @@ class GoldSoloWhistleDrive:
   void FaultReset();
 
   //-- Additional external events taken by this state machine when it's operational --//
+
   /**
    * @brief Change Position external event.
    *
