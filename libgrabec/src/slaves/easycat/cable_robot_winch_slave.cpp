@@ -19,7 +19,7 @@ CableRobotWinchData::CableRobotWinchData(const int8_t _op_mode,
 {}
 
 CableRobotWinchData::CableRobotWinchData(const int8_t _op_mode,
-                                         const CustBufferIn& input_pdos,
+                                         const CRWSlaveInPdos& input_pdos,
                                          const bool verbose /* = false */)
   : op_mode(_op_mode)
 {
@@ -173,9 +173,10 @@ std::string CableRobotWinchSlave::GetDriveStateStr(const uint16_t status_word)
   return kStatesStr_[GetDriveState(status_word)];
 }
 
-int8_t CableRobotWinchSlave::GetOpMode() const
+CableRobotWinchOperationModes
+CableRobotWinchSlave::GetDriveOpMode(const uint16_t _status_word)
 {
-  std::bitset<8> status_word(BufferIn.Cust.status_word);
+  std::bitset<8> status_word(_status_word);
   if (status_word[StatusBit::OPERATIONAL_STATE] == UNSET)
     return NONE;
   if (status_word[StatusBit::POSITION_CONTROL] == SET)
@@ -185,6 +186,11 @@ int8_t CableRobotWinchSlave::GetOpMode() const
   if (status_word[StatusBit::TORQUE_CONTROL] == SET)
     return CYCLIC_TORQUE;
   return NONE;
+}
+
+int8_t CableRobotWinchSlave::GetOpMode() const
+{
+  return GetDriveOpMode(BufferIn.Cust.status_word);
 }
 
 //----- Overwritten virtual functions from base class --------------------------------//
