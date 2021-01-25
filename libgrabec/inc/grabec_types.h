@@ -1,7 +1,7 @@
 /**
  * @file grabec_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 09 Jul 2019
+ * @date 25 Jan 2021
  * @brief This file includes common types and struct of libgrabec.
  */
 
@@ -47,6 +47,15 @@ enum Status : uint8_t
 {
   NOT_OPERATIONAL,
   OPERATIONAL
+};
+
+/**
+ * @brief The Commands enum for bit assignment.
+ */
+enum Commands : uint8_t
+{
+  UNSET,
+  SET
 };
 
 } // end namespace grabec

@@ -42,18 +42,9 @@ enum CableRobotWinchOperationModes : int8_t
 };
 
 /**
- * @brief The Commands enum.
- */
-enum Commands : uint8_t
-{
-  UNSET,
-  SET
-};
-
-/**
  * @brief Input buffer union, i.e. data sent to master (write).
  */
-union CustBufferIn
+union CRWSlaveInPdos
 {
   uint8_t Byte[8]; /**< Raw input buffer content. */
   struct
@@ -94,7 +85,7 @@ class CableRobotWinchData: public EventData
    * set according to the desired operation mode.
    * @param[in] verbose If _true_ display the data content.
    */
-  CableRobotWinchData(const int8_t _op_mode, const CustBufferIn& input_pdos,
+  CableRobotWinchData(const int8_t _op_mode, const CRWSlaveInPdos& input_pdos,
                       const bool verbose = false);
 
   int8_t op_mode = NONE; /**< The desired operation mode of the drive. */
@@ -130,6 +121,12 @@ class CableRobotWinchSlave: public QObject,
    */
   static std::string GetDriveStateStr(const uint16_t status_word);
   /**
+   * @brief Get latest known drive operational mode (when operational).
+   * @param[in] status_word Drive status bit word as read from the corresponding PDO.
+   * @return Latest known drive operational mode.
+   */
+  static CableRobotWinchOperationModes GetDriveOpMode(const uint16_t status_word);
+  /**
    * @brief Get actual drive position (aka counts).
    * @return Actual drive position (aka counts).
    */
@@ -158,6 +155,11 @@ class CableRobotWinchSlave: public QObject,
    * @see CableRobotWinchOperationModes
    */
   int8_t GetOpMode() const;
+  /**
+   * @brief Get actual drive status, i.e. the latest values of its input PDOs.
+   * @return Actual drive status, i.e. the latest values of its input PDOs.
+   */
+  CRWSlaveInPdos GetDriveStatus() const { return BufferIn; }
 
   //------- External events resembling the ones internal to physical drive -----------//
 
@@ -277,7 +279,7 @@ class CableRobotWinchSlave: public QObject,
     } Cust; /**< Custom structure resembling output entries as defined in the config. */
   } BufferOut; /**< Output buffer, i.e. data received from master (read). */
 
-  CustBufferIn BufferIn; /**< Input buffer, i.e. data sent to master (write). */
+  CRWSlaveInPdos BufferIn; /**< Input buffer, i.e. data sent to master (write). */
 
   // EasyCAT slave device specific info
   static constexpr uint8_t kDomainEntries_ = 10;
