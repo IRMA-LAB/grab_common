@@ -57,8 +57,9 @@ constexpr ec_pdo_entry_info_t CableRobotWinchSlave::kPdoEntries_[];
 constexpr ec_pdo_info_t CableRobotWinchSlave::kPDOs_[];
 constexpr ec_sync_info_t CableRobotWinchSlave::kSyncs_[];
 
-CableRobotWinchSlave::CableRobotWinchSlave(const id_t id, const uint8_t slave_position)
-  : StateMachine(ST_MAX_STATES)
+CableRobotWinchSlave::CableRobotWinchSlave(const id_t id, const uint8_t slave_position,
+                                           QObject* parent /*=nullptr*/)
+  : QObject(parent), StateMachine(ST_MAX_STATES)
 {
   alias_              = kAlias_;
   vendor_id_          = kVendorID_;
@@ -154,7 +155,7 @@ CableRobotWinchSlave::CableRobotWinchSlave(const id_t id, const uint8_t slave_po
   slave_sync_ptr_        = const_cast<ec_sync_info_t*>(kSyncs_);
 
   drive_state_ = ST_IDLE;
-  prev_state_ = static_cast<CableRobotWinchStates>(GetCurrentState());
+  prev_state_  = static_cast<CableRobotWinchStates>(GetCurrentState());
 }
 
 CableRobotWinchStates CableRobotWinchSlave::GetDriveState(const uint16_t _status_word)
@@ -207,8 +208,7 @@ void CableRobotWinchSlave::ReadInputs()
     if (drive_state_ == ST_OPERATIONAL)
     {
       // Get target default
-      CableRobotWinchData* data =
-        new CableRobotWinchData(GetOpMode(), BufferIn);
+      CableRobotWinchData* data = new CableRobotWinchData(GetOpMode(), BufferIn);
       ExternalEvent(ST_OPERATIONAL, data);
     }
     else
@@ -259,12 +259,10 @@ void CableRobotWinchSlave::EcPrintCb(const std::string& msg,
                                      const char color /* = 'w' */) const
 {
   EthercatSlave::EcPrintCb(msg, color);
-#if USE_QT
   if (color == 'r')
     emit printMessage(msg.c_str());
   else
     emit logMessage(msg.c_str());
-#endif
 }
 
 //----- External events taken by this state machine ----------------------------------//
@@ -404,9 +402,7 @@ STATE_DEFINE(CableRobotWinchSlave, Error, NoEventData)
 {
   PrintStateTransition(prev_state_, ST_ERROR);
   prev_state_ = ST_ERROR;
-#if USE_QT
   emit driveFaulted();
-#endif
 }
 
 //----- Miscellaneous ----------------------------------------------------------------//
@@ -414,13 +410,7 @@ STATE_DEFINE(CableRobotWinchSlave, Error, NoEventData)
 inline void CableRobotWinchSlave::PrintCommand(const char* cmd) const
 {
   std::string msg;
-#if USE_QT
   msg = QString("Drive %1 received command: %2").arg(id_).arg(cmd).toStdString();
-#else
-  std::ostringstream msg_stream;
-  msg_stream << "Drive " << id_ << " received command: " << cmd;
-  msg = msg_stream.str();
-#endif
   EcPrintCb(msg);
 }
 
@@ -430,17 +420,10 @@ void CableRobotWinchSlave::PrintStateTransition(
   if (current_state == new_state)
     return;
   std::string msg;
-#if USE_QT
   msg = QString("Drive %1 state transition: %2 --> %3")
           .arg(id_)
           .arg(kStatesStr_[current_state], kStatesStr_[new_state])
           .toStdString();
-#else
-  std::ostringstream msg_stream;
-  msg_stream << "Drive " << id_ << " state transition: " << kStatesStr_[current_state]
-             << " --> " << kStatesStr_[new_state];
-  msg = msg_stream.str();
-#endif
   EcPrintCb(msg);
 }
 

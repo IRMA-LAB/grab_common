@@ -104,7 +104,9 @@ class CableRobotWinchData: public EventData
 /**
  * @brief The Cable_robot_winchSlave class.
  */
-class CableRobotWinchSlave: public virtual EthercatSlave, public StateMachine
+class CableRobotWinchSlave: public QObject,
+                            public virtual EthercatSlave,
+                            public StateMachine
 {
  public:
   /**
@@ -112,7 +114,8 @@ class CableRobotWinchSlave: public virtual EthercatSlave, public StateMachine
    * @param[in] id Drive ID.
    * @param[in] slave_position Slave position in ethercat chain.
    */
-  CableRobotWinchSlave(const id_t id, const uint8_t slave_position);
+  CableRobotWinchSlave(const id_t id, const uint8_t slave_position,
+                       QObject* parent = nullptr);
 
   /**
    * @brief Get latest known physical drive state.
@@ -242,7 +245,6 @@ class CableRobotWinchSlave: public virtual EthercatSlave, public StateMachine
    */
   bool IsReadyToShutDown() const override;
 
-#if USE_QT
  signals:
   /**
    * @brief Drive faulted notice.
@@ -256,7 +258,6 @@ class CableRobotWinchSlave: public virtual EthercatSlave, public StateMachine
    * @brief Emit a message to be printed.
    */
   void printMessage(const QString&) const;
-#endif
 
  private:
   //--------- EtherCAT ----------------------------------------------------------//
