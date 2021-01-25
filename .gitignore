@@ -40,6 +40,7 @@ build*
 /.project
 /.settings/language.settings.xml
 *.pro.user*
+*.autosave
 
 # Documentation
 doc*
@@ -48,6 +49,3 @@ Doxyfile
 # Python
 *.pyc
 
-# Custom EasyCAT classes
-libgrabec/inc/slaves/easycat/*
-libgrabec/src/slaves/easycat/*
