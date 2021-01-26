@@ -12,7 +12,6 @@
 #include <bitset>
 
 #include <QObject>
-#include <QString>
 
 #include "StateMachine.h"
 
@@ -65,18 +64,29 @@ class CableRobotWinchData: public EventData
    * GoldSoloWhistleOperationModes for valid accounted entries.
    * @param[in] _value The target set point for the desired operation mode (position,
    * velocity or torque).
+   * @param[in] verbose If _true_ display the data content.
    */
-  CableRobotWinchData(const int8_t _op_mode, const int32_t _value = 0);
+  CableRobotWinchData(const int8_t _op_mode, const int32_t _value = 0,
+                      const bool verbose = false);
   /**
-   * @brief Constructor from drive current status (for safe switch).
+   * @brief Full constructor.
    * @param[in] _op_mode The desired operation mode of the drive. See
    * GoldSoloWhistleOperationModes for valid accounted entries.
    * @param[in] input_pdos The current set of PDOs, from which to extract the value to be
-   * set according to the desired operation mode.
+   * set according to the desired operation mode. It basically maintain the previous
+   * value.
    * @param[in] verbose If _true_ display the data content.
    */
   CableRobotWinchData(const int8_t _op_mode, const CRWSlaveInPdos& input_pdos,
                       const bool verbose = false);
+  /**
+   * @brief Constructor from drive current status (for safe switch).
+   * @param[in] input_pdos The current set of PDOs, from which to extract the value to be
+   * set according to the desired operation mode. It basically maintain the previous
+   * value.
+   * @param[in] verbose If _true_ display the data content.
+   */
+  CableRobotWinchData(const CRWSlaveInPdos& input_pdos, const bool verbose = false);
 
   int8_t op_mode =
     CableRobotWinchOperationModes::NONE; /**< The desired operation mode of the drive. */
@@ -159,7 +169,7 @@ class CableRobotWinchSlave: public QObject,
    * @return Actual drive operational mode.
    * @see CableRobotWinchOperationModes
    */
-  int8_t GetOpMode() const;
+  CableRobotWinchOperationModes GetOpMode() const;
   /**
    * @brief Get actual drive status, i.e. the latest values of its input PDOs.
    * @return Actual drive status, i.e. the latest values of its input PDOs.
