@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 30 May 2019
+ * @date 26 Jan 2021
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -27,53 +27,24 @@
  */
 namespace grabec {
 /**
- * @brief Gold Solo Whistle Drive _states_ as in physical drive documentation.
- *
- * For further details, click
- * <a href="https://www.elmomc.com/members/NetHelp1/Elmo.htm#!objects.htm">here</a>.
- */
-enum GoldSoloWhistleDriveStates : BYTE
-{
-  ST_START,
-  ST_NOT_READY_TO_SWITCH_ON,
-  ST_SWITCH_ON_DISABLED,
-  ST_READY_TO_SWITCH_ON,
-  ST_SWITCHED_ON,
-  ST_OPERATION_ENABLED,
-  ST_QUICK_STOP_ACTIVE,
-  ST_FAULT_REACTION_ACTIVE,
-  ST_FAULT,
-  ST_MAX_STATES
-};
-
-/**
  * @brief Gold Solo Whistle _operation modes_.
  *
  * Only few values are considered here for our purposes. For further details, click <a
  * href="https://www.elmomc.com/members/NetHelp1/Elmo.htm#!object0x6060modesofo.htm">here</a>.
  */
-enum GoldSoloWhistleOperationModes : int8_t
-{
-  NONE                  = -1,
-  PROFILE_POSITION      = 1,
-  VELOCITY_MODE         = 2,
-  PROFILE_VELOCITY      = 3,
-  TORQUE_PROFILE        = 4,
-  HOMING                = 6,
-  INTERPOLATED_POSITION = 7,
-  CYCLIC_POSITION       = 8,
-  CYCLIC_VELOCITY       = 9,
-  CYCLIC_TORQUE         = 10,
-};
-
-/**
- * @brief The Commands enum
- */
-enum Commands : uint8_t
-{
-  UNSET,
-  SET
-};
+// clang-format off
+ENUM_CLASS(GoldSoloWhistleOperationModes,
+           NONE                  = -1,
+           PROFILE_POSITION      = 1,
+           VELOCITY_MODE         = 2,
+           PROFILE_VELOCITY      = 3,
+           TORQUE_PROFILE        = 4,
+           HOMING                = 6,
+           INTERPOLATED_POSITION = 7,
+           CYCLIC_POSITION       = 8,
+           CYCLIC_VELOCITY       = 9,
+           CYCLIC_TORQUE         = 10)
+// clang-format on
 
 /**
  * A simple way to store the pdos input values
@@ -121,8 +92,9 @@ class GoldSoloWhistleDriveData: public EventData
   GoldSoloWhistleDriveData(const int8_t _op_mode, const GSWDriveInPdos& input_pdos,
                            const bool verbose = false);
 
-  int8_t op_mode = NONE; /**< The desired operation mode of the drive. */
-  int32_t value  = 0;    /**< The target set point for the desired operation mode. */
+  int8_t op_mode =
+    GoldSoloWhistleOperationModes::NONE; /**< The desired operation mode of the drive. */
+  int32_t value = 0; /**< The target set point for the desired operation mode. */
 };
 
 /**
@@ -158,6 +130,27 @@ class GoldSoloWhistleDrive:
 
  public:
   /**
+   * @brief Gold Solo Whistle Drive _states_ as in physical drive documentation.
+   *
+   * For further details, click
+   * <a href="https://www.elmomc.com/members/NetHelp1/Elmo.htm#!objects.htm">here</a>.
+   */
+  enum States : BYTE
+  {
+    ST_START,
+    ST_NOT_READY_TO_SWITCH_ON,
+    ST_SWITCH_ON_DISABLED,
+    ST_READY_TO_SWITCH_ON,
+    ST_SWITCHED_ON,
+    ST_OPERATION_ENABLED,
+    ST_QUICK_STOP_ACTIVE,
+    ST_FAULT_REACTION_ACTIVE,
+    ST_FAULT,
+    ST_MAX_STATES
+  };
+
+ public:
+  /**
    * @brief Constructor.
    * @param[in] id Drive ID.
    * @param[in] slave_position Slave position in ethercat chain.
@@ -175,7 +168,7 @@ class GoldSoloWhistleDrive:
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
-  static GoldSoloWhistleDriveStates GetDriveState(const std::bitset<16>& status_word);
+  static States GetDriveState(const std::bitset<16>& status_word);
   /**
    * @brief Get latest known physical drive state.
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
@@ -393,7 +386,7 @@ class GoldSoloWhistleDrive:
     int32_t target_velocity;      /**< target_velocity */
   } output_pdos_;                 /**< output_pdos_ */
 
-  GoldSoloWhistleDriveStates drive_state_; /**< physical drive state */
+  States drive_state_; /**< physical drive state */
 
   int32_t prev_pos_target_    = 0; /**< previous motor position target in counts. */
   int32_t prev_vel_target_    = 0; /**< previous motor velocity target in counts/s. */
@@ -535,7 +528,7 @@ class GoldSoloWhistleDrive:
     const_cast<char*>("MAX_STATE")};
   // clang-format on
 
-  GoldSoloWhistleDriveStates prev_state_;
+  States prev_state_;
 
   // Define the state machine state functions with event data type
   STATE_DECLARE(GoldSoloWhistleDrive, Start, NoEventData)
@@ -563,8 +556,7 @@ class GoldSoloWhistleDrive:
   // clang-format on
   END_STATE_MAP
 
-  void PrintStateTransition(const GoldSoloWhistleDriveStates current_state,
-                            const GoldSoloWhistleDriveStates new_state) const;
+  void PrintStateTransition(const States current_state, const States new_state) const;
 };
 
 } // end namespace grabec

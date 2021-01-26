@@ -1,7 +1,7 @@
 ﻿/**
  * @file goldsolowhistledrive.cpp
  * @author Edoardo Idà, Simone Comari
- * @date 30 May 2019
+ * @date 26 Jan 2021
  * @brief File containing class implementation declared in goldsolowhistledrive.h.
  */
 
@@ -26,17 +26,17 @@ GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
   // Set target value to current one
   switch (op_mode)
   {
-    case CYCLIC_POSITION:
+    case GoldSoloWhistleOperationModes::CYCLIC_POSITION:
       value = input_pdos.pos_actual_value;
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_POSITION @ %d\n", value);
       break;
-    case CYCLIC_VELOCITY:
+    case GoldSoloWhistleOperationModes::CYCLIC_VELOCITY:
       value = input_pdos.vel_actual_value;
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_VELOCITY @ %d\n", value);
       break;
-    case CYCLIC_TORQUE:
+    case GoldSoloWhistleOperationModes::CYCLIC_TORQUE:
       value = input_pdos.torque_actual_value;
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_TORQUE @ %d\n", value);
@@ -60,7 +60,8 @@ constexpr char* GoldSoloWhistleDrive::kStatesStr_[];
 
 GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_position
 #if USE_QT
-                                           , QObject* parent /*= NULL*/
+                                           ,
+                                           QObject* parent /*= NULL*/
 #endif
                                            )
   :
@@ -173,11 +174,11 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
   slave_sync_ptr_        = const_cast<ec_sync_info_t*>(kSyncs_);
 
   drive_state_ = ST_START;
-  prev_state_  = static_cast<GoldSoloWhistleDriveStates>(GetCurrentState());
+  prev_state_  = static_cast<States>(GetCurrentState());
 }
 
-GoldSoloWhistleDriveStates
-GoldSoloWhistleDrive::GetDriveState(const std::bitset<16> &status_word)
+GoldSoloWhistleDrive::States
+GoldSoloWhistleDrive::GetDriveState(const std::bitset<16>& status_word)
 {
   if (status_word[StatusBit::SWITCH_ON_DISABLED] == SET)
   { // drive idle: OFF=true
@@ -219,8 +220,9 @@ RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
 {
   static ec_sdo_request_t* sdo_ptr = nullptr;
 
-  if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(config_ptr, kOpModeIdx,
-                                                       kOpModeSubIdx, CYCLIC_POSITION)))
+  if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(
+          config_ptr, kOpModeIdx, kOpModeSubIdx,
+          GoldSoloWhistleOperationModes::CYCLIC_POSITION)))
   {
     std::string msg;
 #if USE_QT
@@ -234,12 +236,14 @@ RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
     return ECONFIG;
   }
   ecrt_sdo_request_timeout(sdo_ptr, 500);
-  if (ecrt_slave_config_sdo8(config_ptr, kOpModeIdx, kOpModeSubIdx, CYCLIC_POSITION) != 0)
+  if (ecrt_slave_config_sdo8(config_ptr, kOpModeIdx, kOpModeSubIdx,
+                             GoldSoloWhistleOperationModes::CYCLIC_POSITION) != 0)
   {
     std::string msg;
 #if USE_QT
-    msg = QString("Drive %1 failed to add a config value to OpMode SDO").arg(id_)
-        .toStdString();
+    msg = QString("Drive %1 failed to add a config value to OpMode SDO")
+            .arg(id_)
+            .toStdString();
 #else
     std::ostringstream msg_stream;
     msg_stream << "Drive " << id_ << " failed to add a config value to OpMode SDO";
@@ -254,8 +258,9 @@ RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
   {
     std::string msg;
 #if USE_QT
-    msg = QString("Drive %1 failed to create HomingMethod SDO request").arg(id_)
-        .toStdString();
+    msg = QString("Drive %1 failed to create HomingMethod SDO request")
+            .arg(id_)
+            .toStdString();
 #else
     std::ostringstream msg_stream;
     msg_stream << "Drive " << id_ << " failed to create HomingMethod SDO request";
@@ -270,8 +275,9 @@ RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
   {
     std::string msg;
 #if USE_QT
-    msg = QString("Drive %1 failed to add a config value to HomingMethod SDO").arg(id_)
-        .toStdString();
+    msg = QString("Drive %1 failed to add a config value to HomingMethod SDO")
+            .arg(id_)
+            .toStdString();
 #else
     std::ostringstream msg_stream;
     msg_stream << "Drive " << id_ << " failed to add a config value to HomingMethod SDO";
@@ -286,7 +292,7 @@ RetVal GoldSoloWhistleDrive::SdoRequests(ec_slave_config_t* config_ptr)
 
 void GoldSoloWhistleDrive::ReadInputs()
 {
-  input_pdos_.status_word = EC_READ_U16(domain_data_ptr_ + offset_in_.status_word);
+  input_pdos_.status_word     = EC_READ_U16(domain_data_ptr_ + offset_in_.status_word);
   input_pdos_.display_op_mode = EC_READ_S8(domain_data_ptr_ + offset_in_.display_op_mode);
   input_pdos_.pos_actual_value =
     EC_READ_S32(domain_data_ptr_ + offset_in_.position_actual_value);
@@ -386,7 +392,7 @@ void GoldSoloWhistleDrive::SwitchOn()
   output_pdos_.control_word.reset(ControlBit::ENABLE_OPERATION);
   output_pdos_.control_word.reset(ControlBit::FAULT);
   // Setup default operational mode before enabling the drive
-  output_pdos_.op_mode         = CYCLIC_POSITION;
+  output_pdos_.op_mode         = GoldSoloWhistleOperationModes::CYCLIC_POSITION;
   output_pdos_.target_position = input_pdos_.pos_actual_value;
 }
 
@@ -438,15 +444,16 @@ void GoldSoloWhistleDrive::FaultReset()
 
 void GoldSoloWhistleDrive::ChangePosition(const int32_t target_position)
 {
-  if (input_pdos_.display_op_mode == CYCLIC_POSITION && prev_pos_target_ == target_position)
+  if (input_pdos_.display_op_mode == GoldSoloWhistleOperationModes::CYCLIC_POSITION &&
+      prev_pos_target_ == target_position)
     return;
   prev_pos_target_ = target_position;
 
   //  PrintCommand("ChangePosition");
   //  printf("\tTarget position: %d\n", target_position);
 
-  GoldSoloWhistleDriveData* data =
-    new GoldSoloWhistleDriveData(CYCLIC_POSITION, target_position);
+  GoldSoloWhistleDriveData* data = new GoldSoloWhistleDriveData(
+    GoldSoloWhistleOperationModes::CYCLIC_POSITION, target_position);
   SetChange(data);
 }
 
@@ -457,15 +464,16 @@ void GoldSoloWhistleDrive::ChangeDeltaPosition(const int32_t delta_position)
 
 void GoldSoloWhistleDrive::ChangeVelocity(const int32_t target_velocity)
 {
-  if (input_pdos_.display_op_mode == CYCLIC_VELOCITY && prev_vel_target_ == target_velocity)
+  if (input_pdos_.display_op_mode == GoldSoloWhistleOperationModes::CYCLIC_VELOCITY &&
+      prev_vel_target_ == target_velocity)
     return;
   prev_vel_target_ = target_velocity;
 
   //  PrintCommand("ChangeVelocity");
   //  printf("\tTarget velocity: %d\n", target_velocity);
 
-  GoldSoloWhistleDriveData* data =
-    new GoldSoloWhistleDriveData(CYCLIC_VELOCITY, target_velocity);
+  GoldSoloWhistleDriveData* data = new GoldSoloWhistleDriveData(
+    GoldSoloWhistleOperationModes::CYCLIC_VELOCITY, target_velocity);
   SetChange(data);
 }
 
@@ -476,15 +484,16 @@ void GoldSoloWhistleDrive::ChangeDeltaVelocity(const int32_t delta_velocity)
 
 void GoldSoloWhistleDrive::ChangeTorque(const int16_t target_torque)
 {
-  if (input_pdos_.display_op_mode == CYCLIC_TORQUE && prev_torque_target_ == target_torque)
+  if (input_pdos_.display_op_mode == GoldSoloWhistleOperationModes::CYCLIC_TORQUE &&
+      prev_torque_target_ == target_torque)
     return;
   prev_torque_target_ = target_torque;
 
   //  PrintCommand("ChangeTorque");
   //  printf("\tTarget torque: %d\n", target_torque);
 
-  GoldSoloWhistleDriveData* data =
-    new GoldSoloWhistleDriveData(CYCLIC_TORQUE, target_torque);
+  GoldSoloWhistleDriveData* data = new GoldSoloWhistleDriveData(
+    GoldSoloWhistleOperationModes::CYCLIC_TORQUE, target_torque);
   SetChange(data);
 }
 
@@ -531,8 +540,7 @@ void GoldSoloWhistleDrive::SetChange(const GoldSoloWhistleDriveData* data)
 
 //----- Protected functions ----------------------------------------------------------//
 
-void GoldSoloWhistleDrive::InitFun()
-{
+void GoldSoloWhistleDrive::InitFun() {
   // clang-format off
   BEGIN_TRANSITION_MAP			          // - Current State -
     TRANSITION_MAP_ENTRY (ST_START)               // ST_START
@@ -556,9 +564,9 @@ STATE_DEFINE(GoldSoloWhistleDrive, Start, NoEventData)
   std::string msg;
 #if USE_QT
   msg = QString("Drive %1 initial state: %2")
-      .arg(id_)
-      .arg(kStatesStr_[ST_START])
-      .toStdString();
+          .arg(id_)
+          .arg(kStatesStr_[ST_START])
+          .toStdString();
 #else
   std::ostringstream msg_stream;
   msg_stream << "Drive " << id_ << " initial state: " << kStatesStr_[ST_START];
@@ -603,13 +611,13 @@ STATE_DEFINE(GoldSoloWhistleDrive, OperationEnabled, GoldSoloWhistleDriveData)
   output_pdos_.op_mode = data->op_mode;
   switch (data->op_mode)
   {
-    case CYCLIC_POSITION:
+    case GoldSoloWhistleOperationModes::CYCLIC_POSITION:
       output_pdos_.target_position = data->value;
       break;
-    case CYCLIC_VELOCITY:
+    case GoldSoloWhistleOperationModes::CYCLIC_VELOCITY:
       output_pdos_.target_velocity = data->value;
       break;
-    case CYCLIC_TORQUE:
+    case GoldSoloWhistleOperationModes::CYCLIC_TORQUE:
       output_pdos_.target_torque = static_cast<int16_t>(data->value);
       break;
     default:
@@ -655,22 +663,21 @@ inline void GoldSoloWhistleDrive::PrintCommand(const char* cmd) const
   EcPrintCb(msg);
 }
 
-void GoldSoloWhistleDrive::PrintStateTransition(
-  const GoldSoloWhistleDriveStates current_state,
-  const GoldSoloWhistleDriveStates new_state) const
+void GoldSoloWhistleDrive::PrintStateTransition(const States current_state,
+                                                const States new_state) const
 {
   if (current_state == new_state)
     return;
   std::string msg;
 #if USE_QT
   msg = QString("Drive %1 state transition: %2 --> %3")
-      .arg(id_)
-      .arg(kStatesStr_[current_state], kStatesStr_[new_state])
-      .toStdString();
+          .arg(id_)
+          .arg(kStatesStr_[current_state], kStatesStr_[new_state])
+          .toStdString();
 #else
   std::ostringstream msg_stream;
-  msg_stream << "Drive " << id_ << " state transition: " << kStatesStr_[current_state] <<
-                " --> " << kStatesStr_[new_state];
+  msg_stream << "Drive " << id_ << " state transition: " << kStatesStr_[current_state]
+             << " --> " << kStatesStr_[new_state];
   msg = msg_stream.str();
 #endif
   EcPrintCb(msg);

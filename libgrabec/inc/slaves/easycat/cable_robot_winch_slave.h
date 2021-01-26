@@ -1,7 +1,7 @@
 /**
  * @file Cable_robot_winch_slave.h
  * @author Simone Comari
- * @date 25 Jan 2021
+ * @date 26 Jan 2021
  * @brief File containing _Cable Robot Winch_ slave interface to be included in the GRAB
  * ethercat library.
  */
@@ -12,6 +12,7 @@
 #include <bitset>
 
 #include <QObject>
+#include <QString>
 
 #include "StateMachine.h"
 
@@ -20,26 +21,15 @@
 
 namespace grabec {
 /**
- * @brief Cable robot winch _states_.
+ * @brief Cable Robot Winch _operation modes_.
  */
-enum CableRobotWinchStates : BYTE
-{
-  ST_IDLE,
-  ST_OPERATIONAL,
-  ST_ERROR,
-  ST_MAX_STATES
-};
-
-/**
- * @brief Cable robot winch _operation modes_.
- */
-enum CableRobotWinchOperationModes : int8_t
-{
-  NONE = -1,
-  CYCLIC_POSITION,
-  CYCLIC_VELOCITY,
-  CYCLIC_TORQUE,
-};
+// clang-format off
+ENUM_CLASS(CableRobotWinchOperationModes,
+           NONE            = -1,
+           CYCLIC_POSITION = 0,
+           CYCLIC_VELOCITY = 1,
+           CYCLIC_TORQUE   = 2)
+// clang-format on
 
 /**
  * @brief Input buffer union, i.e. data sent to master (write).
@@ -88,8 +78,9 @@ class CableRobotWinchData: public EventData
   CableRobotWinchData(const int8_t _op_mode, const CRWSlaveInPdos& input_pdos,
                       const bool verbose = false);
 
-  int8_t op_mode = NONE; /**< The desired operation mode of the drive. */
-  int32_t value  = 0;    /**< The target set point for the desired operation mode. */
+  int8_t op_mode =
+    CableRobotWinchOperationModes::NONE; /**< The desired operation mode of the drive. */
+  int32_t value = 0; /**< The target set point for the desired operation mode. */
 };
 
 /**
@@ -99,6 +90,20 @@ class CableRobotWinchSlave: public QObject,
                             public virtual EthercatSlave,
                             public StateMachine
 {
+  Q_OBJECT
+
+ public:
+  /**
+   * @brief Cable robot winch _states_.
+   */
+  enum States : BYTE
+  {
+    ST_IDLE,
+    ST_OPERATIONAL,
+    ST_ERROR,
+    ST_MAX_STATES
+  };
+
  public:
   /**
    * @brief Constructor.
@@ -113,7 +118,7 @@ class CableRobotWinchSlave: public QObject,
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
-  static CableRobotWinchStates GetDriveState(const uint16_t _status_word);
+  static States GetDriveState(const uint16_t _status_word);
   /**
    * @brief Get latest known physical drive state.
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
@@ -337,7 +342,7 @@ class CableRobotWinchSlave: public QObject,
   } offset_out_;
 
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries_]; // ethercat utility
-  CableRobotWinchStates drive_state_;                    // drive physical actual state
+  States drive_state_;                                   // drive physical actual state
 
   void InitFun() override;
   void EcPrintCb(const std::string& msg, const char color = 'w') const override;
@@ -353,7 +358,7 @@ class CableRobotWinchSlave: public QObject,
     const_cast<char*>("MAX_STATE")};
   // clang-format on
 
-  CableRobotWinchStates prev_state_;
+  States prev_state_;
 
   // Define the state machine state functions with event data type
   STATE_DECLARE(CableRobotWinchSlave, Idle, NoEventData)
@@ -369,22 +374,23 @@ class CableRobotWinchSlave: public QObject,
   // clang-format on
   END_STATE_MAP
 
-  void PrintStateTransition(const CableRobotWinchStates current_state,
-                            const CableRobotWinchStates new_state) const;
+  void PrintStateTransition(const States current_state, const States new_state) const;
 
  private:
-  // clang-format off
-  // Shared bit-map between status and control word
-  ENUM_CLASS(StatusBit,
-             IDLE_STATE,
-             OPERATIONAL_STATE,
-             ERROR_STATE,
-             POSITION_CONTROL,
-             SPEED_CONTROL,
-             TORQUE_CONTROL,
-             ERROR_RESET,
-             TARGET_REACHED)
-  // clang-format on
+  /**
+   * @brief Shared bit-map between status and control word.
+   */
+  enum StatusBit : uint8_t
+  {
+    IDLE_STATE,
+    OPERATIONAL_STATE,
+    ERROR_STATE,
+    POSITION_CONTROL,
+    SPEED_CONTROL,
+    TORQUE_CONTROL,
+    ERROR_RESET,
+    TARGET_REACHED
+  };
 
   int32_t prev_pos_target_    = 0; /**< previous motor position target in counts. */
   int32_t prev_vel_target_    = 0; /**< previous motor velocity target in counts/s. */

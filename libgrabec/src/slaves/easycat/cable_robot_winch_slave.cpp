@@ -1,7 +1,7 @@
 /**
  * @file Cable_robot_winch_slave.h
  * @author Simone Comari
- * @date 25 Jan 2021
+ * @date 26 Jan 2021
  * @brief File containing class implementation declared in Cable_robot_winch_slave.h.
  */
 
@@ -26,17 +26,17 @@ CableRobotWinchData::CableRobotWinchData(const int8_t _op_mode,
   // Set target value to current one
   switch (op_mode)
   {
-    case CYCLIC_POSITION:
+    case CableRobotWinchOperationModes::CYCLIC_POSITION:
       value = input_pdos.Cust.actual_position;
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_POSITION @ %d\n", value);
       break;
-    case CYCLIC_VELOCITY:
+    case CableRobotWinchOperationModes::CYCLIC_VELOCITY:
       value = input_pdos.Cust.actual_speed;
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_VELOCITY @ %d\n", value);
       break;
-    case CYCLIC_TORQUE:
+    case CableRobotWinchOperationModes::CYCLIC_TORQUE:
       value = input_pdos.Cust.actual_torque;
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_TORQUE @ %d\n", value);
@@ -56,6 +56,7 @@ CableRobotWinchData::CableRobotWinchData(const int8_t _op_mode,
 constexpr ec_pdo_entry_info_t CableRobotWinchSlave::kPdoEntries_[];
 constexpr ec_pdo_info_t CableRobotWinchSlave::kPDOs_[];
 constexpr ec_sync_info_t CableRobotWinchSlave::kSyncs_[];
+constexpr char* CableRobotWinchSlave::kStatesStr_[];
 
 CableRobotWinchSlave::CableRobotWinchSlave(const id_t id, const uint8_t slave_position,
                                            QObject* parent /*=nullptr*/)
@@ -155,10 +156,11 @@ CableRobotWinchSlave::CableRobotWinchSlave(const id_t id, const uint8_t slave_po
   slave_sync_ptr_        = const_cast<ec_sync_info_t*>(kSyncs_);
 
   drive_state_ = ST_IDLE;
-  prev_state_  = static_cast<CableRobotWinchStates>(GetCurrentState());
+  prev_state_  = static_cast<States>(GetCurrentState());
 }
 
-CableRobotWinchStates CableRobotWinchSlave::GetDriveState(const uint16_t _status_word)
+CableRobotWinchSlave::States
+CableRobotWinchSlave::GetDriveState(const uint16_t _status_word)
 {
   std::bitset<8> status_word(_status_word);
   if (status_word[StatusBit::IDLE_STATE] == SET)
@@ -178,14 +180,14 @@ CableRobotWinchSlave::GetDriveOpMode(const uint16_t _status_word)
 {
   std::bitset<8> status_word(_status_word);
   if (status_word[StatusBit::OPERATIONAL_STATE] == UNSET)
-    return NONE;
+    return CableRobotWinchOperationModes::NONE;
   if (status_word[StatusBit::POSITION_CONTROL] == SET)
-    return CYCLIC_POSITION;
+    return CableRobotWinchOperationModes::CYCLIC_POSITION;
   if (status_word[StatusBit::SPEED_CONTROL] == SET)
-    return CYCLIC_VELOCITY;
+    return CableRobotWinchOperationModes::CYCLIC_VELOCITY;
   if (status_word[StatusBit::TORQUE_CONTROL] == SET)
-    return CYCLIC_TORQUE;
-  return NONE;
+    return CableRobotWinchOperationModes::CYCLIC_TORQUE;
+  return CableRobotWinchOperationModes::NONE;
 }
 
 int8_t CableRobotWinchSlave::GetOpMode() const
@@ -303,40 +305,46 @@ void CableRobotWinchSlave::FaultReset()
 
 void CableRobotWinchSlave::ChangePosition(const int32_t target_position)
 {
-  if (GetOpMode() == CYCLIC_POSITION && prev_pos_target_ == target_position)
+  if (GetOpMode() == CableRobotWinchOperationModes::CYCLIC_POSITION &&
+      prev_pos_target_ == target_position)
     return;
   prev_pos_target_ = target_position;
 
   //  PrintCommand("ChangePosition");
   //  printf("\tTarget position: %d\n", target_position);
 
-  CableRobotWinchData* data = new CableRobotWinchData(CYCLIC_POSITION, target_position);
+  CableRobotWinchData* data = new CableRobotWinchData(
+    CableRobotWinchOperationModes::CYCLIC_POSITION, target_position);
   SetChange(data);
 }
 
 void CableRobotWinchSlave::ChangeVelocity(const int32_t target_velocity)
 {
-  if (GetOpMode() == CYCLIC_VELOCITY && prev_vel_target_ == target_velocity)
+  if (GetOpMode() == CableRobotWinchOperationModes::CYCLIC_VELOCITY &&
+      prev_vel_target_ == target_velocity)
     return;
   prev_vel_target_ = target_velocity;
 
   //  PrintCommand("ChangeVelocity");
   //  printf("\tTarget velocity: %d\n", target_velocity);
 
-  CableRobotWinchData* data = new CableRobotWinchData(CYCLIC_VELOCITY, target_velocity);
+  CableRobotWinchData* data = new CableRobotWinchData(
+    CableRobotWinchOperationModes::CYCLIC_VELOCITY, target_velocity);
   SetChange(data);
 }
 
 void CableRobotWinchSlave::ChangeTorque(const int16_t target_torque)
 {
-  if (GetOpMode() == CYCLIC_TORQUE && prev_torque_target_ == target_torque)
+  if (GetOpMode() == CableRobotWinchOperationModes::CYCLIC_TORQUE &&
+      prev_torque_target_ == target_torque)
     return;
   prev_torque_target_ = target_torque;
 
   //  PrintCommand("ChangeTorque");
   //  printf("\tTarget torque: %d\n", target_torque);
 
-  CableRobotWinchData* data = new CableRobotWinchData(CYCLIC_TORQUE, target_torque);
+  CableRobotWinchData* data =
+    new CableRobotWinchData(CableRobotWinchOperationModes::CYCLIC_TORQUE, target_torque);
   SetChange(data);
 }
 
@@ -384,15 +392,15 @@ STATE_DEFINE(CableRobotWinchSlave, Operational, CableRobotWinchData)
   control_word.set(StatusBit::OPERATIONAL_STATE);
   switch (data->op_mode)
   {
-    case CYCLIC_POSITION:
+    case CableRobotWinchOperationModes::CYCLIC_POSITION:
       BufferOut.Cust.target_position = data->value;
       control_word.set(StatusBit::POSITION_CONTROL);
       break;
-    case CYCLIC_VELOCITY:
+    case CableRobotWinchOperationModes::CYCLIC_VELOCITY:
       BufferOut.Cust.target_speed = data->value;
       control_word.set(StatusBit::SPEED_CONTROL);
       break;
-    case CYCLIC_TORQUE:
+    case CableRobotWinchOperationModes::CYCLIC_TORQUE:
       BufferOut.Cust.target_torque = static_cast<int16_t>(data->value);
       control_word.set(StatusBit::TORQUE_CONTROL);
       break;
@@ -420,8 +428,8 @@ inline void CableRobotWinchSlave::PrintCommand(const char* cmd) const
   EcPrintCb(msg);
 }
 
-void CableRobotWinchSlave::PrintStateTransition(
-  const CableRobotWinchStates current_state, const CableRobotWinchStates new_state) const
+void CableRobotWinchSlave::PrintStateTransition(const States current_state,
+                                                const States new_state) const
 {
   if (current_state == new_state)
     return;
