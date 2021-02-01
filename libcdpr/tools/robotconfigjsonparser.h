@@ -16,7 +16,7 @@
 
 #include "cdpr_types.h"
 
-#define GRAVITY -9.80665  /**< Earth gravity approximate value. */
+#define GRAVITY -9.80665 /**< Earth gravity approximate value. */
 
 using json = nlohmann::json; /**< JSON library support alias */
 
@@ -107,7 +107,6 @@ class RobotConfigJsonParser
   bool ExtractConfig(const json& raw_data);
   bool ExtractPlatform(const json& raw_data);
   bool ExtractActuators(const json& raw_data);
-  bool ExtractMask(const json& raw_data);
 
   grabcdpr::RotParametrization str2RotParametrization(const std::string& str);
 

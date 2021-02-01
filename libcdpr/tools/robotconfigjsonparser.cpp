@@ -135,10 +135,7 @@ bool RobotConfigJsonParser::ExtractConfig(const json& raw_data)
     return false;
 
   config_params_.actuators.clear();
-  if (!ExtractActuators(raw_data))
-    return false;
-
-  return ExtractMask(raw_data);
+  return ExtractActuators(raw_data);
 }
 
 bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
@@ -245,30 +242,6 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
     if (!AreActuatorsParamsValid(actuator_params))
       return false;
     config_params_.actuators.push_back(actuator_params);
-  }
-  return true;
-}
-
-bool RobotConfigJsonParser::ExtractMask(const json& raw_data)
-{
-  try
-  {
-    for (uint8_t i = 0; i < 6; i++)
-      config_params_.controlled_vars_mask(i) = raw_data["controlled_vars_mask"].at(i);
-  }
-  catch (json::type_error)
-  {
-    std::cerr << "[ERROR] Missing or invalid robot parameter field: controlled_vars_mask"
-              << std::endl;
-    return false;
-  }
-  // Safety check
-  arma::uvec act_idx = arma::find(config_params_.controlled_vars_mask);
-  if (config_params_.activeActuatorsNum() < act_idx.n_elem)
-  {
-    std::cerr << "[ERROR] Not enough active actuator to control all desired variables!"
-              << std::endl;
-    return false;
   }
   return true;
 }
