@@ -1,8 +1,8 @@
 /**
  * @file Cable_robot_winch_slave.h
  * @author Simone Comari
- * @date 26 Jan 2021
- * @brief File containing class implementation declared in Cable_robot_winch_slave.h.
+ * @date 08 Feb 2021
+ * @brief File containing class implementation declared in cable_robot_winch_slave.h.
  */
 
 #include "slaves/easycat/cable_robot_winch_slave.h"
@@ -10,7 +10,7 @@
 namespace grabec {
 
 //------------------------------------------------------------------------------------//
-// GoldSoloWhistleDriveData
+// CableRobotWinchData
 //------------------------------------------------------------------------------------//
 
 CableRobotWinchData::CableRobotWinchData(const int8_t _op_mode,
@@ -97,7 +97,7 @@ CableRobotWinchData::CableRobotWinchData(const CRWSlaveInPdos& input_pdos,
 }
 
 //------------------------------------------------------------------------------------//
-// GoldSoloWhistleDrive
+// CableRobotWinchSlave
 //------------------------------------------------------------------------------------//
 
 // Must provide redundant definition of static members as well
@@ -261,16 +261,7 @@ void CableRobotWinchSlave::ReadInputs()
   // The actual state transition is triggered here
   drive_state_ = GetDriveState(BufferIn.Cust.status_word);
   if (drive_state_ != GetCurrentState())
-  {
-    if (drive_state_ == ST_OPERATIONAL)
-    {
-      // Get target default
-      CableRobotWinchData* data = new CableRobotWinchData(BufferIn);
-      ExternalEvent(ST_OPERATIONAL, data);
-    }
-    else
-      ExternalEvent(drive_state_);
-  }
+    ExternalEvent(drive_state_);
 }
 
 void CableRobotWinchSlave::WriteOutputs()
@@ -328,10 +319,7 @@ void CableRobotWinchSlave::EnableOperation()
 {
   PrintCommand("EnableOperation");
   // Trigger device control command
-  std::bitset<16> control_word;
-  control_word.set(StatusBit::OPERATIONAL_STATE);
-  control_word.set(StatusBit::POSITION_CONTROL); // default operation mode
-  BufferOut.Cust.control_word = static_cast<uint16_t>(control_word.to_ulong());
+  ChangeOpMode(CableRobotWinchOperationModes::CYCLIC_POSITION);
 }
 
 void CableRobotWinchSlave::DisableOperation()
@@ -363,8 +351,8 @@ void CableRobotWinchSlave::ChangePosition(const int32_t target_position)
   //  PrintCommand("ChangePosition");
   //  printf("\tTarget position: %d\n", target_position);
 
-  CableRobotWinchData* data = new CableRobotWinchData(
-    CableRobotWinchOperationModes::CYCLIC_POSITION, target_position);
+  CableRobotWinchData data =
+    CableRobotWinchData(CableRobotWinchOperationModes::CYCLIC_POSITION, target_position);
   SetChange(data);
 }
 
@@ -378,8 +366,8 @@ void CableRobotWinchSlave::ChangeVelocity(const int32_t target_velocity)
   //  PrintCommand("ChangeVelocity");
   //  printf("\tTarget velocity: %d\n", target_velocity);
 
-  CableRobotWinchData* data = new CableRobotWinchData(
-    CableRobotWinchOperationModes::CYCLIC_VELOCITY, target_velocity);
+  CableRobotWinchData data =
+    CableRobotWinchData(CableRobotWinchOperationModes::CYCLIC_VELOCITY, target_velocity);
   SetChange(data);
 }
 
@@ -393,8 +381,8 @@ void CableRobotWinchSlave::ChangeTorque(const int16_t target_torque)
   //  PrintCommand("ChangeTorque");
   //  printf("\tTarget torque: %d\n", target_torque);
 
-  CableRobotWinchData* data =
-    new CableRobotWinchData(CableRobotWinchOperationModes::CYCLIC_TORQUE, target_torque);
+  CableRobotWinchData data =
+    CableRobotWinchData(CableRobotWinchOperationModes::CYCLIC_TORQUE, target_torque);
   SetChange(data);
 }
 
@@ -402,7 +390,7 @@ void CableRobotWinchSlave::ChangeOpMode(const int8_t target_op_mode)
 {
   PrintCommand("ChangeOpMode");
   // Set target value to current one
-  CableRobotWinchData* data = new CableRobotWinchData(target_op_mode, BufferIn, true);
+  CableRobotWinchData data = CableRobotWinchData(target_op_mode, BufferIn, true);
   SetChange(data);
 }
 
@@ -410,19 +398,34 @@ void CableRobotWinchSlave::SetTargetDefaults()
 {
   PrintCommand("SetTargetDefaults");
   // Set target operational mode and value to current ones
-  CableRobotWinchData* data = new CableRobotWinchData(BufferIn, true);
+  CableRobotWinchData data = CableRobotWinchData(BufferIn, true);
   // Apply
   SetChange(data);
 }
 
-void CableRobotWinchSlave::SetChange(const CableRobotWinchData* data) {
-  // clang-format off
-  BEGIN_TRANSITION_MAP                      // - Current State -
-    TRANSITION_MAP_ENTRY (CANNOT_HAPPEN)    // ST_IDLE
-    TRANSITION_MAP_ENTRY (ST_OPERATIONAL)   // ST_OPERATIONAL
-    TRANSITION_MAP_ENTRY (EVENT_IGNORED)    // ST_ERROR
-  END_TRANSITION_MAP(data)
-  // clang-format on
+void CableRobotWinchSlave::SetChange(const CableRobotWinchData& data)
+{
+  // Setup operational mode and target value
+  std::bitset<8> control_word;
+  control_word.set(StatusBit::OPERATIONAL_STATE);
+  switch (data.op_mode)
+  {
+    case CableRobotWinchOperationModes::CYCLIC_POSITION:
+      BufferOut.Cust.target_position = data.value;
+      control_word.set(StatusBit::POSITION_CONTROL);
+      break;
+    case CableRobotWinchOperationModes::CYCLIC_VELOCITY:
+      BufferOut.Cust.target_speed = data.value;
+      control_word.set(StatusBit::SPEED_CONTROL);
+      break;
+    case CableRobotWinchOperationModes::CYCLIC_TORQUE:
+      BufferOut.Cust.target_torque = static_cast<int16_t>(data.value);
+      control_word.set(StatusBit::TORQUE_CONTROL);
+      break;
+    default:
+      break;
+  }
+  BufferOut.Cust.control_word = static_cast<uint16_t>(control_word.to_ulong());
 }
 
 //----- States actions ---------------------------------------------------------------//
@@ -430,35 +433,16 @@ void CableRobotWinchSlave::SetChange(const CableRobotWinchData* data) {
 STATE_DEFINE(CableRobotWinchSlave, Idle, NoEventData)
 {
   PrintStateTransition(prev_state_, ST_IDLE);
-  prev_state_ = ST_IDLE;
+  std::bitset<16> control_word;
+  control_word.set(StatusBit::IDLE_STATE);
+  BufferOut.Cust.control_word = static_cast<uint16_t>(control_word.to_ulong());
+  prev_state_                 = ST_IDLE;
 }
 
-STATE_DEFINE(CableRobotWinchSlave, Operational, CableRobotWinchData)
+STATE_DEFINE(CableRobotWinchSlave, Operational, NoEventData)
 {
   PrintStateTransition(prev_state_, ST_OPERATIONAL);
-
-  // Setup operational mode and target value
-  std::bitset<8> control_word;
-  control_word.set(StatusBit::OPERATIONAL_STATE);
-  switch (data->op_mode)
-  {
-    case CableRobotWinchOperationModes::CYCLIC_POSITION:
-      BufferOut.Cust.target_position = data->value;
-      control_word.set(StatusBit::POSITION_CONTROL);
-      break;
-    case CableRobotWinchOperationModes::CYCLIC_VELOCITY:
-      BufferOut.Cust.target_speed = data->value;
-      control_word.set(StatusBit::SPEED_CONTROL);
-      break;
-    case CableRobotWinchOperationModes::CYCLIC_TORQUE:
-      BufferOut.Cust.target_torque = static_cast<int16_t>(data->value);
-      control_word.set(StatusBit::TORQUE_CONTROL);
-      break;
-    default:
-      break;
-  }
-  BufferOut.Cust.control_word = static_cast<uint16_t>(control_word.to_ulong());
-
+  SetTargetDefaults();
   prev_state_ = ST_OPERATIONAL;
 }
 

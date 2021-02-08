@@ -1,7 +1,7 @@
 /**
  * @file Cable_robot_winch_slave.h
  * @author Simone Comari
- * @date 26 Jan 2021
+ * @date 08 Feb 2021
  * @brief File containing _Cable Robot Winch_ slave interface to be included in the GRAB
  * ethercat library.
  */
@@ -50,12 +50,11 @@ union CRWSlaveInPdos
 /**
  * @brief The CableRobotWinchData class.
  *
- * This is the data type to be passed when transitioning to OPERATION ENABLED state
- * according to our implementation of drive interface's state machine.
- * For further details about state machine, click <a
- * href="https://www.codeproject.com/Articles/1087619/State-Machine-Design-in-Cplusplus">here</a>.
+ * This is the data type to be passed when requesting a transition to OPERATION ENABLED
+ * state or a new operation mode/set point according to our implementation of drive
+ * interface's state machine.
  */
-class CableRobotWinchData: public EventData
+class CableRobotWinchData
 {
  public:
   /**
@@ -372,7 +371,7 @@ class CableRobotWinchSlave: public QObject,
 
   // Define the state machine state functions with event data type
   STATE_DECLARE(CableRobotWinchSlave, Idle, NoEventData)
-  STATE_DECLARE(CableRobotWinchSlave, Operational, CableRobotWinchData)
+  STATE_DECLARE(CableRobotWinchSlave, Operational, NoEventData)
   STATE_DECLARE(CableRobotWinchSlave, Error, NoEventData)
 
   // State map to define state object order. Each state map entry defines a state object.
@@ -406,7 +405,7 @@ class CableRobotWinchSlave: public QObject,
   int32_t prev_vel_target_    = 0; /**< previous motor velocity target in counts/s. */
   int16_t prev_torque_target_ = 0; /**< previous motor torque target in nominal points. */
 
-  void SetChange(const CableRobotWinchData* data);
+  void SetChange(const CableRobotWinchData& data);
 
   inline void PrintCommand(const char* cmd) const;
 };
