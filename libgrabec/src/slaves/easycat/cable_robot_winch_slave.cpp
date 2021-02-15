@@ -203,7 +203,7 @@ CableRobotWinchSlave::CableRobotWinchSlave(const id_t id, const uint8_t slave_po
   slave_pdos_ptr_        = const_cast<ec_pdo_info_t*>(kPDOs_);
   slave_sync_ptr_        = const_cast<ec_sync_info_t*>(kSyncs_);
 
-  drive_state_ = ST_IDLE;
+  drive_state_ = ST_MAX_STATES;
   prev_state_  = static_cast<States>(GetCurrentState());
 }
 
