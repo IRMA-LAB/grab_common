@@ -9,6 +9,7 @@
 #ifndef GRABCOMMON_LIBGRABEC_EASYCATSLAVE_CABLE_ROBOT_WINCH_H
 #define GRABCOMMON_LIBGRABEC_EASYCATSLAVE_CABLE_ROBOT_WINCH_H
 
+#include <algorithm>
 #include <bitset>
 
 #include <QObject>
@@ -90,6 +91,9 @@ class CableRobotWinchData
   int8_t op_mode =
     CableRobotWinchOperationModes::NONE; /**< The desired operation mode of the drive. */
   int32_t value = 0; /**< The target set point for the desired operation mode. */
+
+ private:
+  static const short kMinInitTorque_ = 100;
 };
 
 /**

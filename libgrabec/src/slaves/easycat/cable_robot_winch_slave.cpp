@@ -55,7 +55,7 @@ CableRobotWinchData::CableRobotWinchData(const int8_t _op_mode,
         printf("\tTarget operational mode: CYCLIC_VELOCITY @ %d\n", value);
       break;
     case CableRobotWinchOperationModes::CYCLIC_TORQUE:
-      value = input_pdos.Cust.actual_torque;
+      value = std::max(input_pdos.Cust.actual_torque, kMinInitTorque_);
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_TORQUE @ %d\n", value);
       break;
@@ -85,7 +85,7 @@ CableRobotWinchData::CableRobotWinchData(const CRWSlaveInPdos& input_pdos,
         printf("\tTarget operational mode: CYCLIC_VELOCITY @ %d\n", value);
       break;
     case CableRobotWinchOperationModes::CYCLIC_TORQUE:
-      value = input_pdos.Cust.actual_torque;
+      value = std::max(input_pdos.Cust.actual_torque, kMinInitTorque_);
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_TORQUE @ %d\n", value);
       break;
