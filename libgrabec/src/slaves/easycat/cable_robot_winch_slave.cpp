@@ -1,7 +1,7 @@
 /**
  * @file Cable_robot_winch_slave.h
  * @author Simone Comari
- * @date 08 Feb 2021
+ * @date 02 Mar 2020
  * @brief File containing class implementation declared in cable_robot_winch_slave.h.
  */
 
@@ -341,64 +341,82 @@ void CableRobotWinchSlave::FaultReset()
   BufferOut.Cust.control_word = static_cast<uint16_t>(control_word.to_ulong());
 }
 
-void CableRobotWinchSlave::ChangePosition(const int32_t target_position)
+void CableRobotWinchSlave::ChangePosition(const int32_t target_position,
+                                          const bool verbose /*=false*/)
 {
   if (GetOpMode() == CableRobotWinchOperationModes::CYCLIC_POSITION &&
       prev_pos_target_ == target_position)
     return;
   prev_pos_target_ = target_position;
 
-  //  PrintCommand("ChangePosition");
-  //  printf("\tTarget position: %d\n", target_position);
+  if (verbose)
+  {
+    PrintCommand("ChangePosition");
+    PrintTarget(target_position);
+  }
 
   CableRobotWinchData data =
     CableRobotWinchData(CableRobotWinchOperationModes::CYCLIC_POSITION, target_position);
   SetChange(data);
 }
 
-void CableRobotWinchSlave::ChangeVelocity(const int32_t target_velocity)
+void CableRobotWinchSlave::ChangeVelocity(const int32_t target_velocity,
+                                          const bool verbose /*=false*/)
 {
   if (GetOpMode() == CableRobotWinchOperationModes::CYCLIC_VELOCITY &&
       prev_vel_target_ == target_velocity)
     return;
   prev_vel_target_ = target_velocity;
 
-  //  PrintCommand("ChangeVelocity");
-  //  printf("\tTarget velocity: %d\n", target_velocity);
+  if (verbose)
+  {
+    PrintCommand("ChangeVelocity");
+    PrintTarget(target_velocity);
+  }
 
   CableRobotWinchData data =
     CableRobotWinchData(CableRobotWinchOperationModes::CYCLIC_VELOCITY, target_velocity);
   SetChange(data);
 }
 
-void CableRobotWinchSlave::ChangeTorque(const int16_t target_torque)
+void CableRobotWinchSlave::ChangeTorque(const int16_t target_torque,
+                                        const bool verbose /*=false*/)
 {
   if (GetOpMode() == CableRobotWinchOperationModes::CYCLIC_TORQUE &&
       prev_torque_target_ == target_torque)
     return;
   prev_torque_target_ = target_torque;
 
-  //  PrintCommand("ChangeTorque");
-  //  printf("\tTarget torque: %d\n", target_torque);
+  if (verbose)
+  {
+    PrintCommand("ChangeTorque");
+    PrintTarget(target_torque);
+  }
 
   CableRobotWinchData data =
     CableRobotWinchData(CableRobotWinchOperationModes::CYCLIC_TORQUE, target_torque);
   SetChange(data);
 }
 
-void CableRobotWinchSlave::ChangeOpMode(const int8_t target_op_mode)
+void CableRobotWinchSlave::ChangeOpMode(const int8_t target_op_mode,
+                                        const bool verbose /*=false*/)
 {
   PrintCommand("ChangeOpMode");
   // Set target value to current one
-  CableRobotWinchData data = CableRobotWinchData(target_op_mode, BufferIn, true);
+  CableRobotWinchData data = CableRobotWinchData(target_op_mode, BufferIn, verbose);
+  if (verbose)
+    PrintTarget(data);
+  // Apply
   SetChange(data);
 }
 
-void CableRobotWinchSlave::SetTargetDefaults()
+void CableRobotWinchSlave::SetTargetDefaults(const bool verbose /*=false*/)
 {
   PrintCommand("SetTargetDefaults");
   // Set target operational mode and value to current ones
-  CableRobotWinchData data = CableRobotWinchData(BufferIn, true);
+  CableRobotWinchData data = CableRobotWinchData(BufferIn, verbose);
+  if (verbose)
+    PrintTarget(data);
   // Apply
   SetChange(data);
 }
@@ -459,6 +477,24 @@ inline void CableRobotWinchSlave::PrintCommand(const char* cmd) const
 {
   std::string msg;
   msg = QString("Drive %1 received command: %2").arg(id_).arg(cmd).toStdString();
+  EcPrintCb(msg);
+}
+
+inline void CableRobotWinchSlave::PrintTarget(const int target) const
+{
+  std::string msg;
+  msg = QString("Drive %1 new target: %2").arg(id_).arg(target).toStdString();
+  EcPrintCb(msg);
+}
+
+inline void CableRobotWinchSlave::PrintTarget(const CableRobotWinchData& data) const
+{
+  std::string msg;
+  msg = QString("Drive %1 op mode %2 with target: %3")
+          .arg(id_)
+          .arg(data.op_mode)
+          .arg(data.value)
+          .toStdString();
   EcPrintCb(msg);
 }
 
