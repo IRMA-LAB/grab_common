@@ -1,7 +1,7 @@
 /**
  * @file Cable_robot_winch_slave.h
  * @author Simone Comari
- * @date 08 Feb 2021
+ * @date 02 Mar 2020
  * @brief File containing _Cable Robot Winch_ slave interface to be included in the GRAB
  * ethercat library.
  */
@@ -211,39 +211,44 @@ class CableRobotWinchSlave: public QObject,
    * If drive is in in OPERATION ENABLED state, it changes _operation mode_ to
    * CYCLIC_POSITION and sets target position to @c target_position.
    * @param[in] target_position New position setpoint in user-defined units.
+   * @param[in] verbose If _true_ prints command and target to console.
    */
-  void ChangePosition(const int32_t target_position);
+  void ChangePosition(const int32_t target_position, const bool verbose = false);
   /**
    * @brief Change Velocity external event.
    *
    * If drive is in in OPERATION ENABLED state, it changes _operation mode_ to
    * CYCLIC_VELOCITY and sets target velocity to @c target_velocity.
    * @param[in] target_velocity New velocity setpoint in user-defined units.
+   * @param[in] verbose If _true_ prints command and target to console.
    */
-  void ChangeVelocity(const int32_t target_velocity);
+  void ChangeVelocity(const int32_t target_velocity, const bool verbose = false);
   /**
    * @brief Change Torque external event.
    *
    * If drive is in in OPERATION ENABLED state, it changes _operation mode_ to
    * CYCLIC_TORQUE and sets target torque to @c target_torque.
    * @param[in] target_torque New torque setpoint in user-defined units.
+   * @param[in] verbose If _true_ prints command and target to console.
    */
-  void ChangeTorque(const int16_t target_torque);
+  void ChangeTorque(const int16_t target_torque, const bool verbose = false);
   /**
    * @brief Change Operation Mode external event.
    *
    * If drive is in in OPERATION ENABLED state, it changes _operation mode_ to
    * @c target_op_mode and sets corresponding target to its current value.
    * @param[in] target_op_mode New _operation mode_.
+   * @param[in] verbose If _true_ prints command and target to console.
    */
-  void ChangeOpMode(const int8_t target_op_mode);
+  void ChangeOpMode(const int8_t target_op_mode, const bool verbose = false);
   /**
    * @brief SetTargetDefaults external event.
    *
    * If drive is in in OPERATION ENABLED state, according to current _operation mode_, it
    * sets corresponding target value to its current value.
+   * @param[in] verbose If _true_ prints command and target to console.
    */
-  void SetTargetDefaults();
+  void SetTargetDefaults(const bool verbose = false);
 
   //------- Methods called within the real-time cycle --------------------------------//
 
@@ -412,6 +417,8 @@ class CableRobotWinchSlave: public QObject,
   void SetChange(const CableRobotWinchData& data);
 
   inline void PrintCommand(const char* cmd) const;
+  inline void PrintTarget(const int target) const;
+  inline void PrintTarget(const CableRobotWinchData& data) const;
 };
 
 } // end namespace grabec
