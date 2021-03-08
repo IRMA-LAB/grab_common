@@ -114,7 +114,9 @@ void RobotConfigJsonParser::PrintConfig() const
               << "\n   transmission_ratio\t"
               << config_params_.actuators[i].winch.transmission_ratio
               << "\n   pos_PA_loc\n"
-              << config_params_.actuators[i].winch.pos_PA_loc
+              << config_params_.actuators[i].winch.pos_PA_loc << "\n  tension_bias\t"
+              << config_params_.actuators[i].winch.tension_bias << "\n  tension_gain\t"
+              << config_params_.actuators[i].winch.tension_gain
               << "\n Swivel Pulley:\n--------------------"
               << "\n   transmission_ratio\t"
               << config_params_.actuators[i].pulley.transmission_ratio
@@ -208,6 +210,10 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
       actuator_params.winch.transmission_ratio = actuator[field][subfield];
       subfield                                 = "l0";
       actuator_params.winch.l0                 = actuator[field][subfield];
+      subfield                                 = "tension_bias";
+      actuator_params.winch.tension_bias       = actuator[field][subfield];
+      subfield                                 = "tension_gain";
+      actuator_params.winch.tension_gain       = actuator[field][subfield];
 
       for (uint8_t i = 0; i < 3; i++)
       {

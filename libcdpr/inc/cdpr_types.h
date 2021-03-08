@@ -339,6 +339,10 @@ struct WinchParams
   double l0 = 0.0; /**< [m] length between @f$D_i@f$ and the exit point of the _i-th_
                       cable from the corresponding winch. */
   double transmission_ratio; /**< counts-to-meters transmission ratio. */
+  double tension_bias =
+    0.0; /**< [N] tension bias in linear transformation loadcell value --> tension. */
+  double tension_gain =
+    1.; /**< [N] tension gain in linear transformation loadcell value --> tension. */
 };
 
 /**
