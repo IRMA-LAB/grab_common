@@ -13,7 +13,7 @@ class DomainEntry():
         self.Index = '0' + element.find('Index').text[1:].lower()
         self.SubIndex = '0x' + element.find('SubIndex').text.lower()
         self.BitLen = element.find('BitLen').text
-        self.Name = element.find('Name').text
+        self.Name = element.find('Name').text.replace(' ', '_')
         self.DataType = self._convert2Ctype(element.find('DataType').text)
 
     def print_fields(self):
@@ -129,7 +129,7 @@ class EasyCatXmlParser(object):
         self._output = {}
 
         self._output = {
-            'DeviceName': self._root.find('.//Device/Type').text,
+            'DeviceName': self._root.find('.//Device/Type').text.replace(' ', '_'),
             'DomainEntriesNum': len(output_domain_entries) +
             len(input_domain_entries),
             'Alias': 0,
