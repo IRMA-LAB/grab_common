@@ -247,7 +247,7 @@ def main():
     app_name = 'minimal_easycat_master'
     odir = os.path.join(parsed_args.odir, app_name)
     if not os.path.exists(odir):
-        os.mkdir(odir)
+        os.makedirs(odir)
         
     # Generate app files.
     print('Generating Qt project file...')
@@ -267,8 +267,8 @@ def main():
 
 if __name__ == "__main__":
     # Uncomment these line to run this script from IDE.
-    sys.argv.append('-i')
-    sys.argv.append('/home/simo/repos/cable_robot/libs/grab_common/libgrabec/inc/slaves/easycat/easyCatST_config02_slave.h')
+#    sys.argv.append('-i')
+#    sys.argv.append('/home/simo/repos/cable_robot/libs/grab_common/libgrabec/inc/slaves/easycat/easyCatST_config02_slave.h')
     # sys.argv.append('/path/to/input/file.h')
 
     # sys.argv.append('-o')
