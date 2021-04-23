@@ -56,7 +56,6 @@ struct GSWDriveInPdos
   int32_t pos_actual_value;    /**< pos_actual_value */
   int32_t vel_actual_value;    /**< vel_actual_value */
   int16_t torque_actual_value; /**< torque_actual_value */
-  int16_t analog_input;       /**< analog_input */
   uint digital_inputs;         /**< digital_inputs */
   int aux_pos_actual_value;    /**< aux_pos_actual_value */
 };
@@ -399,7 +398,7 @@ class GoldSoloWhistleDrive:
   void InitFun() override;
 
  private:
-  static constexpr uint8_t kDomainInputs            = 8;
+  static constexpr uint8_t kDomainInputs            = 7;
   static constexpr uint8_t kDomainOutputs           = 5;
   static constexpr uint8_t kDomainEntries           = kDomainInputs + kDomainOutputs;
   static constexpr uint8_t kAlias                   = 0;
@@ -429,10 +428,6 @@ class GoldSoloWhistleDrive:
   static constexpr uint8_t kTorqueActualValueSubIdx = 0x00;
   static constexpr uint16_t kDigInIndex             = 0x60FD;
   static constexpr uint8_t kDigInSubIndex           = 0x00;
-
-  static constexpr uint16_t kAnalogIdx   = 0x2205;
-  static constexpr uint8_t kAnalogSubIdx = 0x1;
-
   static constexpr uint16_t kAuxPosActualValueIdx   = 0x20A0;
   static constexpr uint8_t kAuxPosActualValueSubIdx = 0x00;
   static constexpr uint8_t kHomingOnPosMethod       = 35;
@@ -451,14 +446,13 @@ class GoldSoloWhistleDrive:
     {kPosActualValueIdx, kPosActualValueSubIdx, 32},
     {kVelActualValueIdx, kVelActualValueSubIdx, 32},
     {kTorqueActualValueIdx, kTorqueActualValueSubIdx, 16},
-    {kAnalogIdx, kAnalogSubIdx, 16},
     {kDigInIndex, kDigInSubIndex, 32},
     {kAuxPosActualValueIdx, kAuxPosActualValueSubIdx, 32}};
 
   // ethercat utilities, can be retrieved in the xml config file provided by the vendor
   static constexpr ec_pdo_info_t kPDOs_[2] = {
     {0x1607, 5, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 0}, /* Outputs */
-    {0x1a07, 8, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 5}, /* Inputs */
+    {0x1a07, 7, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 5}, /* Inputs */
   };
 
   static constexpr ec_sync_info_t kSyncs_[5] = {
@@ -486,7 +480,6 @@ class GoldSoloWhistleDrive:
     unsigned int position_actual_value;
     unsigned int velocity_actual_value;
     unsigned int torque_actual_value;
-    unsigned int analog_input;
     unsigned int digital_inputs;
     unsigned int aux_pos_actual_value;
   } offset_in_;

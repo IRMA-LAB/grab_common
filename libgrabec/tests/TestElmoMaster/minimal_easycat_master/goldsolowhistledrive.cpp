@@ -308,25 +308,23 @@ void GoldSoloWhistleDrive::ReadInputs()
     EC_READ_S32(domain_data_ptr_ + offset_in_.velocity_actual_value);
   input_pdos_.torque_actual_value =
     EC_READ_S16(domain_data_ptr_ + offset_in_.torque_actual_value);
-  input_pdos_.analog_input =
-    EC_READ_S16(domain_data_ptr_ + offset_in_.analog_input);
   input_pdos_.digital_inputs = EC_READ_U32(domain_data_ptr_ + offset_in_.digital_inputs);
   input_pdos_.aux_pos_actual_value =
     EC_READ_S32(domain_data_ptr_ + offset_in_.aux_pos_actual_value);
 
-//  drive_state_ = GetDriveState(input_pdos_.status_word);
-//  if (drive_state_ != GetCurrentState())
-//  {
-//    if (drive_state_ == ST_OPERATION_ENABLED)
-//    {
-//      // Get target default
-//      GoldSoloWhistleDriveData* data =
-//        new GoldSoloWhistleDriveData(input_pdos_.display_op_mode, input_pdos_);
-//      ExternalEvent(ST_OPERATION_ENABLED, data);
-//    }
-//    else
-//      ExternalEvent(drive_state_);
-//  }
+  drive_state_ = GetDriveState(input_pdos_.status_word);
+  if (drive_state_ != GetCurrentState())
+  {
+    if (drive_state_ == ST_OPERATION_ENABLED)
+    {
+      // Get target default
+      GoldSoloWhistleDriveData* data =
+        new GoldSoloWhistleDriveData(input_pdos_.display_op_mode, input_pdos_);
+      ExternalEvent(ST_OPERATION_ENABLED, data);
+    }
+    else
+      ExternalEvent(drive_state_);
+  }
 }
 
 void GoldSoloWhistleDrive::WriteOutputs()
