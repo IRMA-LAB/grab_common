@@ -60,10 +60,10 @@ DEFINES += ARMA_DONT_PRINT_ERRORS
 LIBS += -llapack -lblas -larmadillo
 
 # Matlab engine
-HEADERS += /usr/local/MATLAB/R2019b/extern/include/MatlabEngine.hpp \
-           /usr/local/MATLAB/R2019b/extern/include/MatlabDataArray.hpp
-unix:!macx: LIBS += -L/usr/local/MATLAB/R2019b/extern/bin/glnxa64/ -lMatlabEngine
-unix:!macx: LIBS += -L/usr/local/MATLAB/R2019b/extern/bin/glnxa64/ -lMatlabDataArray
-INCLUDEPATH += /usr/local/MATLAB/R2019b/extern/bin/glnxa64 \
-           /usr/local/MATLAB/R2019b/extern/include/
-DEPENDPATH += /usr/local/MATLAB/R2019b/extern/bin/glnxa64
+HEADERS += /usr/local/MATLAB/R2020b/extern/include/MatlabEngine.hpp \
+           /usr/local/MATLAB/R2020b/extern/include/MatlabDataArray.hpp
+unix:!macx: LIBS += -L/usr/local/MATLAB/R2020b/extern/bin/glnxa64/ -lMatlabEngine
+unix:!macx: LIBS += -L/usr/local/MATLAB/R2020b/extern/bin/glnxa64/ -lMatlabDataArray
+INCLUDEPATH += /usr/local/MATLAB/R2020b/extern/bin/glnxa64 \
+           /usr/local/MATLAB/R2020b/extern/include/
+DEPENDPATH += /usr/local/MATLAB/R2020b/extern/bin/glnxa64
