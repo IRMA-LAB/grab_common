@@ -689,10 +689,12 @@ void LibcdprTest::initTestCase()
   RobotConfigJsonParser parser;
   parser.ParseFile(SRCDIR "cdpr_matlab/config/Grab_prototype_33.json", &params_);
   params_.removeInactiveComponents();
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load same robot parameters in matlab workspace
   matlab_ptr_->eval(
     u"cdpr_p = "
     u"CdprParameter('" SRCDIR u"cdpr_matlab/config/Grab_prototype_33.json');");
+#endif
 }
 
 //--------- Tools ---------------//
@@ -722,6 +724,7 @@ void LibcdprTest::testUpdatePlatformPose()
   grabnum::Vector3d position({1, 2, 3});
   grabnum::Vector3d orientation({0.1, 0.2, 0.3});
 
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addPlatform2WS(platform, "platform_v");
   auto position_matlab =
@@ -734,6 +737,7 @@ void LibcdprTest::testUpdatePlatformPose()
   matlab_ptr_->setVariable(u"position", std::move(position_matlab));
   matlab_ptr_->setVariable(u"orientation", std::move(orientation_matlab));
   matlab_ptr_->setVariable(u"pos_PG_loc", std::move(pos_PG_loc_matlab));
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK
@@ -741,6 +745,7 @@ void LibcdprTest::testUpdatePlatformPose()
     grabcdpr::updatePlatformPose(position, orientation, params_.platform.pos_PG_loc,
                                  platform);
   }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"platform_v = UpdatePlatformPose(position, orientation, "
                     u"RotationParametrizations.TILT_TORSION, pos_PG_loc, platform_v);");
@@ -755,6 +760,7 @@ void LibcdprTest::testUpdatePlatformPose()
   QVERIFY(platform.orientation.IsApprox(matlab_platform.orientation));
   QVERIFY(platform.rot_mat.IsApprox(matlab_platform.rot_mat));
   QVERIFY(platform.pose.IsApprox(matlab_platform.pose));
+#endif
 }
 
 void LibcdprTest::testUpdatePosA()
@@ -764,12 +770,15 @@ void LibcdprTest::testUpdatePosA()
   grabcdpr::PlatformVars platform;
   platform.rot_mat = grabnum::Matrix3d(1.);
   platform.position.Fill({1, 2., 0.5});
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addCable2WS(cable, "cable_v");
   addPlatform2WS(platform, "platform_v");
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK { grabcdpr::updatePosA(params_.actuators[0], platform, cable); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = "
                     u"UpdatePosA(cdpr_p.cable(1).pos_PA_loc, cdpr_p.cable(1).pos_OD_glob,"
@@ -782,6 +791,7 @@ void LibcdprTest::testUpdatePosA()
   QCOMPARE(cable.pos_PA_glob, matlab_cable.pos_PA_glob);
   QCOMPARE(cable.pos_OA_glob, matlab_cable.pos_OA_glob);
   QCOMPARE(cable.pos_DA_glob, matlab_cable.pos_DA_glob);
+#endif
 }
 
 void LibcdprTest::testUpdatePulleyVersors()
@@ -789,11 +799,14 @@ void LibcdprTest::testUpdatePulleyVersors()
   // Setup dummy input
   grabcdpr::CableVars cable;
   cable.swivel_ang = 0.5;
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addCable2WS(cable, "cable_v");
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK { grabcdpr::updatePulleyVersors(params_.actuators[0].pulley, cable); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = CalcPulleyVersors(cdpr_p.cable(1).vers_i, "
                     u"cdpr_p.cable(1).vers_j, cable_v);");
@@ -804,17 +817,20 @@ void LibcdprTest::testUpdatePulleyVersors()
   // Check they are the same
   QCOMPARE(cable.vers_u, matlab_cable.vers_u);
   QCOMPARE(cable.vers_w, matlab_cable.vers_w);
+#endif
 }
 
 void LibcdprTest::testUpdateSwivelAngle()
 {
   // Setup dummy input
   grabnum::Vector3d pos_DA_glob({1, 2, 3});
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   auto pos_DA_glob_matlab =
     factory_.createArray<double>({3, 1}, pos_DA_glob.Begin(), pos_DA_glob.End());
   // Put variables in the MATLAB workspace
   matlab_ptr_->setVariable(u"pos_DA_glob", std::move(pos_DA_glob_matlab));
+#endif
 
   // Call C++ function implementation to be tested
   double swivel_angle;
@@ -822,6 +838,7 @@ void LibcdprTest::testUpdateSwivelAngle()
   {
     swivel_angle = grabcdpr::calcSwivelAngle(params_.actuators[0].pulley, pos_DA_glob);
   }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"swivel_angle = CalcSwivelAngle(cdpr_p.cable(1).vers_i, "
                     u"cdpr_p.cable(1).vers_j, pos_DA_glob);");
@@ -832,6 +849,7 @@ void LibcdprTest::testUpdateSwivelAngle()
 
   // Check they are the same
   QCOMPARE(swivel_angle, matlab_swivel_angle[0]);
+#endif
 }
 
 void LibcdprTest::testUpdateTangentAngle()
@@ -839,6 +857,7 @@ void LibcdprTest::testUpdateTangentAngle()
   // Setup dummy input
   grabnum::Vector3d vers_u({0, 1, 0});
   grabnum::Vector3d pos_DA_glob({1, 2, 3});
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   auto pos_DA_glob_matlab =
     factory_.createArray<double>({3, 1}, pos_DA_glob.Begin(), pos_DA_glob.End());
@@ -846,6 +865,7 @@ void LibcdprTest::testUpdateTangentAngle()
   // Put variables in the MATLAB workspace
   matlab_ptr_->setVariable(u"pos_DA_glob", std::move(pos_DA_glob_matlab));
   matlab_ptr_->setVariable(u"vers_u", std::move(vers_u_matlab));
+#endif
 
   // Call C++ function implementation to be tested
   double tan_angle;
@@ -854,6 +874,7 @@ void LibcdprTest::testUpdateTangentAngle()
     tan_angle =
       grabcdpr::calcTangentAngle(params_.actuators[0].pulley, vers_u, pos_DA_glob);
   }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"tan_angle = CalcTangentAngle(cdpr_p.cable(1).vers_k, "
                     u"cdpr_p.cable(1).swivel_pulley_r, vers_u, pos_DA_glob);");
@@ -864,6 +885,7 @@ void LibcdprTest::testUpdateTangentAngle()
 
   // Check they are the same
   QCOMPARE(tan_angle, matlab_tan_angle[0]);
+#endif
 }
 
 void LibcdprTest::testUpdateCableVectors()
@@ -873,11 +895,14 @@ void LibcdprTest::testUpdateCableVectors()
   cable.tan_ang = 0.5;
   cable.vers_u.Fill({0, 0, 1});
   cable.pos_DA_glob.Fill({1, 2, 3});
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addCable2WS(cable, "cable_v");
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK { grabcdpr::updateCableVectors(params_.actuators[0].pulley, cable); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = CalcCableVectors(cdpr_p.cable(1).swivel_pulley_r, "
                     u"cdpr_p.cable(1).vers_k, cable_v);");
@@ -889,6 +914,7 @@ void LibcdprTest::testUpdateCableVectors()
   QCOMPARE(cable.vers_n, matlab_cable.vers_n);
   QCOMPARE(cable.vers_t, matlab_cable.vers_t);
   QCOMPARE(cable.pos_BA_glob, matlab_cable.pos_BA_glob);
+#endif
 }
 
 void LibcdprTest::testUpdateJacobiansRow()
@@ -897,14 +923,17 @@ void LibcdprTest::testUpdateJacobiansRow()
   grabcdpr::CableVars cable;
   cable.vers_u.Fill({0, 0, 1});
   grabnum::Matrix3d h_mat({1, 2, 3, 4, 5, 6, 7, 8, 9});
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addCable2WS(cable, "cable_v");
   auto h_mat_matlab = factory_.createArray<double>({3, 3}, h_mat.Begin(), h_mat.End());
   // Put variables in the MATLAB workspace
   matlab_ptr_->setVariable(u"h_mat", std::move(h_mat_matlab));
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK { grabcdpr::updateJacobiansRow(h_mat, cable); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"[geometric, analitic] = CalcPlatformJacobianRow(cable_v.vers_t,"
                     u"cable_v.pos_PA_glob, h_mat);");
@@ -922,6 +951,7 @@ void LibcdprTest::testUpdateJacobiansRow()
   // Check they are the same
   QCOMPARE(cable.anal_jacob_row, geom_jacob_row);
   QCOMPARE(cable.geom_jacob_row, anal_jacob_row);
+#endif
 }
 
 void LibcdprTest::testUpdateCableZeroOrd()
@@ -931,12 +961,15 @@ void LibcdprTest::testUpdateCableZeroOrd()
   grabnum::Vector3d position({1, 2, 3});
   grabnum::Matrix3d rot_mat({0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9});
   grabcdpr::CableVars cable;
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addPlatform2WS(platform, "platform_v");
   addCable2WS(cable, "cable_v");
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK { grabcdpr::updateCableZeroOrd(params_.actuators[0], platform, cable); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cable_v = UpdateCableZeroOrd(cdpr_p.cable(1), "
                     u"platform_v, cable_v);");
@@ -958,6 +991,7 @@ void LibcdprTest::testUpdateCableZeroOrd()
   QVERIFY(cable.pos_OA_glob.IsApprox(matlab_cable.pos_OA_glob));
   QVERIFY(cable.geom_jacob_row.IsApprox(matlab_cable.geom_jacob_row));
   QVERIFY(cable.anal_jacob_row.IsApprox(matlab_cable.anal_jacob_row));
+#endif
 }
 
 void LibcdprTest::testUpdateIK0()
@@ -967,6 +1001,7 @@ void LibcdprTest::testUpdateIK0()
                             params_.platform.rot_parametrization);
   grabnum::Vector3d position({1, 2, 3});
   grabnum::Vector3d orientation({0.1, 0.2, 0.3});
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addRobot2WS(robot, "cdpr_v");
   auto position_matlab =
@@ -976,9 +1011,11 @@ void LibcdprTest::testUpdateIK0()
   // Put variables in the MATLAB workspace
   matlab_ptr_->setVariable(u"position", std::move(position_matlab));
   matlab_ptr_->setVariable(u"orientation", std::move(orientation_matlab));
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK { grabcdpr::updateIK0(position, orientation, params_, robot); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cdpr_v = UpdateIKZeroOrd(position, orientation, cdpr_p, cdpr_v);");
 
@@ -1012,6 +1049,7 @@ void LibcdprTest::testUpdateIK0()
                              EPSILON));
   QVERIFY(arma::approx_equal(robot.tension_vector, matlab_robot.tension_vector, "absdiff",
                              EPSILON));
+#endif
 }
 
 //--------- Direct Kinematics ---------------//
@@ -1023,12 +1061,15 @@ void LibcdprTest::testCalcJacobianL()
                             params_.platform.rot_parametrization);
   grabnum::Vector6d pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   grabcdpr::updateIK0(pose, params_, robot);
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addRobot2WS(robot, "cdpr_v");
+#endif
 
   // Call C++ function implementation to be tested
   arma::mat jacobian_l;
   QBENCHMARK { jacobian_l = grabcdpr::calcJacobianL(robot); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"jacobian_l = CalcJacobianL(cdpr_v);");
 
@@ -1037,6 +1078,7 @@ void LibcdprTest::testCalcJacobianL()
 
   // Check they are the same
   QVERIFY(arma::approx_equal(jacobian_l, matlab_jacobian_l, "absdiff", EPSILON));
+#endif
 }
 
 void LibcdprTest::testCalcJacobianSw()
@@ -1046,12 +1088,15 @@ void LibcdprTest::testCalcJacobianSw()
                             params_.platform.rot_parametrization);
   grabnum::Vector6d pose({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   grabcdpr::updateIK0(pose, params_, robot);
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addRobot2WS(robot, "cdpr_v");
+#endif
 
   // Call C++ function implementation to be tested
   arma::mat jacobian_sw;
   QBENCHMARK { jacobian_sw = grabcdpr::calcJacobianSw(robot); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"jacobian_sw = CalcJacobianSw(cdpr_v);");
 
@@ -1060,6 +1105,7 @@ void LibcdprTest::testCalcJacobianSw()
 
   // Check they are the same
   QVERIFY(arma::approx_equal(jacobian_sw, matlab_jacobian_sw, "absdiff", EPSILON));
+#endif
 }
 
 void LibcdprTest::testOptFunDK0()
@@ -1076,6 +1122,7 @@ void LibcdprTest::testOptFunDK0()
     cables_length[i] = robot.cables[i].length;
     swivel_angles[i] = robot.cables[i].swivel_ang;
   }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   auto cables_length_matlab =
     factory_.createArray({num_cables, 1}, cables_length.begin(), cables_length.end());
@@ -1086,6 +1133,7 @@ void LibcdprTest::testOptFunDK0()
   matlab_ptr_->setVariable(u"cables_length", std::move(cables_length_matlab));
   matlab_ptr_->setVariable(u"swivel_angles", std::move(swivel_angles_matlab));
   matlab_ptr_->setVariable(u"pose", std::move(pose_matlab));
+#endif
 
   // Call C++ function implementation to be tested
   arma::vec func_val;
@@ -1094,6 +1142,7 @@ void LibcdprTest::testOptFunDK0()
   {
     optFunDK0(params_, cables_length, swivel_angles, pose, func_jacob, func_val);
   }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"[vector, matrix] = FunDkSwL(cdpr_p, cables_length, swivel_angles, pose);");
@@ -1105,15 +1154,15 @@ void LibcdprTest::testOptFunDK0()
   // Check they are the same
   QVERIFY(arma::approx_equal(func_val, matlab_func_val, "absdiff", EPSILON));
   QVERIFY(arma::approx_equal(func_jacob, matlab_func_jacob, "absdiff", EPSILON));
+#endif
 }
 
 void LibcdprTest::testUpdateDK0()
 {
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
-  const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
   arma::vec3 true_orientation =
-    grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_);
+    grabcdpr::nonLinsolveJacGeomStatic(init_guess, params_.controlled_vars_mask, params_);
   grabcdpr::RobotVars robot(params_.actuators.size(),
                             params_.platform.rot_parametrization);
   grabnum::Vector3d position = init_guess.HeadRows<3>();
@@ -1153,6 +1202,7 @@ void LibcdprTest::testOptFunDK0GS()
     cables_length[i] = robot.cables[i].length;
     swivel_angles[i] = robot.cables[i].swivel_ang;
   }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   auto cables_length_matlab =
     factory_.createArray({num_cables, 1}, cables_length.begin(), cables_length.end());
@@ -1163,6 +1213,7 @@ void LibcdprTest::testOptFunDK0GS()
   matlab_ptr_->setVariable(u"cables_length", std::move(cables_length_matlab));
   matlab_ptr_->setVariable(u"swivel_angles", std::move(swivel_angles_matlab));
   matlab_ptr_->setVariable(u"pose", std::move(pose_matlab));
+#endif
 
   // Call C++ function implementation to be tested
   arma::vec func_val;
@@ -1171,6 +1222,7 @@ void LibcdprTest::testOptFunDK0GS()
   {
     optFunDK0GS(params_, cables_length, swivel_angles, pose, func_jacob, func_val);
   }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"[vector, matrix] = FunDkGsSwL(cdpr_p, cables_length, swivel_angles, pose);");
@@ -1182,17 +1234,18 @@ void LibcdprTest::testOptFunDK0GS()
   // Check they are the same
   QVERIFY(arma::approx_equal(func_val, matlab_func_val, "absdiff", EPSILON));
   QVERIFY(arma::approx_equal(func_jacob, matlab_func_jacob, "absdiff", EPSILON));
+#endif
 }
 
 void LibcdprTest::testRobustUpdateDK0()
 {
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
-  const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
   arma::vec3 true_orientation =
-    grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_);
+    grabcdpr::nonLinsolveJacGeomStatic(init_guess, params_.controlled_vars_mask, params_);
   grabcdpr::UnderActuatedRobotVars robot(params_.actuators.size(),
-                                         params_.platform.rot_parametrization, mask);
+                                         params_.platform.rot_parametrization,
+                                         params_.controlled_vars_mask);
   grabnum::Vector3d position = init_guess.GetBlock<3, 1>(1, 1);
   grabnum::Vector3d orientation(true_orientation.begin(), true_orientation.end());
   grabcdpr::updateIK0(position, orientation, params_, robot);
@@ -1225,12 +1278,14 @@ void LibcdprTest::testUpdateExternalLoads()
   grabcdpr::updatePlatformPose(grabnum::Vector3d({1, 2, 3}),
                                grabnum::Vector3d({0.5, 1.0, 1.5}), params_.platform,
                                robot.platform);
-
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addRobot2WS(robot, "cdpr_v");
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK { grabcdpr::updateAllExternalLoads(params_.platform, robot.platform); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cdpr_v = CalcExternalLoadsStateSpace(cdpr_v, cdpr_p);");
 
@@ -1240,6 +1295,7 @@ void LibcdprTest::testUpdateExternalLoads()
   // Check they are the same
   QCOMPARE(robot.platform.ext_load, matlab_platform.platform.ext_load);
   QCOMPARE(robot.platform.ext_load_ss, matlab_platform.platform.ext_load_ss);
+#endif
 }
 
 void LibcdprTest::testUpdateCablesStaticTension()
@@ -1251,11 +1307,14 @@ void LibcdprTest::testUpdateCablesStaticTension()
   grabnum::Vector3d orientation({0.0, 0.0, 0.0}); // FIND A FEASIBLE ORIENTATION
   grabcdpr::updateIK0(position, orientation, params_, robot);
   grabcdpr::updateExternalLoads(params_.platform, robot.platform);
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addRobot2WS(robot, "cdpr_v");
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK { grabcdpr::updateCablesStaticTension(robot); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"cdpr_v = CalcCablesStaticTension(cdpr_v);");
 
@@ -1265,25 +1324,29 @@ void LibcdprTest::testUpdateCablesStaticTension()
   // Check they are the same
   QVERIFY(arma::approx_equal(robot.tension_vector, matlab_robot.tension_vector, "absdiff",
                              EPSILON));
+#endif
 }
 
 void LibcdprTest::testCalcJacobiansGS()
 {
   // Setup dummy input
-  const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
   grabcdpr::UnderActuatedRobotVars robot(params_.actuators.size(),
-                                         params_.platform.rot_parametrization, mask);
+                                         params_.platform.rot_parametrization,
+                                         params_.controlled_vars_mask);
   grabnum::Vector3d position({0.1, 1.5, 0.2});        // some feasible position
   grabnum::Vector3d orientation({0.23, -0.16, 0.03}); // FIND A FEASIBLE ORIENTATION
   grabcdpr::updateIK0(position, orientation, params_, robot);
   grabcdpr::updateExternalLoads(params_.platform, robot.platform);
   grabcdpr::updateCablesStaticTension(robot);
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   addRobot2WS(robot, "cdpr_v");
+#endif
 
   // Call C++ function implementation to be tested
   arma::mat Jq;
   QBENCHMARK { Jq = grabcdpr::calcJacobianGS(robot); }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"J_q = CalcJacobianGs(cdpr_v);");
 
@@ -1292,6 +1355,7 @@ void LibcdprTest::testCalcJacobiansGS()
 
   // Check they are the same
   QVERIFY(arma::approx_equal(Jq, matlab_J_q, "absdiff", EPSILON));
+#endif
 }
 
 void LibcdprTest::testOptFunGS()
@@ -1299,9 +1363,9 @@ void LibcdprTest::testOptFunGS()
   // Setup dummy input
   arma::vec3 fixed_coord({0.1, 1.5, 0.2}); // pos
   arma::vec3 var_coord({0.0, 0, 0.0});     // orient
-  const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
   arma::mat fun_jacobian;
   arma::vec fun_val;
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   auto act_vars =
     factory_.createArray<double>({3, 1}, fixed_coord.begin(), fixed_coord.end());
@@ -1310,12 +1374,14 @@ void LibcdprTest::testOptFunGS()
   // Put variables in the MATLAB workspace
   matlab_ptr_->setVariable(u"act_vars", std::move(act_vars));
   matlab_ptr_->setVariable(u"unact_vars", std::move(unact_vars));
+#endif
 
   // Call C++ function implementation to be tested
   QBENCHMARK
   {
     grabcdpr::optFunGS(params_, fixed_coord, var_coord, fun_jacobian, fun_val);
   }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(u"[fun_val, fun_jacobian] = FunGs(cdpr_p, act_vars, unact_vars);");
 
@@ -1326,6 +1392,7 @@ void LibcdprTest::testOptFunGS()
   // Check they are the same
   QVERIFY(arma::approx_equal(fun_jacobian, matlab_fun_jacobian, "absdiff", EPSILON));
   QVERIFY(arma::approx_equal(fun_val, matlab_fun_val, "absdiff", EPSILON));
+#endif
 }
 
 void LibcdprTest::testNonLinsolveJacGeomStatic()
@@ -1333,7 +1400,7 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   // Setup dummy input
   grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0.23, -0.16, 0.03});
   //  grabnum::VectorXd<POSE_DIM> init_guess({0.1, 1.5, 0.2, 0, 0, 0});
-  const arma::uvec6 mask({1, 1, 1, 0, 0, 0});
+#if DISABLE_MATLAB_COMPARISON == 0
   // Load dummy input to Matlab workspace
   auto p =
     factory_.createArray<double>({3, 1}, init_guess.Begin(), init_guess.Begin() + 3);
@@ -1341,17 +1408,21 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
   // Put variables in the MATLAB workspace
   matlab_ptr_->setVariable(u"p", std::move(p));
   matlab_ptr_->setVariable(u"in_guess", std::move(v));
+#endif
 
   // Call C++ function implementation to be tested
   arma::vec3 orientation;
   // Run once outside benchmark to obtain iterations
   //  uint8_t iterations;
-  //  orientation = grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_, 100,
+  //  orientation = grabcdpr::nonLinsolveJacGeomStatic(init_guess,
+  //  params_.controlled_vars_mask, params_, 100,
   //  &iterations); printf("Iterations: %d\n", iterations);
   QBENCHMARK
   {
-    orientation = grabcdpr::nonLinsolveJacGeomStatic(init_guess, mask, params_);
+    orientation = grabcdpr::nonLinsolveJacGeomStatic(
+      init_guess, params_.controlled_vars_mask, params_);
   }
+#if DISABLE_MATLAB_COMPARISON == 0
   // Call the corresponding MATLAB
   matlab_ptr_->eval(
     u"fsolve_options_grad = "
@@ -1367,6 +1438,7 @@ void LibcdprTest::testNonLinsolveJacGeomStatic()
 
   // Check they are the same
   QVERIFY(arma::approx_equal(orientation, matlab_orientation, "absdiff", 1e-5));
+#endif
 }
 
 QTEST_APPLESS_MAIN(LibcdprTest)

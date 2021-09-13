@@ -13,6 +13,7 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS QT_NO_DEBUG_OUTPUT
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
+DEFINES += DISABLE_MATLAB_COMPARISON=1
 
 HEADERS += \
     $$PWD/inc/cdpr_types.h \
