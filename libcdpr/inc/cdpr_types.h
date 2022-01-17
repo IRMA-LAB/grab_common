@@ -343,6 +343,8 @@ struct WinchParams
     0.0; /**< [N] tension bias in linear transformation loadcell value --> tension. */
   double tension_gain =
     1.; /**< [N] tension gain in linear transformation loadcell value --> tension. */
+  double kp = 0.01; /**< Proportional factor of PI controller (torque --> cable vel). */
+  double ki = 0.0;  /**< Integral factor of PI controller (torque --> cable vel). */
 };
 
 /**
