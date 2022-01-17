@@ -1,7 +1,7 @@
 /**
  * @file Cable_robot_winch_slave.h
  * @author Simone Comari
- * @date 02 Mar 2020
+ * @date Jan 2022
  * @brief File containing _Cable Robot Winch_ slave interface to be included in the GRAB
  * ethercat library.
  */
@@ -154,6 +154,11 @@ class CableRobotWinchSlave: public QObject,
    * @return Actual drive velocity in user-defined units.
    */
   int32_t GetVelocity() const { return BufferIn.Cust.actual_speed; }
+  /**
+   * @brief Get actual loadcell value.
+   * @return Actual loadcell value in user-defined units.
+   */
+  uint16_t GetLoadcellValue() const { return BufferIn.Cust.loadcell_value; }
   /**
    * @brief Get actual drive torque.
    * @return Actual drive torque in user-defined units.
