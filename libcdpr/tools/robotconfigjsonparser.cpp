@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.cpp
  * @author Simone Comari
- * @date 06 Feb 2020
+ * @date Jan 2022
  * @brief This file includes definitions of class declared in robotconfigjsonparser.h.
  */
 
