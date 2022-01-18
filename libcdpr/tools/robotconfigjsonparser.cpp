@@ -294,23 +294,30 @@ bool RobotConfigJsonParser::ArePlatformParamsValid() const
   return ret;
 }
 
-bool RobotConfigJsonParser::AreActuatorsParamsValid(
-  const grabcdpr::ActuatorParams& params) const
+bool RobotConfigJsonParser::AreWinchParamsValid(const grabcdpr::WinchParams& params) const
 {
   bool ret = true;
 
-  if (params.winch.l0 < 0.0)
+  if (params.l0 < 0.0)
   {
     std::cerr << "[ERROR] cable length must be non negative!" << std::endl;
     ret = false;
   }
 
-  if (params.winch.transmission_ratio <= 0.0)
+  if (params.transmission_ratio <= 0.0)
   {
     std::cerr << "[ERROR] winch transmission ratio must be strictly positive!"
               << std::endl;
     ret = false;
   }
+
+  return ret;
+}
+
+bool RobotConfigJsonParser::AreActuatorsParamsValid(
+  const grabcdpr::ActuatorParams& params) const
+{
+  bool ret = AreWinchParamsValid(params.winch);
 
   if (params.pulley.radius < 0.0)
   {

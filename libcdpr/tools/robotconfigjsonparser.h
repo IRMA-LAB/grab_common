@@ -100,7 +100,7 @@ class RobotConfigJsonParser
    */
   void PrintConfig() const;
 
- private:
+ protected:
   grabcdpr::RobotParams config_params_;
   bool file_parsed_ = false;
 
@@ -111,6 +111,7 @@ class RobotConfigJsonParser
   grabcdpr::RotParametrization str2RotParametrization(const std::string& str);
 
   bool ArePlatformParamsValid() const;
+  bool AreWinchParamsValid(const grabcdpr::WinchParams& params) const;
   bool AreActuatorsParamsValid(const grabcdpr::ActuatorParams& params) const;
 };
 
