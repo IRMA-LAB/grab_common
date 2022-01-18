@@ -183,6 +183,12 @@ class CableRobotWinchSlave: public QObject,
    * @return Actual drive status, i.e. the latest values of its input PDOs.
    */
   CRWSlaveInPdos GetDriveStatus() const { return BufferIn; }
+  /**
+   * @brief Get slave ID.
+   * @return Slave ID.
+   * @note This is not necessary equal to the slave position!
+   */
+  id_t GetID() const { return id_; }
 
   //------- External events resembling the ones internal to physical drive -----------//
 
