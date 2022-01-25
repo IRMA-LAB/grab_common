@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date 26 Jan 2021
+ * @date Apr 2021
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -56,6 +56,7 @@ struct GSWDriveInPdos
   int32_t pos_actual_value;    /**< pos_actual_value */
   int32_t vel_actual_value;    /**< vel_actual_value */
   int16_t torque_actual_value; /**< torque_actual_value */
+  int16_t analog_input;        /**< analog_input */
   uint digital_inputs;         /**< digital_inputs */
   int aux_pos_actual_value;    /**< aux_pos_actual_value */
 };
@@ -176,6 +177,11 @@ class GoldSoloWhistleDrive:
    */
   static std::string GetDriveStateStr(const std::bitset<16>& status_word);
   /**
+   * @brief GetID
+   * @return
+   */
+  id_t GetID() const { return id_; }
+  /**
    * @brief Get actual drive position (aka counts).
    * @return Actual drive position (aka counts).
    */
@@ -198,6 +204,11 @@ class GoldSoloWhistleDrive:
    * @return Actual drive auxiliary position (aka counts).
    */
   int GetAuxPosition() const { return input_pdos_.aux_pos_actual_value; }
+  /**
+   * @brief GetAnalogInput
+   * @return
+   */
+  int16_t GetAnalogInput() const { return input_pdos_.analog_input; }
   /**
    * @brief Get actual drive operational mode {_position, velocity, torque, none_}.
    * @return Actual drive operational mode.
@@ -287,7 +298,7 @@ class GoldSoloWhistleDrive:
    * CYCLIC_POSITION and sets target position to @c target_position.
    * @param[in] target_position New position setpoint in user-defined units.
    */
-  void ChangePosition(const int32_t target_position);
+  void ChangePosition(const int32_t target_position, const bool verbose = false);
   /**
    * @brief ChangeDeltaPosition
    * @param[in] delta_position
@@ -300,7 +311,7 @@ class GoldSoloWhistleDrive:
    * CYCLIC_VELOCITY and sets target velocity to @c target_velocity.
    * @param[in] target_velocity New velocity setpoint in user-defined units.
    */
-  void ChangeVelocity(const int32_t target_velocity);
+  void ChangeVelocity(const int32_t target_velocity, const bool verbose = false);
   /**
    * @brief ChangeDeltaVelocity
    * @param[in] delta_velocity
@@ -313,7 +324,7 @@ class GoldSoloWhistleDrive:
    * CYCLIC_TORQUE and sets target torque to @c target_torque.
    * @param[in] target_torque New torque setpoint in user-defined units.
    */
-  void ChangeTorque(const int16_t target_torque);
+  void ChangeTorque(const int16_t target_torque, const bool verbose = false);
   /**
    * @brief ChangeDeltaTorque
    * @param[in] delta_torque
@@ -326,14 +337,14 @@ class GoldSoloWhistleDrive:
    * @c target_op_mode and sets corresponding target to its current value.
    * @param[in] target_op_mode New _operation mode_.
    */
-  void ChangeOpMode(const int8_t target_op_mode);
+  void ChangeOpMode(const int8_t target_op_mode, const bool verbose = false);
   /**
    * @brief SetTargetDefaults external event.
    *
    * If drive is in in OPERATION ENABLED state, according to current _operation mode_, it
    * sets corresponding target value to its current value.
    */
-  void SetTargetDefaults();
+  void SetTargetDefaults(const bool verbose = false);
   /** @} */
 
   //------- Methods called within the real-time cycle --------------------------------//
@@ -398,7 +409,7 @@ class GoldSoloWhistleDrive:
   void InitFun() override;
 
  private:
-  static constexpr uint8_t kDomainInputs            = 7;
+  static constexpr uint8_t kDomainInputs            = 8;
   static constexpr uint8_t kDomainOutputs           = 5;
   static constexpr uint8_t kDomainEntries           = kDomainInputs + kDomainOutputs;
   static constexpr uint8_t kAlias                   = 0;
@@ -428,6 +439,10 @@ class GoldSoloWhistleDrive:
   static constexpr uint8_t kTorqueActualValueSubIdx = 0x00;
   static constexpr uint16_t kDigInIndex             = 0x60FD;
   static constexpr uint8_t kDigInSubIndex           = 0x00;
+
+  static constexpr uint16_t kAnalogIdx   = 0x2205;
+  static constexpr uint8_t kAnalogSubIdx = 0x1;
+
   static constexpr uint16_t kAuxPosActualValueIdx   = 0x20A0;
   static constexpr uint8_t kAuxPosActualValueSubIdx = 0x00;
   static constexpr uint8_t kHomingOnPosMethod       = 35;
@@ -446,13 +461,14 @@ class GoldSoloWhistleDrive:
     {kPosActualValueIdx, kPosActualValueSubIdx, 32},
     {kVelActualValueIdx, kVelActualValueSubIdx, 32},
     {kTorqueActualValueIdx, kTorqueActualValueSubIdx, 16},
+    {kAnalogIdx, kAnalogSubIdx, 16},
     {kDigInIndex, kDigInSubIndex, 32},
     {kAuxPosActualValueIdx, kAuxPosActualValueSubIdx, 32}};
 
   // ethercat utilities, can be retrieved in the xml config file provided by the vendor
   static constexpr ec_pdo_info_t kPDOs_[2] = {
     {0x1607, 5, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 0}, /* Outputs */
-    {0x1a07, 7, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 5}, /* Inputs */
+    {0x1a07, 8, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 5}, /* Inputs */
   };
 
   static constexpr ec_sync_info_t kSyncs_[5] = {
@@ -480,6 +496,7 @@ class GoldSoloWhistleDrive:
     unsigned int position_actual_value;
     unsigned int velocity_actual_value;
     unsigned int torque_actual_value;
+    unsigned int analog_input;
     unsigned int digital_inputs;
     unsigned int aux_pos_actual_value;
   } offset_in_;
@@ -503,11 +520,13 @@ class GoldSoloWhistleDrive:
 
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries]; // ethercat utilities
 
-  void SetChange(const GoldSoloWhistleDriveData* data);
+  void SetChange(const GoldSoloWhistleDriveData& data);
 
   RetVal SdoRequests(ec_slave_config_t* config_ptr) override final;
 
   inline void PrintCommand(const char* cmd) const;
+  inline void PrintTarget(const int target) const;
+  inline void PrintTarget(const GoldSoloWhistleDriveData& data) const;
 
   void EcPrintCb(const std::string& msg, const char color = 'w') const override;
 
