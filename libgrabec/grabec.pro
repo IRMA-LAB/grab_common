@@ -12,15 +12,13 @@ HEADERS += \
     $$PWD/inc/ethercatmaster.h \
     $$PWD/inc/ethercatslave.h \
     $$PWD/inc/grabec_types.h \
-    $$PWD/inc/slaves/goldsolowhistledrive.h \
-    $$PWD/inc/slaves/easycat/cable_robot_winch_slave.h
+    $$PWD/inc/slaves/goldsolowhistledrive.h
 
 SOURCES += \
     $$PWD/../grabcommon.cpp \
     $$PWD/src/ethercatmaster.cpp \
     $$PWD/src/ethercatslave.cpp \
-    $$PWD/src/slaves/goldsolowhistledrive.cpp \
-    $$PWD/src/slaves/easycat/cable_robot_winch_slave.cpp
+    $$PWD/src/slaves/goldsolowhistledrive.cpp
 
 INCLUDEPATH += \
       $$PWD/inc \
