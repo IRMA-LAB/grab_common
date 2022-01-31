@@ -1,7 +1,7 @@
 /**
  * @file ethercatslave.cpp
  * @author Simone Comari, Edoardo Idà
- * @date 30 May 2019
+ * @date Jan 2022
  * @brief File containing definitions of functions and class declared in ethercatslave.h.
  */
 
@@ -13,42 +13,42 @@ EthercatSlave::~EthercatSlave() {} // necessary for pure abstract destructor
 
 //--------- Public functions ---------------------------------------------------------//
 
-void EthercatSlave::Init(uint8_t* domain_data_ptr)
+void EthercatSlave::init(uint8_t* domain_data_ptr)
 {
-  SetDomainDataPtr(domain_data_ptr);
-  InitFun();
+  setDomainDataPtr(domain_data_ptr);
+  initFun();
 }
 
-RetVal EthercatSlave::Configure(ec_master_t* master_ptr, ec_slave_config_t** config_ptr)
+RetVal EthercatSlave::configure(ec_master_t* master_ptr, ec_slave_config_t** config_ptr)
 {
   if (!(*config_ptr = ecrt_master_slave_config(master_ptr, alias_, position_, vendor_id_,
                                                product_code_)))
   {
-    EcPrintCb("Configuring device: " + GetRetValStr(ECONFIG), 'r');
+    ecPrintCb("Configuring device: " + GetRetValStr(ECONFIG), 'r');
     return ECONFIG;
   }
-  EcPrintCb("Configuring device: " + GetRetValStr(OK));
+  ecPrintCb("Configuring device: " + GetRetValStr(OK));
 
   if (ecrt_slave_config_pdos(*config_ptr, EC_END, slave_sync_ptr_))
   {
-    EcPrintCb("Configuring PDOs: " + GetRetValStr(ECONFIG), 'r');
+    ecPrintCb("Configuring PDOs: " + GetRetValStr(ECONFIG), 'r');
     return ECONFIG;
   }
-  EcPrintCb("Configuring PDOs: " + GetRetValStr(OK));
+  ecPrintCb("Configuring PDOs: " + GetRetValStr(OK));
 
-  RetVal ret = SdoRequests(*config_ptr);
-  EcPrintCb("Creating SDO request: " + GetRetValStr(ret), ret ? 'r' : 'w');
+  RetVal ret = sdoRequests(*config_ptr);
+  ecPrintCb("Creating SDO request: " + GetRetValStr(ret), ret ? 'r' : 'w');
   return ret;
 }
 
-ec_pdo_entry_reg_t EthercatSlave::GetDomainRegister(const uint8_t index) const
+ec_pdo_entry_reg_t EthercatSlave::getDomainRegister(const uint8_t index) const
 {
   return domain_registers_ptr_[index];
 }
 
 //--------- Protected virtual functions ----------------------------------------------//
 
-RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)
+RetVal EthercatSlave::sdoRequests(ec_slave_config_t* config_ptr)
 {
   static ec_sdo_request_t* sdo_ptr = nullptr;
 
@@ -59,7 +59,7 @@ RetVal EthercatSlave::SdoRequests(ec_slave_config_t* config_ptr)
   return OK;
 }
 
-void EthercatSlave::EcPrintCb(const std::string& msg, const char color /* = 'w' */) const
+void EthercatSlave::ecPrintCb(const std::string& msg, const char color /* = 'w' */) const
 {
   if (color == 'w')
     printf("[EthercatSlave] %s\n", msg.c_str());
@@ -69,7 +69,7 @@ void EthercatSlave::EcPrintCb(const std::string& msg, const char color /* = 'w' 
 
 //--------- Private functions --------------------------------------------------------//
 
-void EthercatSlave::SetDomainDataPtr(uint8_t* domain_data_ptr)
+void EthercatSlave::setDomainDataPtr(uint8_t* domain_data_ptr)
 {
   domain_data_ptr_ = domain_data_ptr;
 }

@@ -1,7 +1,7 @@
 /**
  * @file goldsolowhistledrive.h
  * @author Edoardo Idà, Simone Comari
- * @date Apr 2021
+ * @date Jan 2022
  * @brief File containing _Gold Solo Whistle Drive_ slave interface to be included in the
  * GRAB ethercat library.
  */
@@ -169,33 +169,33 @@ class GoldSoloWhistleDrive:
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
-  static States GetDriveState(const std::bitset<16>& status_word);
+  static States getDriveState(const std::bitset<16>& status_word);
   /**
    * @brief Get latest known physical drive state.
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
    * @return Latest known physical drive state.
    */
-  static std::string GetDriveStateStr(const std::bitset<16>& status_word);
+  static std::string getDriveStateStr(const std::bitset<16>& status_word);
   /**
    * @brief GetID
    * @return
    */
-  id_t GetID() const { return id_; }
+  id_t getID() const { return id_; }
   /**
    * @brief Get actual drive position (aka counts).
    * @return Actual drive position (aka counts).
    */
-  int32_t GetPosition() const { return input_pdos_.pos_actual_value; }
+  int32_t getPosition() const { return input_pdos_.pos_actual_value; }
   /**
    * @brief Get actual drive velocity.
    * @return Actual drive velocity in user-defined units.
    */
-  int32_t GetVelocity() const { return input_pdos_.vel_actual_value; }
+  int32_t getVelocity() const { return input_pdos_.vel_actual_value; }
   /**
    * @brief Get actual drive torque.
    * @return Actual drive torque in user-defined units.
    */
-  int16_t GetTorque() const { return input_pdos_.torque_actual_value; }
+  int16_t getTorque() const { return input_pdos_.torque_actual_value; }
   /**
    * @brief Get actual drive auxiliary position (aka counts).
    *
@@ -203,23 +203,23 @@ class GoldSoloWhistleDrive:
    * additional encoder.
    * @return Actual drive auxiliary position (aka counts).
    */
-  int GetAuxPosition() const { return input_pdos_.aux_pos_actual_value; }
+  int getAuxPosition() const { return input_pdos_.aux_pos_actual_value; }
   /**
    * @brief GetAnalogInput
    * @return
    */
-  int16_t GetAnalogInput() const { return input_pdos_.analog_input; }
+  int16_t getAnalogInput() const { return input_pdos_.analog_input; }
   /**
    * @brief Get actual drive operational mode {_position, velocity, torque, none_}.
    * @return Actual drive operational mode.
    * @see GoldSoloWhistleOperationModes
    */
-  int8_t GetOpMode() const { return input_pdos_.display_op_mode; }
+  int8_t getOpMode() const { return input_pdos_.display_op_mode; }
   /**
    * @brief Get actual drive status, i.e. the latest values of its input PDOs.
    * @return Actual drive status, i.e. the latest values of its input PDOs.
    */
-  GSWDriveInPdos GetDriveStatus() const { return input_pdos_; }
+  GSWDriveInPdos getDriveStatus() const { return input_pdos_; }
 
   /**
    * @defgroup ExternalEvents GoldSoloWhistle Drive External Events
@@ -240,7 +240,7 @@ class GoldSoloWhistleDrive:
    * - SWITCHED ON --> SWITCH ON DISABLED
    * - QUICK STOP ACTIVE --> SWITCH ON DISABLED
    */
-  void DisableVoltage();
+  void disableVoltage();
   /**
    * @brief _Shutdown_ external event.
    *
@@ -249,14 +249,14 @@ class GoldSoloWhistleDrive:
    * - SWITCHED ON --> READY TO SWITCH ON
    * - OPERATION ENABLED --> READY TO SWITCH ON
    */
-  void Shutdown();
+  void shutdown();
   /**
    * @brief _Switch ON_ external event.
    *
    * Triggers following transition:
    * - READY TO SWITCH ON --> SWITCHED ON
    */
-  void SwitchOn();
+  void switchOn();
   /**
    * @brief _Enable Operation_ external event.
    *
@@ -264,14 +264,14 @@ class GoldSoloWhistleDrive:
    * - SWITCHED ON --> OPERATION ENABLED
    * - QUICK STOP ACTIVE --> OPERATION ENABLED
    */
-  void EnableOperation();
+  void enableOperation();
   /**
    * @brief Disable Operation external event.
    *
    * Triggers following transition:
    * - OPERATION ENABLED --> SWITCHED ON
    */
-  void DisableOperation();
+  void disableOperation();
   /**
    * @brief Quick Stop external event.
    *
@@ -280,14 +280,14 @@ class GoldSoloWhistleDrive:
    * - SWITCHED ON --> SWITCH ON DISABLED
    * - OPERATION ENABLED --> QUICK STOP ACTIVE
    */
-  void QuickStop();
+  void quickStop();
   /**
    * @brief Fault Reset external event.
    *
    * Triggers following transition:
    * - FAULT --> SWITCH ON DISABLED
    */
-  void FaultReset();
+  void faultReset();
 
   //-- Additional external events taken by this state machine when it's operational --//
 
@@ -298,12 +298,12 @@ class GoldSoloWhistleDrive:
    * CYCLIC_POSITION and sets target position to @c target_position.
    * @param[in] target_position New position setpoint in user-defined units.
    */
-  void ChangePosition(const int32_t target_position, const bool verbose = false);
+  void changePosition(const int32_t target_position, const bool verbose = false);
   /**
    * @brief ChangeDeltaPosition
    * @param[in] delta_position
    */
-  void ChangeDeltaPosition(const int32_t delta_position);
+  void changeDeltaPosition(const int32_t delta_position);
   /**
    * @brief Change Velocity external event.
    *
@@ -311,12 +311,12 @@ class GoldSoloWhistleDrive:
    * CYCLIC_VELOCITY and sets target velocity to @c target_velocity.
    * @param[in] target_velocity New velocity setpoint in user-defined units.
    */
-  void ChangeVelocity(const int32_t target_velocity, const bool verbose = false);
+  void changeVelocity(const int32_t target_velocity, const bool verbose = false);
   /**
    * @brief ChangeDeltaVelocity
    * @param[in] delta_velocity
    */
-  void ChangeDeltaVelocity(const int32_t delta_velocity);
+  void changeDeltaVelocity(const int32_t delta_velocity);
   /**
    * @brief Change Torque external event.
    *
@@ -324,12 +324,12 @@ class GoldSoloWhistleDrive:
    * CYCLIC_TORQUE and sets target torque to @c target_torque.
    * @param[in] target_torque New torque setpoint in user-defined units.
    */
-  void ChangeTorque(const int16_t target_torque, const bool verbose = false);
+  void changeTorque(const int16_t target_torque, const bool verbose = false);
   /**
    * @brief ChangeDeltaTorque
    * @param[in] delta_torque
    */
-  void ChangeDeltaTorque(const int16_t delta_torque);
+  void changeDeltaTorque(const int16_t delta_torque);
   /**
    * @brief Change Operation Mode external event.
    *
@@ -337,34 +337,34 @@ class GoldSoloWhistleDrive:
    * @c target_op_mode and sets corresponding target to its current value.
    * @param[in] target_op_mode New _operation mode_.
    */
-  void ChangeOpMode(const int8_t target_op_mode, const bool verbose = false);
+  void changeOpMode(const int8_t target_op_mode, const bool verbose = false);
   /**
    * @brief SetTargetDefaults external event.
    *
    * If drive is in in OPERATION ENABLED state, according to current _operation mode_, it
    * sets corresponding target value to its current value.
    */
-  void SetTargetDefaults(const bool verbose = false);
+  void setTargetDefaults(const bool verbose = false);
   /** @} */
 
   //------- Methods called within the real-time cycle --------------------------------//
   /**
    * @brief Read input PDOs.
    */
-  void ReadInputs() override final;
+  void readInputs() override final;
   /**
    * @brief Write output PDOs.
    */
-  void WriteOutputs() override final;
+  void writeOutputs() override final;
   /**
    * @brief Function called before shutting down the slave.
    */
-  void SafeExit() override final;
+  void safeExit() override final;
   /**
    * @brief Check if slave is ready to be shut down safely.
    * @return _True_ if slave is ready, _false_ otherwise.
    */
-  bool IsReadyToShutDown() const override final;
+  bool isReadyToShutDown() const override final;
 
 #if USE_QT
  signals:
@@ -406,7 +406,7 @@ class GoldSoloWhistleDrive:
   /**
    * @brief InitFun
    */
-  void InitFun() override;
+  void initFun() override;
 
  private:
   static constexpr uint8_t kDomainInputs            = 8;
@@ -520,15 +520,15 @@ class GoldSoloWhistleDrive:
 
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries]; // ethercat utilities
 
-  void SetChange(const GoldSoloWhistleDriveData& data);
+  void setChange(const GoldSoloWhistleDriveData& data);
 
-  RetVal SdoRequests(ec_slave_config_t* config_ptr) override final;
+  RetVal sdoRequests(ec_slave_config_t* config_ptr) override final;
 
-  inline void PrintCommand(const char* cmd) const;
-  inline void PrintTarget(const int target) const;
-  inline void PrintTarget(const GoldSoloWhistleDriveData& data) const;
+  inline void printCommand(const char* cmd) const;
+  inline void printTarget(const int target) const;
+  inline void printTarget(const GoldSoloWhistleDriveData& data) const;
 
-  void EcPrintCb(const std::string& msg, const char color = 'w') const override;
+  void ecPrintCb(const std::string& msg, const char color = 'w') const override;
 
  private:
   //--------- State machine ----------------------------------------------------------//
@@ -575,7 +575,7 @@ class GoldSoloWhistleDrive:
   // clang-format on
   END_STATE_MAP
 
-  void PrintStateTransition(const States current_state, const States new_state) const;
+  void printStateTransition(const States current_state, const States new_state) const;
 };
 
 } // end namespace grabec

@@ -1,7 +1,7 @@
 /**
  * @file robotconfigjsonparser.h
  * @author Simone Comari
- * @date 07 Feb 2020
+ * @date Jan 2022
  * @brief This file include a parser for JSON configuration file for GRAB CDPR.
  */
 
@@ -30,6 +30,7 @@ class RobotConfigJsonParser
    * @brief RobotConfigJsonParser default constructor.
    */
   RobotConfigJsonParser() {}
+  virtual ~RobotConfigJsonParser() {}
 
   /**
    * @brief Parse a JSON configuration file.
@@ -37,21 +38,21 @@ class RobotConfigJsonParser
    * @param[in] verbose If _true_, prints content of the parsed file.
    * @return _True_ if file was correctly parsed, _false_ otherwise.
    */
-  bool ParseFile(const std::string& filename, const bool verbose = false);
+  bool parseFile(const std::string& filename, const bool verbose = false);
   /**
    * @brief Parse a JSON configuration file.
    * @param[in] filename Configuration filepath.
    * @param[in] verbose If _true_, prints content of the parsed file.
    * @return _True_ if file was correctly parsed, _false_ otherwise.
    */
-  bool ParseFile(const char* filename, const bool verbose = false);
+  bool parseFile(const char* filename, const bool verbose = false);
   /**
    * @brief Parse a JSON configuration file.
    * @param[in] filename Configuration filepath.
    * @param[in] verbose If _true_, prints content of the parsed file.
    * @return _True_ if file was correctly parsed, _false_ otherwise.
    */
-  bool ParseFile(const QString& filename, const bool verbose = false);
+  bool parseFile(const QString& filename, const bool verbose = false);
   /**
    * @brief Parse a JSON configuration file and fills a parameters structure.
    * @param[in] filename Configuration filepath.
@@ -59,7 +60,7 @@ class RobotConfigJsonParser
    * @param[in] verbose If _true_, prints content of the parsed file.
    * @return _True_ if file was correctly parsed, _false_ otherwise.
    */
-  bool ParseFile(const std::string& filename, grabcdpr::RobotParams* const params,
+  bool parseFile(const std::string& filename, grabcdpr::RobotParams* const params,
                  const bool verbose = false);
   /**
    * @brief Parse a JSON configuration file and fills a parameters structure.
@@ -68,7 +69,7 @@ class RobotConfigJsonParser
    * @param[in] verbose If _true_, prints content of the parsed file.
    * @return _True_ if file was correctly parsed, _false_ otherwise.
    */
-  bool ParseFile(const char* filename, grabcdpr::RobotParams* const params,
+  bool parseFile(const char* filename, grabcdpr::RobotParams* const params,
                  const bool verbose = false);
   /**
    * @brief Parse a JSON configuration file and fills a parameters structure.
@@ -77,7 +78,7 @@ class RobotConfigJsonParser
    * @param[in] verbose If _true_, prints content of the parsed file.
    * @return _True_ if file was correctly parsed, _false_ otherwise.
    */
-  bool ParseFile(const QString& filename, grabcdpr::RobotParams* const params,
+  bool parseFile(const QString& filename, grabcdpr::RobotParams* const params,
                  const bool verbose = false);
 
   /**
@@ -86,33 +87,33 @@ class RobotConfigJsonParser
    * @warning If file was not correctly parsed yet, it returns an empty structure without
    * errors or warnings.
    */
-  grabcdpr::RobotParams GetConfigStruct() const { return config_params_; }
+  grabcdpr::RobotParams getConfigStruct() const { return config_params_; }
   /**
    * @brief Get parsed configuration structure.
    * @param[out] params The configuration structure to be filled with parsed data.
    * @warning If file was not correctly parsed yet, it returns an empty structure without
    * errors or warnings.
    */
-  void GetConfigStruct(grabcdpr::RobotParams* const params) const;
+  void getConfigStruct(grabcdpr::RobotParams* const params) const;
 
   /**
    * @brief Print parsed configuration parameters set, if present.
    */
-  void PrintConfig() const;
+  virtual void printConfig() const;
 
  protected:
   grabcdpr::RobotParams config_params_;
   bool file_parsed_ = false;
 
-  bool ExtractConfig(const json& raw_data);
-  bool ExtractPlatform(const json& raw_data);
-  bool ExtractActuators(const json& raw_data);
+  virtual bool extractConfig(const json& raw_data);
+  bool extractPlatform(const json& raw_data);
+  virtual bool extractActuators(const json& raw_data);
 
   grabcdpr::RotParametrization str2RotParametrization(const std::string& str);
 
-  bool ArePlatformParamsValid() const;
-  bool AreWinchParamsValid(const grabcdpr::WinchParams& params) const;
-  bool AreActuatorsParamsValid(const grabcdpr::ActuatorParams& params) const;
+  bool arePlatformParamsValid() const;
+  bool areWinchParamsValid(const grabcdpr::WinchParams& params) const;
+  bool areActuatorsParamsValid(const grabcdpr::ActuatorParams& params) const;
 };
 
 #endif // GRABCOMMON_LIBCDPR_ROBOTCONFIGJSONPARSER_H

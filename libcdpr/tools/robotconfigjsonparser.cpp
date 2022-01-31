@@ -9,7 +9,7 @@
 
 //--------- Public Functions ---------------------------------------------------------//
 
-bool RobotConfigJsonParser::ParseFile(const std::string& filename,
+bool RobotConfigJsonParser::parseFile(const std::string& filename,
                                       const bool verbose /* = false*/)
 {
   std::cout << "Parsing file '" << filename << "'...\n";
@@ -37,58 +37,58 @@ bool RobotConfigJsonParser::ParseFile(const std::string& filename,
   ifile.close();
 
   // Extract information and arrange them properly
-  file_parsed_ = ExtractConfig(raw_data);
+  file_parsed_ = extractConfig(raw_data);
 
   // Display data
   if (file_parsed_ && verbose)
-    PrintConfig();
+    printConfig();
 
   return file_parsed_;
 }
 
-bool RobotConfigJsonParser::ParseFile(const char* filename,
+bool RobotConfigJsonParser::parseFile(const char* filename,
                                       const bool verbose /*= false*/)
 {
-  return ParseFile(std::string(filename), verbose);
+  return parseFile(std::string(filename), verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const QString& filename,
+bool RobotConfigJsonParser::parseFile(const QString& filename,
                                       const bool verbose /*= false*/)
 {
-  return ParseFile(filename.toStdString(), verbose);
+  return parseFile(filename.toStdString(), verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const std::string& filename,
+bool RobotConfigJsonParser::parseFile(const std::string& filename,
                                       grabcdpr::RobotParams* params,
                                       const bool verbose /*= false*/)
 {
-  if (ParseFile(filename, verbose))
+  if (parseFile(filename, verbose))
   {
-    GetConfigStruct(params);
+    getConfigStruct(params);
     return true;
   }
   return false;
 }
 
-bool RobotConfigJsonParser::ParseFile(const char* filename, grabcdpr::RobotParams* params,
+bool RobotConfigJsonParser::parseFile(const char* filename, grabcdpr::RobotParams* params,
                                       const bool verbose /*= false*/)
 {
-  return ParseFile(std::string(filename), params, verbose);
+  return parseFile(std::string(filename), params, verbose);
 }
 
-bool RobotConfigJsonParser::ParseFile(const QString& filename,
+bool RobotConfigJsonParser::parseFile(const QString& filename,
                                       grabcdpr::RobotParams* params,
                                       const bool verbose /*= false*/)
 {
-  return ParseFile(filename.toStdString(), params, verbose);
+  return parseFile(filename.toStdString(), params, verbose);
 }
 
-void RobotConfigJsonParser::GetConfigStruct(grabcdpr::RobotParams* const params) const
+void RobotConfigJsonParser::getConfigStruct(grabcdpr::RobotParams* const params) const
 {
   *params = config_params_;
 }
 
-void RobotConfigJsonParser::PrintConfig() const
+void RobotConfigJsonParser::printConfig() const
 {
   if (!file_parsed_)
   {
@@ -131,16 +131,16 @@ void RobotConfigJsonParser::PrintConfig() const
 
 //--------- Private Functions --------------------------------------------------------//
 
-bool RobotConfigJsonParser::ExtractConfig(const json& raw_data)
+bool RobotConfigJsonParser::extractConfig(const json& raw_data)
 {
-  if (!ExtractPlatform(raw_data))
+  if (!extractPlatform(raw_data))
     return false;
 
   config_params_.actuators.clear();
-  return ExtractActuators(raw_data);
+  return extractActuators(raw_data);
 }
 
-bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
+bool RobotConfigJsonParser::extractPlatform(const json& raw_data)
 {
   try
   {
@@ -186,10 +186,10 @@ bool RobotConfigJsonParser::ExtractPlatform(const json& raw_data)
               << std::endl;
     return false;
   }
-  return ArePlatformParamsValid();
+  return arePlatformParamsValid();
 }
 
-bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
+bool RobotConfigJsonParser::extractActuators(const json& raw_data)
 {
   if (raw_data.count("actuator") != 1)
   {
@@ -245,7 +245,7 @@ bool RobotConfigJsonParser::ExtractActuators(const json& raw_data)
     }
     actuator_params.pulley.orthogonalizeVersors(); // fix numerical issues
 
-    if (!AreActuatorsParamsValid(actuator_params))
+    if (!areActuatorsParamsValid(actuator_params))
       return false;
     config_params_.actuators.push_back(actuator_params);
   }
@@ -268,7 +268,7 @@ RobotConfigJsonParser::str2RotParametrization(const std::string& str)
   throw std::exception();
 }
 
-bool RobotConfigJsonParser::ArePlatformParamsValid() const
+bool RobotConfigJsonParser::arePlatformParamsValid() const
 {
   bool ret = true;
 
@@ -294,7 +294,7 @@ bool RobotConfigJsonParser::ArePlatformParamsValid() const
   return ret;
 }
 
-bool RobotConfigJsonParser::AreWinchParamsValid(const grabcdpr::WinchParams& params) const
+bool RobotConfigJsonParser::areWinchParamsValid(const grabcdpr::WinchParams& params) const
 {
   bool ret = true;
 
@@ -314,10 +314,10 @@ bool RobotConfigJsonParser::AreWinchParamsValid(const grabcdpr::WinchParams& par
   return ret;
 }
 
-bool RobotConfigJsonParser::AreActuatorsParamsValid(
+bool RobotConfigJsonParser::areActuatorsParamsValid(
   const grabcdpr::ActuatorParams& params) const
 {
-  bool ret = AreWinchParamsValid(params.winch);
+  bool ret = areWinchParamsValid(params.winch);
 
   if (params.pulley.radius < 0.0)
   {
