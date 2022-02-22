@@ -520,7 +520,7 @@ class GoldSoloWhistleDrive:
 
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries]; // ethercat utilities
 
-  void setChange(const GoldSoloWhistleDriveData& data);
+  void setChange(const GoldSoloWhistleDriveData* data);
 
   RetVal sdoRequests(ec_slave_config_t* config_ptr) override final;
 

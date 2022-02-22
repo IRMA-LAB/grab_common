@@ -465,8 +465,8 @@ void GoldSoloWhistleDrive::changePosition(const int32_t target_position,
     printTarget(target_position);
   }
 
-  GoldSoloWhistleDriveData data(GoldSoloWhistleOperationModes::CYCLIC_POSITION,
-                                target_position);
+  GoldSoloWhistleDriveData* data = new GoldSoloWhistleDriveData(
+    GoldSoloWhistleOperationModes::CYCLIC_POSITION, target_position);
   setChange(data);
 }
 
@@ -489,8 +489,8 @@ void GoldSoloWhistleDrive::changeVelocity(const int32_t target_velocity,
     printTarget(target_velocity);
   }
 
-  GoldSoloWhistleDriveData data(GoldSoloWhistleOperationModes::CYCLIC_VELOCITY,
-                                target_velocity);
+  GoldSoloWhistleDriveData* data = new GoldSoloWhistleDriveData(
+    GoldSoloWhistleOperationModes::CYCLIC_VELOCITY, target_velocity);
   setChange(data);
 }
 
@@ -513,8 +513,8 @@ void GoldSoloWhistleDrive::changeTorque(const int16_t target_torque,
     printTarget(target_torque);
   }
 
-  GoldSoloWhistleDriveData data(GoldSoloWhistleOperationModes::CYCLIC_TORQUE,
-                                target_torque);
+  GoldSoloWhistleDriveData* data = new GoldSoloWhistleDriveData(
+    GoldSoloWhistleOperationModes::CYCLIC_TORQUE, target_torque);
   setChange(data);
 }
 
@@ -528,9 +528,10 @@ void GoldSoloWhistleDrive::changeOpMode(const int8_t target_op_mode,
 {
   printCommand("ChangeOpMode");
   // Set target value to current one
-  GoldSoloWhistleDriveData data(target_op_mode, input_pdos_, true);
+  GoldSoloWhistleDriveData* data =
+    new GoldSoloWhistleDriveData(target_op_mode, input_pdos_, true);
   if (verbose)
-    printTarget(data);
+    printTarget(*data);
   setChange(data);
 }
 
@@ -538,14 +539,15 @@ void GoldSoloWhistleDrive::setTargetDefaults(const bool verbose /*=false*/)
 {
   printCommand("SetTargetDefaults");
   // Set target operational mode and value to current ones
-  GoldSoloWhistleDriveData data(input_pdos_.display_op_mode, input_pdos_, true);
+  GoldSoloWhistleDriveData* data =
+    new GoldSoloWhistleDriveData(input_pdos_.display_op_mode, input_pdos_, true);
   if (verbose)
-    printTarget(data);
+    printTarget(*data);
   // Apply
   setChange(data);
 }
 
-void GoldSoloWhistleDrive::setChange(const GoldSoloWhistleDriveData& data)
+void GoldSoloWhistleDrive::setChange(const GoldSoloWhistleDriveData* data)
 {
   // clang-format off
   BEGIN_TRANSITION_MAP                               // - Current State -
@@ -558,7 +560,7 @@ void GoldSoloWhistleDrive::setChange(const GoldSoloWhistleDriveData& data)
     TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_QUICK_STOP_ACTIVE
     TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_FAULT_REACTION_ACTIVE
     TRANSITION_MAP_ENTRY(EVENT_IGNORED)              // ST_FAULT
-  END_TRANSITION_MAP(&data)
+  END_TRANSITION_MAP(data)
   // clang-format on
 }
 
