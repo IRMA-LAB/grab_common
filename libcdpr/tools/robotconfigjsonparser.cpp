@@ -304,9 +304,9 @@ bool RobotConfigJsonParser::areWinchParamsValid(const grabcdpr::WinchParams& par
     ret = false;
   }
 
-  if (params.transmission_ratio <= 0.0)
+  if (params.transmission_ratio >= 0.0)
   {
-    std::cerr << "[ERROR] winch transmission ratio must be strictly positive!"
+    std::cerr << "[ERROR] winch transmission ratio must be strictly negative!"
               << std::endl;
     ret = false;
   }
