@@ -326,7 +326,9 @@ class RingBuffer
   {
     linear_idx_ = 0UL;
     ring_idx_   = 0UL;
+    size_t dim = buffer_.size();
     buffer_.clear();
+    buffer_.resize(dim);
   }
 
  private:
