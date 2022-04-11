@@ -1,21 +1,21 @@
 /**
  * @file grabcommon.cpp
  * @author Simone Comari
- * @date 12 Mar 2019
+ * @date Apr 2022
  * @brief This file includes definitions of functions and classes declared in
  * grabcommon.h.
  */
 
 #include "grabcommon.h"
 
-void HandleErrorEn(const int en, const char* msg)
+void handleErrorEn(const int en, const char* msg)
 {
   errno = en;
   perror(msg);
   exit(EXIT_FAILURE);
 }
 
-void PrintColor(const char color, const char* text, ...)
+void printColor(const char color, const char* text, ...)
 {
   va_list args;
   va_start(args, text);
@@ -49,7 +49,7 @@ void PrintColor(const char color, const char* text, ...)
   va_end(args);
 }
 
-void PrintColor(const char color, const char* text, va_list args)
+void printColor(const char color, const char* text, va_list args)
 {
   std::string text_str(text);
   std::string full_text;
@@ -80,16 +80,16 @@ void PrintColor(const char color, const char* text, va_list args)
   vprintf(full_text.c_str(), args);
 }
 
-void DispRetVal(const int err, const char* msg, ...)
+void dispRetVal(const int err, const char* msg, ...)
 {
   va_list args;
   va_start(args, msg);
-  std::string full_msg = msg + GetRetValStr(err);
-  PrintColor(err ? 'r' : 'w', full_msg.c_str(), args);
+  std::string full_msg = msg + getRetValStr(err);
+  printColor(err ? 'r' : 'w', full_msg.c_str(), args);
   va_end(args);
 }
 
-std::string GetRetValStr(const int err)
+std::string getRetValStr(const int err)
 {
   std::string description;
   switch (err)
@@ -119,7 +119,7 @@ std::string GetRetValStr(const int err)
   return description;
 }
 
-void RunMatlabScript(const std::string& script_location, const bool display /*= false*/)
+void runMatlabScript(const std::string& script_location, const bool display /*= false*/)
 {
   std::string cmd = "try,run('" + script_location + "'),catch,exit,end,exit";
 

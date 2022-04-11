@@ -1,9 +1,9 @@
 /**
  * @file grabcommon.h
  * @author Simone Comari
- * @date 08 May 2019
+ * @date Apr 2022
  * @brief This file collects common utilities which are not specifically related to any of
- * GRAB libraries.
+ * IRMA libraries.
  */
 
 #ifndef GRABCOMMON_H
@@ -34,7 +34,6 @@
   "\x1b[0m" /**< ANSI color reset codex after colorful printings. */
 
 /*---------------------- MACROS ------------------------*/
-
 
 // @cond DO_NOT_DOCUMENT
 #define SETUP_ENUM_CLASS_ASSIGNMENTS(EnumStruct, EType)                                  \
@@ -72,15 +71,22 @@
 #define FE_9(WHAT, X, ...) WHAT(X) FE_8(WHAT, __VA_ARGS__)
 #define FE_10(WHAT, X, ...) WHAT(X) FE_9(WHAT, __VA_ARGS__)
 #define FE_11(WHAT, X, ...) WHAT(X) FE_10(WHAT, __VA_ARGS__)
+#define FE_12(WHAT, X, ...) WHAT(X) FE_11(WHAT, __VA_ARGS__)
+#define FE_13(WHAT, X, ...) WHAT(X) FE_12(WHAT, __VA_ARGS__)
+#define FE_14(WHAT, X, ...) WHAT(X) FE_13(WHAT, __VA_ARGS__)
+#define FE_15(WHAT, X, ...) WHAT(X) FE_14(WHAT, __VA_ARGS__)
 //... repeat as needed
-#define GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, NAME, ...) NAME
+#define GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15,      \
+                  NAME, ...)                                                             \
+  NAME
 // @endcond
 /**
  * @brief A for loop macro implementation.
- * @warning It works up to 11 iterations, to add more you must extend the list above.
+ * @warning It works up to 15 iterations, to add more you must extend the list above.
  */
 #define FOR_EACH(action, ...)                                                            \
-  GET_MACRO(__VA_ARGS__, FE_11, FE_10, FE_9, FE_8, FE_7, FE_6, FE_5, FE_4, FE_3, FE_2, FE_1)    \
+  GET_MACRO(__VA_ARGS__, FE_15, FE_14, FE_13, FE_12, FE_11, FE_10, FE_9, FE_8, FE_7,     \
+            FE_6, FE_5, FE_4, FE_3, FE_2, FE_1)                                          \
   (action, __VA_ARGS__)
 
 //---------------------- Generic enums -----------------------------------------------//
@@ -111,7 +117,7 @@ enum RetVal : uint8_t
  * @note For further details about error number convention, click
  * <a href="http://man7.org/linux/man-pages/man3/errno.3.html">here</a>.
  */
-[[noreturn]] void HandleErrorEn(const int en, const char* msg);
+[[noreturn]] void handleErrorEn(const int en, const char* msg);
 
 /**
  * @brief Print colored text to shell/console.
@@ -126,7 +132,7 @@ enum RetVal : uint8_t
  * @param[in] text Text to be colored and printed. It can contain format specifiers to be
  * added as variable arguments like in _printf()_.
  */
-void PrintColor(const char color, const char* text, ...);
+void printColor(const char color, const char* text, ...);
 /**
  * @brief Print colored text to shell/console.
  * @param[in] color A letter indicating the text color. Available options are:
@@ -140,7 +146,7 @@ void PrintColor(const char color, const char* text, ...);
  * @param[in] text Text to be colored and printed.
  * @param[in] args Additional variable arguments in case text contains format specifiers.
  */
-void PrintColor(const char color, const char* text, va_list args);
+void printColor(const char color, const char* text, va_list args);
 
 template <typename T>
 /**
@@ -159,14 +165,14 @@ T sign(const T& value)
  * @param[in] err The error of RetVal type.
  * @param[in] msg The custom message to be prepend before the error identifier.
  */
-void DispRetVal(const int err, const char* msg, ...);
+void dispRetVal(const int err, const char* msg, ...);
 
 /**
  * @brief Get return value's description.
  * @param[in] err The error of RetVal type.
  * @return A string describing the returned value.
  */
-std::string GetRetValStr(const int err);
+std::string getRetValStr(const int err);
 
 /**
  * @brief Run a Matlab script from shell.
@@ -174,7 +180,7 @@ std::string GetRetValStr(const int err);
  * @param[in] display If _true_, display flags will be enabled and Matlab plots will be
  * visible during the execution, if present.
  */
-void RunMatlabScript(const std::string& script_location, const bool display = false);
+void runMatlabScript(const std::string& script_location, const bool display = false);
 
 /*---------------------- Generic classes ------------------------*/
 
@@ -234,18 +240,18 @@ class RingBuffer
    * @brief Returns a constant reference to the last element in the ring vector.
    * @return A reference to the last element in the ring vector.
    */
-  T& Tail() { return buffer_[ring_idx_]; }
+  T& tail() { return buffer_[ring_idx_]; }
   /**
    * @brief Returns a constant reference to the last element in the ring vector.
    * @return A reference to the last element in the ring vector.
    */
-  const T& Tail() const { return buffer_[ring_idx_]; }
+  const T& tail() const { return buffer_[ring_idx_]; }
 
   /**
    * @brief Returns a reference to the first element in the ring vector.
    * @return A reference to the first element in the ring vector.
    */
-  T& Head()
+  T& head()
   {
     return buffer_[(linear_idx_ == ring_idx_ | ring_idx_ == buffer_.size() - 1)
                      ? buffer_.front()
@@ -255,7 +261,7 @@ class RingBuffer
    * @brief Returns a constant reference to the first element in the ring vector.
    * @return A constant reference to the first element in the ring vector.
    */
-  const T& Head() const
+  const T& head() const
   {
     return buffer_[(linear_idx_ == ring_idx_ | ring_idx_ == buffer_.size() - 1)
                      ? buffer_.front()
@@ -266,30 +272,30 @@ class RingBuffer
    * @brief Return raw data content of the buffer.
    * @return Raw data content of the buffer.
    */
-  std::vector<T>& Data() { return buffer_; }
+  std::vector<T>& data() { return buffer_; }
   /**
    * @brief Return a constant reference to raw data content of the buffer.
    * @return A constant reference to raw data content of the buffer.
    */
-  const std::vector<T>& Data() const { return buffer_; }
+  const std::vector<T>& data() const { return buffer_; }
 
   /**
    * @brief Check if buffer is empty.
    * @return _True_ if buffer is empty, _false_ otherwise.
    */
-  bool IsEmpty() const { return linear_idx_ == 0; }
+  bool isEmpty() const { return linear_idx_ == 0; }
 
   /**
    * @brief Check if buffer is full.
    * @return _True_ if buffer is full, _false_ otherwise.
    */
-  bool IsFull() const { return linear_idx_ >= (buffer_.size() - 1); }
+  bool isFull() const { return linear_idx_ >= (buffer_.size() - 1); }
 
   /**
    * @brief Return buffer size.
    * @return Buffer size.
    */
-  size_t Size() const { return buffer_.size(); }
+  size_t size() const { return buffer_.size(); }
 
   /**
    * @brief Get current linear index.
@@ -298,7 +304,7 @@ class RingBuffer
    * into the buffer.
    * @return Current linear index.
    */
-  uint64_t GetLinearIdx() const { return linear_idx_; }
+  uint64_t getLinearIdx() const { return linear_idx_; }
 
   /**
    * @brief Get ring index.
@@ -307,13 +313,13 @@ class RingBuffer
    * position of the latest element pushed into he ring buffer.
    * @return Ring index.
    */
-  uint64_t GetRingIdx() const { return ring_idx_; }
+  uint64_t getRingIdx() const { return ring_idx_; }
 
   /**
    * @brief Add an element to the buffer.
    * @param[in] element New element to be pushed into the buffer.
    */
-  void Add(const T& element)
+  void add(const T& element)
   {
     ring_idx_          = linear_idx_ % buffer_.size();
     buffer_[ring_idx_] = element;
@@ -323,11 +329,11 @@ class RingBuffer
   /**
    * @brief Empty the buffer.
    */
-  void Clear()
+  void clear()
   {
     linear_idx_ = 0UL;
     ring_idx_   = 0UL;
-    size_t dim = buffer_.size();
+    size_t dim  = buffer_.size();
     buffer_.clear();
     buffer_.resize(dim);
   }
@@ -339,5 +345,6 @@ class RingBuffer
 };
 
 using RingBufferD = RingBuffer<double>; /**< Alias for double-typed ring buffer. */
+using RingBufferI = RingBuffer<int>;    /**< Alias for int-typed ring buffer. */
 
 #endif // GRABCOMMON_H
