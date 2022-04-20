@@ -122,7 +122,7 @@ class Clock
    * @param[in] en errno.
    * @param[in] msg Message to be print before closing the application.
    */
-  [[noreturn]] void HandleErrorEnWrapper(const int en, const char* msg) const;
+  [[noreturn]] void handleErrorEnWrapper(const int en, const char* msg) const;
 
  private:
   struct timespec start_time_;

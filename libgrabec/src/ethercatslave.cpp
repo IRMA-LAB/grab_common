@@ -24,20 +24,20 @@ RetVal EthercatSlave::configure(ec_master_t* master_ptr, ec_slave_config_t** con
   if (!(*config_ptr = ecrt_master_slave_config(master_ptr, alias_, position_, vendor_id_,
                                                product_code_)))
   {
-    ecPrintCb("Configuring device: " + GetRetValStr(ECONFIG), 'r');
+    ecPrintCb("Configuring device: " + getRetValStr(ECONFIG), 'r');
     return ECONFIG;
   }
-  ecPrintCb("Configuring device: " + GetRetValStr(OK));
+  ecPrintCb("Configuring device: " + getRetValStr(OK));
 
   if (ecrt_slave_config_pdos(*config_ptr, EC_END, slave_sync_ptr_))
   {
-    ecPrintCb("Configuring PDOs: " + GetRetValStr(ECONFIG), 'r');
+    ecPrintCb("Configuring PDOs: " + getRetValStr(ECONFIG), 'r');
     return ECONFIG;
   }
-  ecPrintCb("Configuring PDOs: " + GetRetValStr(OK));
+  ecPrintCb("Configuring PDOs: " + getRetValStr(OK));
 
   RetVal ret = sdoRequests(*config_ptr);
-  ecPrintCb("Creating SDO request: " + GetRetValStr(ret), ret ? 'r' : 'w');
+  ecPrintCb("Creating SDO request: " + getRetValStr(ret), ret ? 'r' : 'w');
   return ret;
 }
 
@@ -64,7 +64,7 @@ void EthercatSlave::ecPrintCb(const std::string& msg, const char color /* = 'w' 
   if (color == 'w')
     printf("[EthercatSlave] %s\n", msg.c_str());
   else
-    PrintColor(color, "[EthercatSlave] %s", msg.c_str());
+    printColor(color, "[EthercatSlave] %s", msg.c_str());
 }
 
 //--------- Private functions --------------------------------------------------------//

@@ -18,7 +18,7 @@ arma::vec calcCablesStaticTension(const arma::mat& geom_jacobian,
   // Tensions cannot be negative
   if (tension_vector.min() < 0.0)
   {
-    PrintColor('y', "WARNING: negative cables tension! Values will be clamped to 0.");
+    printColor('y', "WARNING: negative cables tension! Values will be clamped to 0.");
     tension_vector = arma::clamp(tension_vector, 0.0, tension_vector.max());
   }
   return tension_vector;

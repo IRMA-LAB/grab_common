@@ -49,7 +49,7 @@ namespace grabrt {
 #define THREAD_RUN(t)                                                                    \
   int ret = pthread_create(t.GetThreadIDPtr(), t.GetAttrPtr(), t._StaticTargetFun, &t);  \
   if (ret != 0)                                                                          \
-    t.HandleErrorEnWrapper(ret, "pthread_create ");                                      \
+    t.handleErrorEnWrapper(ret, "pthread_create ");                                      \
   else                                                                                   \
     printf("[Thread] Thread START with ID: %ld\n", t.GetTID());
 #endif
@@ -521,12 +521,12 @@ class Thread
    * HandleErrorEn().
    * @see HandleErrorEn()
    */
-  [[noreturn]] void HandleErrorEnWrapper(const int en, const char* msg) const;
+  [[noreturn]] void handleErrorEnWrapper(const int en, const char* msg) const;
 
  private:
-  static constexpr uint32_t kStackSize = 10 * 1024 * 1024; /**< 10 Mb */
+  static constexpr uint32_t kStackSize = 100 * 1024 * 1024; /**< 10 Mb */
   static constexpr uint32_t kPreAllocationSize =
-    100 * 1024 * 1024; /**< 100MB pagefault free buffer */
+    200 * 1024 * 1024; /**< 100MB pagefault free buffer */
 
   pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;
   pthread_t thread_id_   = 0;
