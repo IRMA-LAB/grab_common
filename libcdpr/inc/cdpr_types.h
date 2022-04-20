@@ -244,6 +244,12 @@ arma::mat toArmaMat(Matrix6d mat, bool copy = true);
  * @return A 3D column vector of double in GRAB format.
  */
 grabnum::Vector3d fromArmaVec3(const arma::vec3& vect);
+/**
+ * @brief Convert a 4D column vector from armadillo format to GRAB format.
+ * @param[in] vect A 4D column vector of double in armadillo format.
+ * @return A 4D column vector of double in GRAB format.
+ */
+grabnum::Vector4d fromArmaVec4(const arma::vec4& vect);
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
