@@ -44,6 +44,12 @@ grabnum::Vector3d fromArmaVec3(const arma::vec3& vect)
   return grabnum::Vector3d(vect.begin(), vect.end());
 }
 
+grabnum::Vector4d fromArmaVec4(const arma::vec4& vect)
+{
+  return grabnum::Vector4d(vect.begin(), vect.end());
+}
+
+
 namespace grabcdpr {
 
 //------ Parameters Structs ----------------------------------------------------------//
