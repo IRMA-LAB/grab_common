@@ -312,13 +312,13 @@ void PlatformVarsQuat::update(const grabnum::Vector3d& _position,
 
 RobotVars::RobotVars(const size_t num_cables) : cables(std::vector<CableVars>(num_cables))
 {
-  resize();
+  /*resize();*/
 }
 
 RobotVars::RobotVars(const size_t num_cables, const RotParametrization _angles_type)
   : platform(_angles_type), cables(std::vector<CableVars>(num_cables))
 {
-  resize();
+  /*resize();*/
 }
 
 void RobotVars::resize()
@@ -341,19 +341,25 @@ void RobotVars::resize()
 void RobotVars::updateJacobians()
 {
   // Safety check
-  if (geom_jacobian.n_rows != cables.size() || anal_jacobian.n_rows != cables.size())
-    resize();
+
+ // if (geom_jacobian.n_rows != cables.size() || anal_jacobian.n_rows != cables.size())
+    ///*resize();*/
+//    std::cout<<"i'm updating jacobians: "<<cables.size()<<std::endl;
   for (uint8_t i = 0; i < cables.size(); ++i)
   {
+ //   std::cout<<"i'm updating jacobians with: "<<cables[i].geom_jacob_row.Data()<<std::endl;
     geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row.Data());
+
     anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row.Data());
+
   }
+
 }
 
 RobotVarsQuat::RobotVarsQuat(const size_t num_cables)
   : cables(std::vector<CableVarsQuat>(num_cables))
 {
-  resize();
+  /*resize();*/
 }
 
 void RobotVarsQuat::resize()
@@ -377,7 +383,7 @@ void RobotVarsQuat::updateJacobians()
 {
   // Safety check
   if (geom_jacobian.n_rows != cables.size() || anal_jacobian.n_rows != cables.size())
-    resize();
+    /*resize();*/
   for (uint8_t i = 0; i < cables.size(); ++i)
   {
     geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row.Data());
