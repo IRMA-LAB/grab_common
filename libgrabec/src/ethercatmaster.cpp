@@ -64,7 +64,7 @@ void EthercatMaster::ecPrintCb(const std::string& msg, const char color /* = 'w'
   if (color == 'w')
     printf("[EthercatMaster] %s\n", msg.c_str());
   else
-    PrintColor(color, "[EthercatMaster] %s", msg.c_str());
+    printColor(color, "[EthercatMaster] %s", msg.c_str());
 }
 
 //--------- Private thread related functions -----------------------------------------//
@@ -167,19 +167,19 @@ uint8_t EthercatMaster::initProtocol()
   // Requesting to initialize master 0
   if (!(master_ptr_ = ecrt_request_master(0)))
   {
-    ecPrintCb("...Requesting master: " + GetRetValStr(EINIT), 'r');
+    ecPrintCb("...Requesting master: " + getRetValStr(EINIT), 'r');
     //    DispRetVal(EINIT, "[EthercatMaster] ...Requesting master: ");
     return EINIT;
   }
-  ecPrintCb("...Requesting master: " + GetRetValStr(OK));
+  ecPrintCb("...Requesting master: " + getRetValStr(OK));
 
   // Creating domain process associated with master 0
   if (!(domain_ptr_ = ecrt_master_create_domain(master_ptr_)))
   {
-    ecPrintCb("...Creating domain: " + GetRetValStr(EINIT), 'r');
+    ecPrintCb("...Creating domain: " + getRetValStr(EINIT), 'r');
     return EINIT;
   }
-  ecPrintCb("...Creating domain: " + GetRetValStr(OK));
+  ecPrintCb("...Creating domain: " + getRetValStr(OK));
 
   // Configuring slaves
   RetVal ret;
@@ -187,7 +187,7 @@ uint8_t EthercatMaster::initProtocol()
   {
     ecPrintCb("...Configuring slave " + std::to_string(i) + "...");
     ret = slaves_ptrs_[i]->configure(master_ptr_, &slave_config_ptr_);
-    ecPrintCb("...Configuration slave " + std::to_string(i) + ": " + GetRetValStr(ret),
+    ecPrintCb("...Configuration slave " + std::to_string(i) + ": " + getRetValStr(ret),
               ret ? 'r' : 'w');
     if (ret != OK)
       return ECONFIG;
@@ -197,24 +197,24 @@ uint8_t EthercatMaster::initProtocol()
   getDomainElements(domain_registers);
   if (ecrt_domain_reg_pdo_entry_list(domain_ptr_, domain_registers.data()) != 0)
   {
-    ecPrintCb("...Registering PDOs' entries: " + GetRetValStr(EREG), 'r');
+    ecPrintCb("...Registering PDOs' entries: " + getRetValStr(EREG), 'r');
     return EREG;
   }
-  ecPrintCb("...Registering PDOs' entries: " + GetRetValStr(OK));
+  ecPrintCb("...Registering PDOs' entries: " + getRetValStr(OK));
 
   if (ecrt_master_activate(master_ptr_) < 0)
   {
-    ecPrintCb("...Activating master: " + GetRetValStr(EACTIVE), 'r');
+    ecPrintCb("...Activating master: " + getRetValStr(EACTIVE), 'r');
     return EACTIVE;
   }
-  ecPrintCb("...Activating master: " + GetRetValStr(OK));
+  ecPrintCb("...Activating master: " + getRetValStr(OK));
 
   if (!(domain_data_ptr_ = ecrt_domain_data(domain_ptr_)))
   {
-    ecPrintCb("...Initializing domain data: " + GetRetValStr(EACTIVE), 'r');
+    ecPrintCb("...Initializing domain data: " + getRetValStr(EACTIVE), 'r');
     return EACTIVE;
   }
-  ecPrintCb("...Initializing domain data: " + GetRetValStr(OK));
+  ecPrintCb("...Initializing domain data: " + getRetValStr(OK));
 
   // Initialize slaves
   for (size_t i = 0; i < slaves_ptrs_.size(); i++)
@@ -229,7 +229,7 @@ bool EthercatMaster::setupEcNtw()
   uint8_t ret = initProtocol();
   if (ret)
   {
-    ecPrintCb("Initialization EtherCAT network " + GetRetValStr(EFAIL), 'r');
+    ecPrintCb("Initialization EtherCAT network " + getRetValStr(EFAIL), 'r');
     ecStateChangedCb(check_state_flags_);
     if (master_ptr_ != nullptr)
       releaseMaster();

@@ -82,13 +82,13 @@ void Clock::DispCurrentTime() const
          time_.tv_nsec);
 }
 
-[[noreturn]] void Clock::HandleErrorEnWrapper(const int en, const char* msg) const
+[[noreturn]] void Clock::handleErrorEnWrapper(const int en, const char* msg) const
 {
   std::string full_msg = "[";
   full_msg.append(name_);
   full_msg.append("] ");
   full_msg.append(msg);
-  HandleErrorEn(en, full_msg.c_str());
+  handleErrorEn(en, full_msg.c_str());
 }
 
 /////////////////////////////////////////////////
@@ -108,7 +108,7 @@ bool ThreadClock::WaitUntilNext()
     return false;
   int ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &time_, NULL);
   if (ret != 0)
-    HandleErrorEnWrapper(ret, "clock_nanosleep ");
+    handleErrorEnWrapper(ret, "clock_nanosleep ");
   return true;
 }
 
