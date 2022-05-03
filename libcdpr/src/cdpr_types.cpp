@@ -326,16 +326,16 @@ void RobotVars::resize()
   // Geometric jacobians
   geom_jacobian.clear();
   geom_jacobian_d.clear();
-  geom_jacobian.resize(cables.size(), POSE_DIM);
-  geom_jacobian_d.resize(cables.size(), POSE_DIM);
+  //geom_jacobian.resize(cables.size(), POSE_DIM);
+  //geom_jacobian_d.resize(cables.size(), POSE_DIM);
   // Analitic jacobians
   anal_jacobian.clear();
   anal_jacobian_d.clear();
-  anal_jacobian.resize(cables.size(), POSE_DIM);
-  anal_jacobian_d.resize(cables.size(), POSE_DIM);
+  //anal_jacobian.resize(cables.size(), POSE_DIM);
+  //anal_jacobian_d.resize(cables.size(), POSE_DIM);
   // Tension vector
   tension_vector.clear();
-  tension_vector.resize(cables.size());
+  //tension_vector.resize(cables.size());
 }
 
 void RobotVars::updateJacobians()
@@ -367,16 +367,16 @@ void RobotVarsQuat::resize()
   // Geometric jacobians
   geom_jacobian.clear();
   geom_jacobian_d.clear();
-  geom_jacobian.resize(cables.size(), POSE_DIM);
-  geom_jacobian_d.resize(cables.size(), POSE_DIM);
+  //geom_jacobian.resize(cables.size(), POSE_DIM);
+  //geom_jacobian_d.resize(cables.size(), POSE_DIM);
   // Analitic jacobians
   anal_jacobian.clear();
   anal_jacobian_d.clear();
-  anal_jacobian.resize(cables.size(), POSE_QUAT_DIM);
-  anal_jacobian_d.resize(cables.size(), POSE_QUAT_DIM);
+  //anal_jacobian.resize(cables.size(), POSE_QUAT_DIM);
+  //anal_jacobian_d.resize(cables.size(), POSE_QUAT_DIM);
   // Tension vector
   tension_vector.clear();
-  tension_vector.resize(cables.size());
+  //tension_vector.resize(cables.size());
 }
 
 void RobotVarsQuat::updateJacobians()

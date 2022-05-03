@@ -962,21 +962,21 @@ struct RobotVarsBase
   /** @addtogroup ZeroOrderKinematics
    * @{
    */
-  arma::mat geom_jacobian{{6,6,6,6,6,6},{6,6,6,6,6,6},{6,6,6,6,6,6},{6,6,6,6,6,6}}; /**< geometric jacobian. */
-  arma::mat anal_jacobian{{6,6,6,6,6,6},{6,6,6,6,6,6},{6,6,6,6,6,6},{6,6,6,6,6,6}}; /**< analytical jacobian. */
+  arma::mat::fixed<4, 6> geom_jacobian; /**< geometric jacobian. */
+  arma::mat::fixed<4, 6> anal_jacobian; /**< analytical jacobian. */
   /** @} */                // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
    * @{
    */
-  arma::mat geom_jacobian_d{{6,6,6,6,6,6},{6,6,6,6,6,6},{6,6,6,6,6,6},{6,6,6,6,6,6}}; /**< geometric jacobian first derivative. */
-  arma::mat anal_jacobian_d{{6,6,6,6,6,6},{6,6,6,6,6,6},{6,6,6,6,6,6},{6,6,6,6,6,6}}; /**< analytical jacobian first derivative. */
+  arma::mat::fixed<4, 6> geom_jacobian_d; /**< geometric jacobian first derivative. */
+  arma::mat::fixed<4, 6> anal_jacobian_d; /**< analytical jacobian first derivative. */
   /** @} */                  // end of FirstOrderKinematics group
 
   /** @addtogroup Dynamics
    * @{
    */
-  arma::vec tension_vector{0,0,0,0}; /**< [N] tensions vector, collecting tension on each cable.*/
+  arma::vec::fixed<4> tension_vector; /**< [N] tensions vector, collecting tension on each cable.*/
   /** @} */                 // end of Dynamics group
 };
 
