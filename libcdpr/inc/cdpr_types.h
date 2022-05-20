@@ -1,7 +1,7 @@
 /**
  * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date 02 Mar 2020
+ * @date May 2022
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -351,6 +351,7 @@ struct WinchParams
     1.; /**< [N] tension gain in linear transformation loadcell value --> tension. */
   double kp = 0.01; /**< Proportional factor of PI controller (torque --> cable vel). */
   double ki = 0.0;  /**< Integral factor of PI controller (torque --> cable vel). */
+  double kd = 0.0;  /**< Derivative factor of PI controller (torque --> cable vel). */
 };
 
 /**
