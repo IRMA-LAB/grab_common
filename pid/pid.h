@@ -106,6 +106,11 @@ class PID
   void SetParams(const ParamsPID& params);
 
   /**
+   * @brief Set/change controller parameters.
+   * @param[in] params The new tuning parameters set, reset specify if the PID is to be reset.
+   */
+  void SetParams(const ParamsPID& params, const bool& reset);
+  /**
    * @brief Get latest error.
    * @return Latest error.
    */

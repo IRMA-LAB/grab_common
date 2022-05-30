@@ -69,6 +69,20 @@ void PID::SetParams(const ParamsPID& params)
   Reset();
 }
 
+void PID::SetParams(const ParamsPID& params, const bool& reset)
+{
+  Kp_  = params.Kp;
+  Ki_  = params.Ki;
+  Kd_  = params.Kd;
+  Tf_  = params.Tf;
+  max_ = params.max;
+  min_ = params.min;
+
+  ComputeConstants();
+  if (reset)
+    Reset();
+}
+
 double PID::Calculate(const double& setpoint, const double& current_value)
 {
   // Initialize previous outputs if not done already
