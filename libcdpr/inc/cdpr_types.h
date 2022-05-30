@@ -1064,6 +1064,18 @@ struct RobotVarsQuat: RobotVarsBase
    */
   void updateJacobians();
 };
+/**
+ * @brief Structure collecting all variables related to a generic 6DoF CDPR.
+ *
+ * This structure employs 3-angle parametrization for the orientation of the platform
+ * and includes roll, pitch and yaw frame orientation.
+ */
+struct RobotVarsMobileFrame:RobotVars
+{
+  double FrameRoll; /**< Roll angle.*/
+  double FramePitch;  /**< Pitch angle.*/
+  double FrameYaw;  /**< Yaw angle.*/
+};
 
 } // end namespace grabcdpr
 
