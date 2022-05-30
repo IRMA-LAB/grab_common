@@ -524,9 +524,9 @@ class Thread
   [[noreturn]] void handleErrorEnWrapper(const int en, const char* msg) const;
 
  private:
-  static constexpr uint32_t kStackSize = 100 * 1024 * 1024; /**< 10 Mb */
+  static constexpr uint32_t kStackSize = 200 * 1024 * 1024; /**< 10 Mb */
   static constexpr uint32_t kPreAllocationSize =
-    200 * 1024 * 1024; /**< 100MB pagefault free buffer */
+    500 * 1024 * 1024; /**< 100MB pagefault free buffer */
 
   pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;
   pthread_t thread_id_   = 0;
