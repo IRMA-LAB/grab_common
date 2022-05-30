@@ -344,10 +344,10 @@ void RobotVars::updateJacobians()
 
  // if (geom_jacobian.n_rows != cables.size() || anal_jacobian.n_rows != cables.size())
     ///*resize();*/
-//    std::cout<<"i'm updating jacobians: "<<cables.size()<<std::endl;
+
   for (uint8_t i = 0; i < cables.size(); ++i)
   {
- //   std::cout<<"i'm updating jacobians with: "<<cables[i].geom_jacob_row.Data()<<std::endl;
+
     geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row.Data());
 
     anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row.Data());
