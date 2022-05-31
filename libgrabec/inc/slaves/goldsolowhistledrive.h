@@ -93,9 +93,23 @@ class GoldSoloWhistleDriveData: public EventData
   GoldSoloWhistleDriveData(const int8_t _op_mode, const GSWDriveInPdos& input_pdos,
                            const bool verbose = false);
 
+  /**
+   * @brief Full constructor.
+   * @param[in] _op_mode The desired operation mode of the drive. See
+   * GoldSoloWhistleOperationModes for valid accounted entries.
+   * @param[in] _value The target set point for the desired operation mode (position,
+   * velocity or torque).
+   * @attention Torque setpoint is automaticallly casted to INT16, so values needs to be
+   * in range [–32,768, 32,767].
+   */
+   GoldSoloWhistleDriveData(const int8_t _op_mode, const uint32_t _digital_outputs,
+                            const int32_t _value = 0);
+
   int8_t op_mode =
     GoldSoloWhistleOperationModes::NONE; /**< The desired operation mode of the drive. */
   int32_t value = 0; /**< The target set point for the desired operation mode. */
+  uint32_t digital_outputs = 0; /**< digital outputs to be written on pdos. */
+  bool only_digital = false; /**< flag to only write digital output while in operational mode. */
 };
 
 /**
@@ -331,12 +345,18 @@ class GoldSoloWhistleDrive:
    */
   void changeDeltaTorque(const int16_t delta_torque);
   /**
+   * @brief Change Digital Outputs
+   * @param[in] digital outputs
+   */
+  void changeDigitalOutputs(const uint32_t digital_outputs);
+  /**
    * @brief Change Operation Mode external event.
    *
    * If drive is in in OPERATION ENABLED state, it changes _operation mode_ to
    * @c target_op_mode and sets corresponding target to its current value.
    * @param[in] target_op_mode New _operation mode_.
    */
+
   void changeOpMode(const int8_t target_op_mode, const bool verbose = false);
   /**
    * @brief SetTargetDefaults external event.
@@ -395,6 +415,7 @@ class GoldSoloWhistleDrive:
     int16_t target_torque;        /**< target_torque */
     int32_t target_position;      /**< target_position */
     int32_t target_velocity;      /**< target_velocity */
+    uint32_t digital_outputs;      /**< digital_outputs */
   } output_pdos_;                 /**< output_pdos_ */
 
   States drive_state_; /**< physical drive state */
@@ -410,7 +431,7 @@ class GoldSoloWhistleDrive:
 
  private:
   static constexpr uint8_t kDomainInputs            = 8;
-  static constexpr uint8_t kDomainOutputs           = 5;
+  static constexpr uint8_t kDomainOutputs           = 6;
   static constexpr uint8_t kDomainEntries           = kDomainInputs + kDomainOutputs;
   static constexpr uint8_t kAlias                   = 0;
   static constexpr uint32_t kVendorID               = 0x0000009a;
@@ -440,8 +461,11 @@ class GoldSoloWhistleDrive:
   static constexpr uint16_t kDigInIndex             = 0x60FD;
   static constexpr uint8_t kDigInSubIndex           = 0x00;
 
+  static constexpr uint16_t kDigOutIndex             = 0x60FE;
+  static constexpr uint8_t kDigOutSubIndex           = 0x01;
+
   static constexpr uint16_t kAnalogIdx   = 0x2205;
-  static constexpr uint8_t kAnalogSubIdx = 0x1;
+  static constexpr uint8_t kAnalogSubIdx = 0x01;
 
   static constexpr uint16_t kAuxPosActualValueIdx   = 0x20A0;
   static constexpr uint8_t kAuxPosActualValueSubIdx = 0x00;
@@ -456,6 +480,7 @@ class GoldSoloWhistleDrive:
     {kTargetTorqueIdx, kTargetTorqueSubIdx, 16},
     {kTargetPosIdx, kTargetPosSubIdx, 32},
     {kTargetVelIdx, kTargetVelSubIdx, 32},
+    {kDigOutIndex, kDigOutSubIndex, 32},
     {kStatusWordIdx, kStatusWordSubIdx, 16}, // Start of TxPdo mapping (Inputs)
     {kDisplayOpModeIdx, kDisplayOpModeSubIdx, 8},
     {kPosActualValueIdx, kPosActualValueSubIdx, 32},
@@ -467,8 +492,8 @@ class GoldSoloWhistleDrive:
 
   // ethercat utilities, can be retrieved in the xml config file provided by the vendor
   static constexpr ec_pdo_info_t kPDOs_[2] = {
-    {0x1607, 5, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 0}, /* Outputs */
-    {0x1a07, 8, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 5}, /* Inputs */
+    {0x1607, kDomainOutputs, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 0}, /* Outputs */
+    {0x1a07, kDomainInputs, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + kDomainOutputs}, /* Inputs */
   };
 
   static constexpr ec_sync_info_t kSyncs_[5] = {
@@ -486,6 +511,7 @@ class GoldSoloWhistleDrive:
     unsigned int target_torque;
     unsigned int target_position;
     unsigned int target_velocity;
+    unsigned int digital_outputs;
   } offset_out_;
 
   // Useful ethercat struct
@@ -520,7 +546,7 @@ class GoldSoloWhistleDrive:
 
   ec_pdo_entry_reg_t domain_registers_[kDomainEntries]; // ethercat utilities
 
-  void setChange(const GoldSoloWhistleDriveData* data);
+  void setChange(const GoldSoloWhistleDriveData *data);
 
   RetVal sdoRequests(ec_slave_config_t* config_ptr) override final;
 

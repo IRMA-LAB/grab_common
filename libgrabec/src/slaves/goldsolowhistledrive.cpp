@@ -48,6 +48,13 @@ GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
   }
 }
 
+GoldSoloWhistleDriveData::GoldSoloWhistleDriveData(const int8_t _op_mode,
+                                                   const uint32_t _digital_outputs,
+                                                   const int32_t _value /*= 0*/
+                                                   )
+  : op_mode(_op_mode), value(_value), digital_outputs(_digital_outputs),only_digital(true)
+{}
+
 //------------------------------------------------------------------------------------//
 // GoldSoloWhistleDrive
 //------------------------------------------------------------------------------------//
@@ -115,11 +122,19 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           position_,
                           vendor_id_,
                           product_code_,
+                          kDigOutIndex,
+                          kDigOutSubIndex,
+                          &offset_out_.target_velocity,
+                          nullptr};
+  domain_registers_[6]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
                           kStatusWordIdx,
                           kStatusWordSubIdx,
                           &offset_in_.status_word,
                           nullptr};
-  domain_registers_[6]  = {alias_,
+  domain_registers_[7]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
@@ -127,7 +142,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kDisplayOpModeSubIdx,
                           &offset_in_.display_op_mode,
                           nullptr};
-  domain_registers_[7]  = {alias_,
+  domain_registers_[8]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
@@ -135,7 +150,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kPosActualValueSubIdx,
                           &offset_in_.position_actual_value,
                           nullptr};
-  domain_registers_[8]  = {alias_,
+  domain_registers_[9]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
@@ -143,7 +158,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kVelActualValueSubIdx,
                           &offset_in_.velocity_actual_value,
                           nullptr};
-  domain_registers_[9]  = {alias_,
+  domain_registers_[10]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
@@ -151,7 +166,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           kTorqueActualValueSubIdx,
                           &offset_in_.torque_actual_value,
                           nullptr};
-  domain_registers_[10] = {alias_,
+  domain_registers_[11] = {alias_,
                            position_,
                            vendor_id_,
                            product_code_,
@@ -159,7 +174,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                            kAnalogSubIdx,
                            &offset_in_.analog_input,
                            nullptr};
-  domain_registers_[11] = {alias_,
+  domain_registers_[12] = {alias_,
                            position_,
                            vendor_id_,
                            product_code_,
@@ -167,7 +182,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                            kDigInSubIndex,
                            &offset_in_.digital_inputs,
                            nullptr};
-  domain_registers_[12] = {alias_,
+  domain_registers_[13] = {alias_,
                            position_,
                            vendor_id_,
                            product_code_,
@@ -341,6 +356,8 @@ void GoldSoloWhistleDrive::writeOutputs()
                  output_pdos_.target_velocity);
     EC_WRITE_S16(domain_data_ptr_ + offset_out_.target_torque,
                  output_pdos_.target_torque);
+    EC_WRITE_U32(domain_data_ptr_ + offset_out_.digital_outputs,
+                 output_pdos_.digital_outputs);
   }
 }
 
@@ -523,6 +540,13 @@ void GoldSoloWhistleDrive::changeDeltaTorque(const int16_t delta_torque)
   changeTorque(input_pdos_.torque_actual_value + delta_torque);
 }
 
+void GoldSoloWhistleDrive::changeDigitalOutputs(const uint32_t digital_outputs)
+{
+  GoldSoloWhistleDriveData* data = new GoldSoloWhistleDriveData(
+    input_pdos_.display_op_mode, digital_outputs);
+  setChange(data);
+}
+
 void GoldSoloWhistleDrive::changeOpMode(const int8_t target_op_mode,
                                         const bool verbose /*=false*/)
 {
@@ -631,8 +655,12 @@ STATE_DEFINE(GoldSoloWhistleDrive, SwitchedOn, NoEventData)
 
 STATE_DEFINE(GoldSoloWhistleDrive, OperationEnabled, GoldSoloWhistleDriveData)
 {
-  printStateTransition(prev_state_, ST_OPERATION_ENABLED);
 
+  printStateTransition(prev_state_, ST_OPERATION_ENABLED);
+  if(data->only_digital){
+      output_pdos_.digital_outputs = data->digital_outputs;
+
+  }else{
   // Setup operational mode and target value
   output_pdos_.op_mode = data->op_mode;
   switch (data->op_mode)
@@ -648,6 +676,8 @@ STATE_DEFINE(GoldSoloWhistleDrive, OperationEnabled, GoldSoloWhistleDriveData)
       break;
     default:
       break;
+  }
+
   }
 
   prev_state_ = ST_OPERATION_ENABLED;
