@@ -124,7 +124,7 @@ GoldSoloWhistleDrive::GoldSoloWhistleDrive(const id_t id, const uint8_t slave_po
                           product_code_,
                           kDigOutIndex,
                           kDigOutSubIndex,
-                          &offset_out_.target_velocity,
+                          &offset_out_.digital_outputs,
                           nullptr};
   domain_registers_[6]  = {alias_,
                           position_,
