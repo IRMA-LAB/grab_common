@@ -236,6 +236,11 @@ class GoldSoloWhistleDrive:
   GSWDriveInPdos getDriveStatus() const { return input_pdos_; }
 
   /**
+   * @brief Get digital outputs written on PDOs.
+   * @return digital outputs written on PDOs.
+   */
+  uint32_t getDigitalOutputs() const {return output_pdos_.digital_outputs;}
+  /**
    * @defgroup ExternalEvents GoldSoloWhistle Drive External Events
    * The external events which user can call to trigger a state transition. For furter
    * details
@@ -243,6 +248,7 @@ class GoldSoloWhistleDrive:
    * href="https://www.elmomc.com/members/NetHelp1/Elmo.htm#!object0x6040controlw.htm">here</a>.
    * @{
    */
+
   //------- External events resembling the ones internal to physical drive -----------//
 
   /**
