@@ -359,6 +359,7 @@ void GoldSoloWhistleDrive::writeOutputs()
     EC_WRITE_U32(domain_data_ptr_ + offset_out_.digital_outputs,
                  output_pdos_.digital_outputs);
   }
+
 }
 
 void GoldSoloWhistleDrive::safeExit()
@@ -659,7 +660,6 @@ STATE_DEFINE(GoldSoloWhistleDrive, OperationEnabled, GoldSoloWhistleDriveData)
   printStateTransition(prev_state_, ST_OPERATION_ENABLED);
   if(data->only_digital){
       output_pdos_.digital_outputs = data->digital_outputs;
-
   }else{
   // Setup operational mode and target value
   output_pdos_.op_mode = data->op_mode;
