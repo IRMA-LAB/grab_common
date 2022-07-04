@@ -224,6 +224,11 @@ class GoldSoloWhistleDrive:
    */
   int16_t getAnalogInput() const { return input_pdos_.analog_input; }
   /**
+   * @brief GetDigitalInput
+   * @return
+   */
+  uint getDigitalInputs() const { return input_pdos_.digital_inputs; }
+  /**
    * @brief Get actual drive operational mode {_position, velocity, torque, none_}.
    * @return Actual drive operational mode.
    * @see GoldSoloWhistleOperationModes
@@ -421,7 +426,7 @@ class GoldSoloWhistleDrive:
     int16_t target_torque;        /**< target_torque */
     int32_t target_position;      /**< target_position */
     int32_t target_velocity;      /**< target_velocity */
-    uint32_t digital_outputs;      /**< digital_outputs */
+    uint32_t digital_outputs = 0x0000;      /**< digital_outputs */
   } output_pdos_;                 /**< output_pdos_ */
 
   States drive_state_; /**< physical drive state */
