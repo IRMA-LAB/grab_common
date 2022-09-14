@@ -114,18 +114,37 @@ grabnum::Matrix3d HtfXYZ(const double alpha, const double beta)
   return hmat;
 }
 
-grabnum::Matrix3d HtfRPY(const double roll, const double pitch)
+//grabnum::Matrix3d HtfRPY(const double roll, const double pitch)
+//{
+//  grabnum::Matrix3d hmat;
+//  double c1 = cos(roll);
+//  double s1 = sin(roll);
+//  double c2 = cos(pitch);
+//  hmat(1, 2) = -s1;
+//  hmat(1, 3) = c1 * c2;
+//  hmat(2, 2) = c1;
+//  hmat(2, 3) = s1 * c2;
+//  hmat(3, 1) = 1.0;
+//  hmat(3, 3) = sin(pitch);
+//  return hmat;
+//}
+
+grabnum::Matrix3d HtfRPY(const double yaw, const double pitch)
 {
   grabnum::Matrix3d hmat;
-  double c1 = cos(roll);
-  double s1 = sin(roll);
+  double c1 = cos(yaw);
+  double s1 = sin(yaw);
   double c2 = cos(pitch);
+  double s2 = sin(pitch);
+  hmat(1, 1) = c1*c2;
   hmat(1, 2) = -s1;
-  hmat(1, 3) = c1 * c2;
+  hmat(1, 3) = 0.0;
+  hmat(2, 1) = s1*c2;
   hmat(2, 2) = c1;
-  hmat(2, 3) = s1 * c2;
-  hmat(3, 1) = 1.0;
-  hmat(3, 3) = sin(pitch);
+  hmat(2, 3) = 0.0;
+  hmat(3, 1) = -s2;
+  hmat(3, 2) = 0.0;
+  hmat(3, 3) = 1.0;
   return hmat;
 }
 

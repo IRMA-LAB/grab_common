@@ -398,7 +398,7 @@ inline grabnum::Matrix3d HtfXYZ(const grabnum::Vector3d& angles)
  * @return A 3x3 matrix (double).
  * @see RotRPY()
  */
-grabnum::Matrix3d HtfRPY(const double roll, const double pitch);
+grabnum::Matrix3d HtfRPY(const double yaw, const double pitch);
 /**
  * @brief Transformation matrix @f$\mathbf{H}@f$ between the derivative of
  * _Roll, Pitch, Yaw_ angles and angular velocity vector @f$\boldsymbol\omega@f$.
@@ -409,7 +409,7 @@ grabnum::Matrix3d HtfRPY(const double roll, const double pitch);
  */
 inline grabnum::Matrix3d HtfRPY(const grabnum::Vector3d& rpy)
 {
-  return HtfRPY(rpy(1), rpy(2));
+  return HtfRPY(rpy(3), rpy(2));
 }
 
 /**
