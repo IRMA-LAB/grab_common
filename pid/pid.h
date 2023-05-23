@@ -110,6 +110,31 @@ class PID
    * @param[in] params The new tuning parameters set, reset specify if the PID is to be reset.
    */
   void SetParams(const ParamsPID& params, const bool& reset);
+
+  /**
+   * @brief Set/change proportional gain controller parameter.
+   * @param[in] new proportional gain. PID won't be reset
+   */
+  void SetKP(const double KP){
+    Kp_=KP;
+    ComputeConstants();
+  }
+  /**
+   * @brief Set/change integral gain controller parameter.
+   * @param[in] new integral gain. PID won't be reset
+   */
+  void SetKI(const double Ki){
+    Ki_=Ki;
+    ComputeConstants();
+  }
+  /**
+   * @brief Set/change derivative gain controller parameter.
+   * @param[in] new derivative gain. PID won't be reset
+   */
+  void SetKd(const double Kd){
+    Kd_=Kd;
+    ComputeConstants();
+  }
   /**
    * @brief Get latest error.
    * @return Latest error.
