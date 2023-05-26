@@ -250,6 +250,12 @@ grabnum::Vector3d fromArmaVec3(const arma::vec3& vect);
  * @return A 4D column vector of double in GRAB format.
  */
 grabnum::Vector4d fromArmaVec4(const arma::vec4& vect);
+/**
+ * @brief Convert a 6D column vector from armadillo format to GRAB format.
+ * @param[in] vect A 6D column vector of double in armadillo format.
+ * @return A 6D column vector of double in GRAB format.
+ */
+grabnum::Vector6d fromArmaVec6(const arma::vec6& vect);
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.

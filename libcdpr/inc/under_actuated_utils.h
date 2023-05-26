@@ -484,7 +484,19 @@ arma::mat calcJacobianGS(const UnderActuatedRobotVars& vars);
  */
 void optFunGS(const RobotParams& params, const arma::vec& act_vars,
               const arma::vec& unact_vars, arma::mat& fun_jacobian, arma::vec& fun_val);
-
+/**
+ * @brief Optimization function to be iterated in order to solve geometric-static problem
+ * with only position.
+ * @param[in] params A reference to the robot parameters structure.
+ * @param[in] act_vars A vector of actuated variables (pose elements).
+ * @param[in] unact_vars A vector of unactuated variables (pose elements).
+ * @param[out] fun_jacobian Resulting jacobian function for this one optimization cycle.
+ * @param[out] fun_val Resulting vectorial function for this one optimization cycle.
+ * @see optFunDK0GS()
+ */
+void optFunGS_onlypos(const RobotParams& params, const arma::vec& act_vars,
+                      const arma::vec& unact_vars, arma::mat& fun_jacobian,
+                      arma::vec& fun_val);
 /**
  * @brief Optimization function to be iterated in order to solve direct kinematics problem
  * using both geometric and static constraints.
@@ -562,6 +574,29 @@ arma::vec nonLinsolveJacGeomStatic(const grabnum::VectorXd<POSE_DIM>& init_guess
                                    const arma::uvec6& mask,
                                    const grabcdpr::RobotParams& params,
                                    const uint8_t nmax = 100, uint8_t* iter_out = nullptr);
+
+/**
+ * @brief Solve a nonlinear geometric-static optimization problem .
+ *
+ * The geometric-static optimization problem consists in finding a feasible CDPR pose
+ * given an initial guess pose and a mask defining which elements of it are fixed and
+ * which ones are variables, i.e. the optimization vector/solution.
+ * @param init_guess The initial 6D CDPR platform pose with 3-angle parametrization
+ * @param mask A 6D boolean mask defining which elements are fixed (1) and which ones are
+ * variable (0).
+ * @param params CDPR parameters set.
+ * @param nmax Maximum number of iteration before aborting optimization.
+ * @param iter_out Executed number of iterations that led to a solution, when problem
+ * converged.
+ * @return A vector of variable elements of the pose. Its dimension depends on the number
+ * of zeros in mask.
+ */
+
+arma::vec nonLinsolveJacGeomStatic_onlypos(const grabnum::VectorXd<POSE_DIM>& init_guess,
+                                           const arma::uvec6& mask,
+                                           const grabcdpr::RobotParams& params,
+                                           const uint8_t nmax = 100,
+                                           uint8_t* iter_out  = nullptr);
 
 } // end namespace grabcdpr
 

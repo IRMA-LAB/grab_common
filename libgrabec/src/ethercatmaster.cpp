@@ -229,7 +229,7 @@ bool EthercatMaster::setupEcNtw()
   uint8_t ret = initProtocol();
   if (ret)
   {
-    ecPrintCb("Initialization EtherCAT network " + getRetValStr(EFAIL), 'r');
+    ecPrintCb("Initialization EtherCAT network ret " + getRetValStr(EFAIL), 'r');
     ecStateChangedCb(check_state_flags_);
     if (master_ptr_ != nullptr)
       releaseMaster();
