@@ -49,7 +49,7 @@ grabnum::Vector4d fromArmaVec4(const arma::vec4& vect)
   return grabnum::Vector4d(vect.begin(), vect.end());
 }
 
-grabnum::Vector6d fromArmaVec6(const arma::vec4& vect)
+grabnum::Vector6d fromArmaVec6(const arma::vec6& vect)
 {
   return grabnum::Vector6d(vect.begin(), vect.end());
 }
