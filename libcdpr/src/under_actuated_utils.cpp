@@ -478,6 +478,74 @@ void optFunGS(const RobotParams& params, const arma::vec& act_vars,
   fun_jacobian = calcJacobianGS(vars).cols(arma::find(params.controlled_vars_mask == 0));
 }
 
+arma::mat ComputeJacobian_GSonlypos(
+  const UnderActuatedRobotVars& vars, const Vector3d tau_r, const ulong kNumCables,
+  const Matrix<double, 4, 3> Xi_T, const Matrix<double, 4, 3> Xi_r,
+  const Matrix<double, 4, 1> Xi_T_ort, const Vector3d f_T, const double lambda,
+  const uint i_a, const double a, const uint i_b, const double b)
+{
+
+  Matrix<double, 3, 6> K3;
+  Matrix<double, 6, 6> K;
+  Matrix<double, 4, 6> K2;
+  Matrix<double, 6, 6> K_mod;
+  K3.SetZero();
+  K.SetZero();
+  K2.SetZero();
+  K_mod.SetZero();
+  Vector4d temp;
+  for (uint i = 0; i < kNumCables; i++)
+  {
+    temp(i + 1) = Xi_T_ort(i) * vars.cables[i].length;
+  }
+  Vector4d tau_0 = fromArmaVec4(vars.tension_vector) - temp;
+  for (uint i = 0; i < kNumCables; i++)
+  {
+    Matrix3d T               = calcMatrixT(vars.cables[i]);
+    Matrix3d a_tilde         = Skew(vars.cables[i].pos_PA_glob);
+    Matrix<double, 3, 6> dJ2 = HorzCat(-1. * T, T * a_tilde);
+    Matrix<double, 3, 6> temp2 =
+      HorzCat(-1. * a_tilde * T, (a_tilde * T - Skew(vars.cables[i].vers_t)) * a_tilde);
+    Matrix<double, 6, 6> dJ   = VertCat(dJ2, temp2);
+
+    K3 = K3 - Xi_T_ort(i + 1) * dJ2;
+    K2.SetBlock<1, 6>(i + 1, 1, (dJ2.Transpose() * tau_r).Transpose());
+    K     = K + vars.tension_vector(i, 0) * dJ;
+    K_mod = K_mod + tau_0(i + 1) * dJ;
+  }
+  K.SetBlock<3, 3>(4, 4,
+                   K.GetBlock<3, 3>(4, 4) + Skew(f_T) * Skew(vars.platform.pos_PG_glob));
+
+
+  Matrix<double, 1, 6> temp4;
+  temp4.SetZero();
+  Matrix<double, 4, 6> dXi_T_ort = VertCat(
+   Linsolve3x3_3x6((Xi_T.GetBlock<3, 3>(1, 1)).Transpose(), K3), temp4);
+  Matrix<double, 4, 4> eye4;
+  eye4.SetIdentity();
+  Matrix<double, 4, 6> dtau0 =
+    (eye4 -
+     Xi_T * (Linsolve3x3_3x4(Xi_T.Transpose() * Xi_T, Xi_T.Transpose()))) *
+      K2 -
+    Xi_T *
+      Linsolve3x3_3x6(Xi_T.Transpose() * Xi_T, K_mod.GetBlock<3, 6>(1, 1));
+
+  Vector6d da;
+  Vector6d db;
+  for (uint i = 0; i < 6; i++)
+  {
+    da(i + 1) = (dtau0(i_a, i + 1) * Xi_T_ort(i_a) - a * dXi_T_ort(i_a, i + 1)) /
+                pow(Xi_T_ort(i_a), 2);
+    db(i + 1) = (dtau0(i_b, i + 1) * Xi_T_ort(i_b) - b * dXi_T_ort(i_b, i + 1)) /
+                pow(Xi_T_ort(i_b), 2);
+  }
+  Matrix<double, 4, 6> dtau =
+    dtau0 + dXi_T_ort * lambda - 0.5 * grabnum::ExtProduct(Xi_T_ort, (da + db));
+  Matrix<double, 3, 6> Jac = -1. * (K.GetBlock<3, 6>(1, 1) + Xi_r.Transpose() * dtau);
+
+  return toArmaMat_3x6(Jac);
+}
+
 void optFunGS_onlypos(const RobotParams& params, const arma::vec& act_vars,
                       const arma::vec& unact_vars, arma::mat& fun_jacobian,
                       arma::vec& fun_val)
@@ -490,8 +558,56 @@ void optFunGS_onlypos(const RobotParams& params, const arma::vec& act_vars,
   updateExternalLoads(params.platform, vars.platform);
   updateCablesStaticTension(vars);
 
-  fun_val      = calcStaticConstraint(vars);
-  fun_jacobian = calcJacobianGS(vars).cols(arma::find(params.controlled_vars_mask == 0));
+  Matrix<double, 6, 4> geomjac_grab = fromArmaMat6x4(vars.geom_jacobian);
+  Matrix<double, 3, 4> Xi_T         = geomjac_grab.GetBlock<3, 4>(1, 1);
+  Matrix<double, 3, 4> Xi_r         = geomjac_grab.GetBlock<3, 4>(4, 1);
+  Matrix<double, 4, 1> Xi_T_ort;
+  Xi_T_ort(4, 1) = 1;
+  Xi_T_ort.SetBlock<3, 1>(1, 1,
+                          Linsolve3x3_3x1(geomjac_grab.GetBlock<3, 3>(1, 1),
+                                                        -1. * Xi_T.GetBlock<3, 1>(1, 4)));
+  // Xi_T =  cdpr_v.geometric_jacobian(1:3,:);
+  // f_T = cdpr_v.platform.ext_load(1:3);
+  // Xi_R = cdpr_v.geometric_jacobian(4:6,:);
+  // f_R = cdpr_v.platform.ext_load(4:6);
+  Vector3d f_T = vars.platform.ext_load.GetBlock<3, 1>(1, 1);
+  Vector3d f_r = vars.platform.ext_load.GetBlock<3, 1>(4, 1);
+
+  Vector4d tau_0 =
+    Xi_T.Transpose() * Linsolve3x3_3x1(Xi_T * Xi_T.Transpose(), f_T);
+
+  Vector4d tau_min(40);
+  Vector4d tau_max(400);
+
+  Vector4d a = -tau_max + tau_0;
+  Vector4d b = -tau_min + tau_0;
+  for (uint i = 0; i < 4; i++)
+  {
+    if (Xi_T_ort(i + 1) >= 0)
+    {
+      a(i + 1) = a(i + 1) / Xi_T_ort(i + 1);
+      b(i + 1) = b(i + 1) / Xi_T_ort(i + 1);
+    }
+    else
+    {
+      double temp = a(i + 1);
+      a(i + 1)    = b(i) / Xi_T_ort(i + 1);
+      b(i + 1)    = temp / Xi_T_ort(i + 1);
+    }
+  }
+  uint ind_b              = b.MinIdx();
+  uint ind_a              = a.MaxIdx();
+  double lambda           = -(b.Min() + a.Max()) / 2;
+  Vector4d tension_vector = tau_0 + lambda * Xi_T_ort;
+
+  fun_val = toArmaVec(Xi_r * tension_vector - f_r);
+  // linsolve(Xi_T*Xi_T',f_T)
+  Vector3d tau_r = Linsolve3x3_3x1(Xi_T * Xi_T.Transpose(), f_T);
+  ;
+
+  fun_jacobian =
+    ComputeJacobian_GSonlypos(vars, tau_r, kNumCables, Xi_T.Transpose(), Xi_r.Transpose(),
+                              Xi_T_ort, f_T, lambda, ind_a, a.Max(), ind_b, b.Max());
 }
 
 void optFunDK0GS(const RobotParams& params, const arma::vec& cables_length,
@@ -669,5 +785,101 @@ arma::vec nonLinsolveJacGeomStatic_onlypos(const grabnum::VectorXd<POSE_DIM>& in
     *iter_out = iter;
 
   return var_coord;
+}
+Vector3d Linsolve3x3_3x1(const Matrix3d& _mat, const Vector3d& _vect)
+{
+
+  Matrix3d mat(_mat);
+  Vector3d vect(_vect);
+  uint8_t dim = 3;
+  for (uint8_t i = 1; i < dim; ++i)
+  {
+    uint8_t max_idx = i;
+    double max_val  = mat(i, i);
+    for (uint8_t j = i + 1; j <= dim; ++j)
+    {
+      if (fabs(mat(j, i)) > fabs(max_val))
+      {
+        max_val = mat(j, i);
+        max_idx = j;
+      }
+    }
+    mat.SwapRow(i, max_idx);
+    vect.SwapRow(i, max_idx);
+    for (uint8_t j = i + 1; j <= dim; ++j)
+    {
+      double m = mat(j, i) / mat(i, i);
+      vect(j) -= vect(i) * m;
+      for (uint8_t k = i; k <= dim; ++k)
+      {
+        mat(j, k) -= mat(i, k) * m;
+      }
+    }
+  }
+  return LinsolveUp3x3_3x1(mat, vect);
+}
+
+
+Vector3d LinsolveUp3x3_3x1(const Matrix3d& mat, const Vector3d& vect)
+{
+
+  Vector3d result;
+  result = vect;
+  result(3) /= mat(3, 3);
+  for (uint8_t j = 3 - 1; j > 0; j--)
+  {
+    for (uint8_t k = j + 1; k <= 3; ++k)
+    {
+      result(j) -= mat(j, k) * result(k);
+    }
+    result(j) /= mat(j, j);
+  }
+
+  return result;
+}
+
+grabnum::Matrix<double, 3, 4> Linsolve3x3_3x4(const Matrix<double, 3, 3>& mat,
+                                              const grabnum::Matrix<double, 3, 4>& mat2)
+{
+
+  grabnum::Matrix<double, 3, 4> result;
+  grabnum::Vector3d column;
+  for(uint i=0;i<4;i++){
+    column = Linsolve3x3_3x1(mat,mat2.GetBlock<3,1>(1,i+1));
+    result.SetBlock(1,i+1,column);
+  }
+
+  return result;
+}
+grabnum::Matrix<double, 3, 6> Linsolve3x3_3x6(const Matrix<double, 3, 3>& mat,
+                                              const grabnum::Matrix<double, 3, 6>& mat2)
+{
+
+  grabnum::Matrix<double, 3, 6> result;
+  grabnum::Vector3d column;
+  for(uint i=0;i<6;i++){
+    column = Linsolve3x3_3x1(mat,mat2.GetBlock<3,1>(1,i+1));
+    result.SetBlock(1,i+1,column);
+  }
+
+  return result;
+}
+grabnum::Matrix<double, 3, 3> Linsolve3x3_3x3(const Matrix<double, 3, 3>& mat,
+                                              const grabnum::Matrix<double, 3, 3>& mat2)
+{
+
+  grabnum::Matrix<double, 3, 3> result;
+  grabnum::Vector3d column;
+  for(uint i=0;i<3;i++){
+    column = Linsolve3x3_3x1(mat,mat2.GetBlock<3,1>(1,i+1));
+    result.SetBlock(1,i+1,column);
+  }
+
+  return result;
+}
+arma::mat toArmaMat_3x6(Matrix<double,3,6> mat, bool copy /*= true*/)
+{
+  // Data is filled column-by-column, that's why we need the transpose
+  return arma::mat(mat.Data(), 6, 3, copy).t();
 }
 } // namespace grabcdpr
