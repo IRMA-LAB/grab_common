@@ -393,5 +393,14 @@ template <uint rows, uint cols> MatrixXd<rows, cols> Zeros()
 {
   return MatrixXd<rows, cols>();
 }
-
+template <uint rows, uint cols> MatrixXd<rows, cols> ExtProduct(const MatrixXd<rows, 1>& vect,
+                                const MatrixXd<cols,1>& vect2){
+  MatrixXd<rows,cols> mat;
+  for(uint i =1;i<=rows;i++){
+    for(uint j=1;j<=cols;j++){
+      mat(i,j)=vect(i,1)*vect2(j,1);
+    }
+  }
+  return mat;
+}
 } //  end namespace grabnum

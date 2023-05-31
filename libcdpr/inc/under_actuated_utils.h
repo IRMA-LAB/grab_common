@@ -11,6 +11,9 @@
 
 #include "cdpr_types.h"
 #include "kinematics.h"
+#include "matrix_utilities.h"
+#include "solvers.h"
+
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
@@ -472,6 +475,16 @@ arma::mat calcJacobianSw(const UnderActuatedRobotVars& vars);
  * @return Geometric-static jacobian matrix.
  */
 arma::mat calcJacobianGS(const UnderActuatedRobotVars& vars);
+/**
+ * @brief Calculate geometric-static jacobian for a 4 cable robot when only position is considered.
+ * @param[in] vars Under-actuated CDPR variables/status.
+ * @return Geometric-static jacobian matrix.
+ */
+arma::mat ComputeJacobian_GSonlypos(
+  const UnderActuatedRobotVars& vars,const Vector3d tau_r, const ulong kNumCables,
+  const Matrix<double, 4, 3> Xi_T, const Matrix<double, 4, 3> Xi_r,
+  const Matrix<double, 4, 1> Xi_T_ort,  const Vector3d f_T,
+  const double lambda, const uint i_a, const double a, const uint i_b, const double b);
 
 /**
  * @brief Optimization function to be iterated in order to solve geometric-static problem.
@@ -597,6 +610,19 @@ arma::vec nonLinsolveJacGeomStatic_onlypos(const grabnum::VectorXd<POSE_DIM>& in
                                            const grabcdpr::RobotParams& params,
                                            const uint8_t nmax = 100,
                                            uint8_t* iter_out  = nullptr);
+Vector3d Linsolve3x3_3x1(const Matrix3d& _mat, const Vector3d& _vect);
+Vector3d LinsolveUp3x3_3x1(const Matrix3d& mat, const Vector3d& vect);
+
+
+grabnum::Matrix<double, 3, 4> Linsolve3x3_3x4(const Matrix<double, 3, 3>& _mat,
+                                              const grabnum::Matrix<double, 3, 4>& _vect);
+grabnum::Matrix<double, 3, 6> Linsolve3x3_3x6(const Matrix<double, 3, 3>& _mat,
+                                              const grabnum::Matrix<double, 3, 6>& _vect);
+
+grabnum::Matrix<double, 3, 3> Linsolve3x3_3x3(const Matrix3d& _mat,
+                                              const grabnum::Matrix<double, 3, 3>& _vect);
+arma::mat toArmaMat_3x6(Matrix<double,3,6> mat, bool copy = true);
+
 
 } // end namespace grabcdpr
 

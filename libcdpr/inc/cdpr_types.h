@@ -237,7 +237,15 @@ arma::mat toArmaMat(Matrix3d mat, bool copy = true);
  * @return A 6D matrix of double in armadillo format.
  */
 arma::mat toArmaMat(Matrix6d mat, bool copy = true);
-
+/**
+ * @brief Convert a nxm double matrix from GRAB format to armadillo format.
+ * @param[in] mat A nxm double matrix of double in GRAB format.
+ * @param[in] copy If _True_ values are copied, otherwise the same piece of memory is
+ * used. Be careful when doing so.
+ * @return A nxm double matrix of double in armadillo format.
+ */
+template <uint dim1,uint dim2>
+arma::mat toArmaMat_generic(Matrix<double,dim1,dim2> mat, bool copy = true);
 /**
  * @brief Convert a 3D column vector from armadillo format to GRAB format.
  * @param[in] vect A 3D column vector of double in armadillo format.
@@ -256,6 +264,11 @@ grabnum::Vector4d fromArmaVec4(const arma::vec4& vect);
  * @return A 6D column vector of double in GRAB format.
  */
 grabnum::Vector6d fromArmaVec6(const arma::vec6& vect);
+grabnum::Matrix<double, 4, 3> fromArmaMat4x3(arma::mat input_matrix);
+grabnum::Matrix<double, 4, 6> fromArmaMat4x6(arma::mat input_matrix);
+grabnum::Matrix<double, 6, 4> fromArmaMat6x4(arma::mat input_matrix);
+template <uint dim1, uint dim2>
+grabnum::Matrix<double, dim1, dim2> fromArmaMat6x4(arma::mat input_matrix);
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
@@ -315,6 +328,7 @@ struct PulleyParams
                                 expressed in global frame. */
   double radius = 0.0;       /**< [m] _i-th_ swivel pulley radius length @f$r_i@f$ */
   double transmission_ratio; /**< _i-th_ pulley counts-to-radians transmition ratio. */
+  double swivel0 = 0.0;
 
   /**
    * @brief Returns the swivel pulley encoder counts-to-radians factor.
@@ -971,20 +985,21 @@ struct RobotVarsBase
    */
   arma::mat::fixed<4, 6> geom_jacobian; /**< geometric jacobian. */
   arma::mat::fixed<4, 6> anal_jacobian; /**< analytical jacobian. */
-  /** @} */                // end of ZeroOrderKinematics group
+  /** @} */                             // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
    * @{
    */
   arma::mat::fixed<4, 6> geom_jacobian_d; /**< geometric jacobian first derivative. */
   arma::mat::fixed<4, 6> anal_jacobian_d; /**< analytical jacobian first derivative. */
-  /** @} */                  // end of FirstOrderKinematics group
+  /** @} */                               // end of FirstOrderKinematics group
 
   /** @addtogroup Dynamics
    * @{
    */
-  arma::vec::fixed<4> tension_vector; /**< [N] tensions vector, collecting tension on each cable.*/
-  /** @} */                 // end of Dynamics group
+  arma::vec::fixed<4>
+    tension_vector; /**< [N] tensions vector, collecting tension on each cable.*/
+  /** @} */         // end of Dynamics group
 };
 
 /**
@@ -1076,11 +1091,11 @@ struct RobotVarsQuat: RobotVarsBase
  * This structure employs 3-angle parametrization for the orientation of the platform
  * and includes roll, pitch and yaw frame orientation.
  */
-struct RobotVarsMobileFrame:RobotVars
+struct RobotVarsMobileFrame: RobotVars
 {
-  double FrameRoll; /**< Roll angle.*/
-  double FramePitch;  /**< Pitch angle.*/
-  double FrameYaw;  /**< Yaw angle.*/
+  double FrameRoll;  /**< Roll angle.*/
+  double FramePitch; /**< Pitch angle.*/
+  double FrameYaw;   /**< Yaw angle.*/
 };
 
 } // end namespace grabcdpr

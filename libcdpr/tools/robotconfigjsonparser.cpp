@@ -121,6 +121,7 @@ void RobotConfigJsonParser::printConfig() const
               << "\n   transmission_ratio\t"
               << config_params_.actuators[i].pulley.transmission_ratio
               << "\n   radius\t\t" << config_params_.actuators[i].pulley.radius
+              << "\n   swivel0\t\t" << config_params_.actuators[i].pulley.swivel0
               << "\n   pos_OD_glob\n"
               << config_params_.actuators[i].pulley.pos_OD_glob << "   vers_i\n"
               << config_params_.actuators[i].pulley.vers_i << "   vers_j\n"
@@ -236,6 +237,8 @@ bool RobotConfigJsonParser::extractActuators(const json& raw_data)
       actuator_params.pulley.transmission_ratio = actuator[field][subfield];
       subfield                                  = "radius";
       actuator_params.pulley.radius             = actuator[field][subfield];
+      subfield                                  = "swivel0";
+      actuator_params.pulley.swivel0             = actuator[field][subfield];
     }
     catch (json::type_error)
     {

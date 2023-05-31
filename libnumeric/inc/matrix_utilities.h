@@ -341,6 +341,12 @@ template <uint dim> MatrixXd<dim, dim> Eye() { return MatrixXd<dim, dim>(1.0); }
  * @return A matrix.
  */
 template <uint rows, uint cols> MatrixXd<rows, cols> Zeros();
+/**
+ * returns the external product of two vectors
+ * @return A matrix.
+ */
+template <uint rows, uint cols> MatrixXd<rows, cols> ExtProduct(MatrixXd<rows, 1>& vect,
+                                MatrixXd<1, cols>& vect2);
 
 } //  end namespace grabnum
 

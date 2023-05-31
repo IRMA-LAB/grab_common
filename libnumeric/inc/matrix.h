@@ -114,13 +114,13 @@ template <typename T, uint rows, uint cols> class Matrix
    *
    * @return The maximum value.
    */
-  inline T Max() const { return this(MaxIdx()); }
+  inline T Max() const { return (*this)(MaxIdx()); }
   /**
    * Returns the minimum value inside the matrix.
    *
    * @return The minimum value.
    */
-  inline T Min() const { return this(MinIdx()); }
+  inline T Min() const { return (*this)(MinIdx()); }
   /**
    * Returns the linear index of the maximum value inside the matrix.
    *

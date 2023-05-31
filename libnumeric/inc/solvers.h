@@ -13,14 +13,12 @@
 /**
  * @brief Namespace for GRAB numeric library.
  */
-namespace grabnum
-{
+namespace grabnum {
 
 /**
  * @brief Namespace for GRAB numeric solvers.
  */
-namespace solvers
-{
+namespace solvers {
 
 /**
  * Solve a @f$m \times m@f$ linear system in matrix form.
@@ -38,7 +36,7 @@ namespace solvers
  * @param[in] _vect A @f$m@f$-dimensional vector of constant terms @f$\mathbf{b}@f$.
  * @return A @f$m@f$-dimensional vector with the solution @f$\mathbf{x}@f$.
  */
-template <typename T, uint8_t dim>
+template <typename T, uint dim>
 VectorX<T, dim> Linsolve(const Matrix<T, dim, dim>& _mat, const VectorX<T, dim>& _vect);
 
 /**
@@ -49,9 +47,22 @@ VectorX<T, dim> Linsolve(const Matrix<T, dim, dim>& _mat, const VectorX<T, dim>&
  * @param[out] result A @f$m@f$-dimensional vector with the solution @f$\mathbf{x}@f$.
  * @see Linsolve()
  */
-template <typename T, uint8_t dim>
+template <typename T, uint dim>
 void Linsolve(const Matrix<T, dim, dim>& _mat, const VectorX<T, dim>& _vect,
               VectorX<T, dim>& result);
+/**
+ * Solve a @f$m \times m@f$ linear system in matrix form for each column of the second
+ * matrix.
+ *
+ * @param[in] _mat A @f$m \times m@f$ square matrix of coefficients @f$\mathbf{A}@f$.
+ * @param[in] _mat2 A rectangular matrix @f$m \times n, in which n is the number of linear
+ * system to be solved.
+ * @param[out] result A  @f$m \times n matrix with the solution.
+ * @see Linsolve()
+ */
+template <typename T, uint dim, uint dim2>
+Matrix<T, dim, dim2> LinsolveMat(const Matrix<T, dim, dim>& mat,
+                                          const Matrix<T, dim, dim2>& mat2);
 
 /**
  * Solve a @f$m \times m@f$ linear system in matrix form where the coefficients matrix is
@@ -62,7 +73,7 @@ void Linsolve(const Matrix<T, dim, dim>& _mat, const VectorX<T, dim>& _vect,
  * @return A @f$m@f$-dimensional vector with the solution.
  * @see Linsolve()
  */
-template <typename T, uint8_t dim>
+template <typename T, uint dim>
 VectorX<T, dim> LinsolveUp(const Matrix<T, dim, dim>& mat, const VectorX<T, dim>& vect);
 
 /**
@@ -74,7 +85,7 @@ VectorX<T, dim> LinsolveUp(const Matrix<T, dim, dim>& mat, const VectorX<T, dim>
  * @param[out] result A @f$m@f$-dimensional vector with the solution.
  * @see LinsolveUp()
  */
-template <typename T, uint8_t dim>
+template <typename T, uint dim>
 void LinsolveUp(const Matrix<T, dim, dim>& mat, const VectorX<T, dim>& vect,
                 VectorX<T, dim>& result);
 
@@ -87,10 +98,10 @@ void LinsolveUp(const Matrix<T, dim, dim>& mat, const VectorX<T, dim>& vect,
  * @todo this.
  * @return A scalar with the number of iterations.
  */
-template <typename T, uint8_t dim>
+template <typename T, uint dim>
 int NonLinsolveJacobian(void (*fun_ptr)(VectorX<T, dim>&, Matrix<T, dim, dim>&,
                                         const VectorX<T, dim>&),
-                        VectorX<T, dim>& solution, const uint8_t nmax = 100);
+                        VectorX<T, dim>& solution, const uint nmax = 100);
 
 /**
  * Solve a non-linear system??
@@ -101,9 +112,9 @@ int NonLinsolveJacobian(void (*fun_ptr)(VectorX<T, dim>&, Matrix<T, dim, dim>&,
  * @todo this.
  * @return A scalar with the number of iterations.
  */
-template <typename T, uint8_t dim>
+template <typename T, uint dim>
 int fsolveB(void (*fun_ptr)(VectorX<T, dim>&, const VectorX<T, dim>&),
-            VectorX<T, dim>& solution, const uint8_t nmax = 100);
+            VectorX<T, dim>& solution, const uint nmax = 100);
 
 /**
  * @brief _Runge–Kutta–Fehlberg method_ for the numerical solution of ODEs.
@@ -114,15 +125,15 @@ int fsolveB(void (*fun_ptr)(VectorX<T, dim>&, const VectorX<T, dim>&),
  * @f$O(h^4)@f$ with an error estimator of order @f$O(h^5)@f$.
  * @param[in] fun_ptr Pointer to differential equation of type
  * @f$\dot{\mathbf{y}} = f(t, \mathbf{y}), \mathbf{y} \in \mathbb{R}^m@f$. The arguments
- * of such function @f$f@f$ are (_time instant_ @f$t@f$ [s], _input vector_ @f$\mathbf{y}@f$,
- * _output vector_ @f$\dot{\mathbf{y}}@f$).
+ * of such function @f$f@f$ are (_time instant_ @f$t@f$ [s], _input vector_
+ *@f$\mathbf{y}@f$, _output vector_ @f$\dot{\mathbf{y}}@f$).
  * @param[in] time _n_-dimensional time vector with time step @f$h = t_k - t_{k-1}@f$ [s].
  * @param[in] y0 Values of @f$\mathbf{y}@f$ at initial time @f$t_0@f$, i.e.
  * @f$\mathbf{y}_0@f$.
  * @param[out] sol @f$m \times n@f$ solution matrix, where _i-th_ column represents the
  * solution of the problem at instant @f$t_i@f$, i.e. @f$\mathbf{y}_i@f$.
  */
-template <typename T, uint8_t dim, size_t t_steps>
+template <typename T, uint dim, size_t t_steps>
 void RKSolver(void (*fun_ptr)(const T, const VectorX<T, dim>, VectorX<T, dim>),
               const VectorX<T, t_steps>& time, const VectorX<T, dim>& y0,
               Matrix<T, dim, t_steps>& sol);

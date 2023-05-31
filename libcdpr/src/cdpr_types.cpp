@@ -38,6 +38,13 @@ arma::mat toArmaMat(Matrix6d mat, bool copy /*= true*/)
   // Data is filled column-by-column, that's why we need the transpose
   return arma::mat(mat.Data(), 6, 6, copy).t();
 }
+template <uint dim1, uint dim2>
+arma::mat toArmaMat_generic(Matrix<double,dim1,dim2> mat, bool copy /*= true*/)
+{
+  // Data is filled column-by-column, that's why we need the transpose
+  return arma::mat(mat.Data(), dim2, dim1, copy).t();
+}
+
 
 grabnum::Vector3d fromArmaVec3(const arma::vec3& vect)
 {
@@ -53,8 +60,57 @@ grabnum::Vector6d fromArmaVec6(const arma::vec6& vect)
 {
   return grabnum::Vector6d(vect.begin(), vect.end());
 }
+grabnum::Matrix<double, 4, 3> fromArmaMat4x3(arma::mat input_matrix)
+{
+  grabnum::Matrix<double, 4, 3> output_matrix;
+  for (uint i = 0; i < 3; i++)
+  {
+    for (uint j = 0; j < 4; j++)
+    {
+      output_matrix(j + 1, i + 1) = input_matrix(j, i);
+    }
+  }
+  return output_matrix;
+}
 
+grabnum::Matrix<double, 4, 6> fromArmaMat4x6(arma::mat input_matrix)
+{
+  grabnum::Matrix<double, 4, 6> output_matrix;
+  for (uint i = 0; i < 6; i++)
+  {
+    for (uint j = 0; j < 4; j++)
+    {
+      output_matrix(j + 1, i + 1) = input_matrix(j, i);
+    }
+  }
+  return output_matrix;
+}
 
+grabnum::Matrix<double, 6, 4> fromArmaMat6x4(arma::mat input_matrix)
+{
+  grabnum::Matrix<double, 6, 4> output_matrix;
+  for (uint i = 0; i < 4; i++)
+  {
+    for (uint j = 0; j < 6; j++)
+    {
+      output_matrix(j + 1, i + 1) = input_matrix(j, i);
+    }
+  }
+  return output_matrix;
+}
+template <uint dim1,uint dim2>
+grabnum::Matrix<double, dim1, dim2> fromArmaMat_gen(arma::mat input_matrix)
+{
+  grabnum::Matrix<double, dim1, dim2> output_matrix;
+  for (uint i = 0; i < dim2; i++)
+  {
+    for (uint j = 0; j < dim1; j++)
+    {
+      output_matrix(j + 1, i + 1) = input_matrix(j, i);
+    }
+  }
+  return output_matrix;
+}
 namespace grabcdpr {
 
 //------ Parameters Structs ----------------------------------------------------------//
