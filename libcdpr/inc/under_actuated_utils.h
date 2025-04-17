@@ -189,6 +189,16 @@ struct UnderActuatedPlatformVars: PlatformVars
    * @see UpdatePose()
    */
   void updatePose(const arma::vec& _actuated_vars, const arma::vec& _unactuated_vars);
+  /**
+   * @brief Update platform pose picking elements of given actuated and unactuated
+   * variables and sorting them according to given mask.
+   * @param _actuated_vars Actuated elements of PlatformVars::pose.
+   * @param _unactuated_vars Unactuated elements of PlatformVars::pose.
+   * @ingroup ZeroOrderKinematics
+   * @see UpdatePose()
+   */
+  void updatePose_mod(const arma::vec& _actuated_vars, const arma::vec& _unactuated_vars,
+                      const arma::uvec6& mask2);
 
   /**
    * @brief Update platform velocities with linear velocity and angles speed and
@@ -402,6 +412,14 @@ struct UnderActuatedRobotVars
    * @see resize()
    */
   void updateJacobians();
+  /**
+   * @brief Update all jacobians according to current CDPR status but not
+   * actuated/unactuated related jacobians.
+   * @note If a dimension mismatch is detected, resize() is invoked before updating
+   * values.
+   * @see resize()
+   */
+  void updateJacobians_nomask();
 };
 
 /**
@@ -414,6 +432,18 @@ struct UnderActuatedRobotVars
  * updated.
  */
 void updateIK0(const Vector3d& position, const Vector3d& orientation,
+               const RobotParams& params, UnderActuatedRobotVars& vars);
+/**
+ * @brief Update robots zero-order variables at once without actuated/unactuated vars
+ * (inverse kinematics problem).
+ * @param[in] position [m] Platform global position @f$\mathbf{p}_P@f$.
+ * @param[in] orientation [rad] Platform global orientation expressed by angles
+ * @f$\boldsymbol{\varepsilon}@f$.
+ * @param[in] params A reference to the robot parameters structure.
+ * @param[out] vars A reference to the underactuated robot variables structure to be
+ * updated.
+ */
+void updateIK0_nomask(const Vector3d& position, const Vector3d& orientation,
                const RobotParams& params, UnderActuatedRobotVars& vars);
 /**
  * @brief Update all robots zero-order variables at once (inverse kinematics problem).
@@ -476,15 +506,16 @@ arma::mat calcJacobianSw(const UnderActuatedRobotVars& vars);
  */
 arma::mat calcJacobianGS(const UnderActuatedRobotVars& vars);
 /**
- * @brief Calculate geometric-static jacobian for a 4 cable robot when only position is considered.
+ * @brief Calculate geometric-static jacobian for a 4 cable robot when only position is
+ * considered.
  * @param[in] vars Under-actuated CDPR variables/status.
  * @return Geometric-static jacobian matrix.
  */
 arma::mat ComputeJacobian_GSonlypos(
-  const UnderActuatedRobotVars& vars,const Vector3d tau_r, const ulong kNumCables,
+  const UnderActuatedRobotVars& vars, const Vector3d tau_r, const ulong kNumCables,
   const Matrix<double, 4, 3> Xi_T, const Matrix<double, 4, 3> Xi_r,
-  const Matrix<double, 4, 1> Xi_T_ort,  const Vector3d f_T,
-  const double lambda, const uint i_a, const double a, const uint i_b, const double b);
+  const Matrix<double, 4, 1> Xi_T_ort, const Vector3d f_T, const double lambda,
+  const uint i_a, const double a, const uint i_b, const double b, const Vector4d tension_vector);
 
 /**
  * @brief Optimization function to be iterated in order to solve geometric-static problem.
@@ -508,8 +539,8 @@ void optFunGS(const RobotParams& params, const arma::vec& act_vars,
  * @see optFunDK0GS()
  */
 void optFunGS_onlypos(const RobotParams& params, const arma::vec& act_vars,
-                      const arma::vec& unact_vars, arma::mat& fun_jacobian,
-                      arma::vec& fun_val);
+                      const arma::vec& unact_vars, const arma::uvec6& mask,
+                      arma::mat& fun_jacobian, arma::vec& fun_val);
 /**
  * @brief Optimization function to be iterated in order to solve direct kinematics problem
  * using both geometric and static constraints.
@@ -621,7 +652,7 @@ grabnum::Matrix<double, 3, 6> Linsolve3x3_3x6(const Matrix<double, 3, 3>& _mat,
 
 grabnum::Matrix<double, 3, 3> Linsolve3x3_3x3(const Matrix3d& _mat,
                                               const grabnum::Matrix<double, 3, 3>& _vect);
-arma::mat toArmaMat_3x6(Matrix<double,3,6> mat, bool copy = true);
+arma::mat toArmaMat_3x6(Matrix<double, 3, 6> mat, bool copy = true);
 
 
 } // end namespace grabcdpr
