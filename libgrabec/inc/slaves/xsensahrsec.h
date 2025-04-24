@@ -107,12 +107,12 @@ public:
   /**
    * @brief Function to specify what to read.
    */
-  void ReadInputs() override final;
+  void readInputs() override final;
 
   /**
    * @brief Function to specify what to write.
    */
-  void WriteOutputs() override final;
+  void writeOutputs() override final;
 
   /**
    * @brief Output buffer union, i.e. data received from master (read).
@@ -136,7 +136,7 @@ public:
    */
   union CustBufferIn
   {
-    uint8_t Byte[20]; /**< Raw input buffer content. */
+    uint8_t Byte[64]; /**< Raw input buffer content. */
     struct
     {
       float ang_eul_pitch;
@@ -150,40 +150,37 @@ public:
       float rate_of_turn_z;
       float quaternion_q1;
       float quaternion_q2;
+      float quaternion_q3;
+      float quaternion_q4;
       float snsr_temperature;
       uint32_t status_word;
       uint16_t selftest_result;
-      uint8_t resp_CMD_ID;
-      uint8_t quaternion_q3;
       uint8_t status_byte;
-      uint8_t quaternion_q4;
+      uint8_t resp_CMD_ID;
     } Cust; /**< Custom structure resembling input entries as defined in the config. */
   } BufferIn; /**< Input buffer, i.e. data sent to master (write). */
   
-  struct ahrs_filters {
-	responsive = 0x01;
-	robust = 0x02;
-	general = 0x03;
+  enum ahrs_filters {
+	responsive = 0x01,
+	robust = 0x02,
+	general = 0x03
   };
   
-  struct ahrs_bias {
-	north_reference = 0x01;
-	fixed_mag_ref = 0x02;
-	vru = 0x03;
-	vruahrs = 0x04;
+  enum ahrs_bias {
+	north_reference = 0x01,
+	fixed_mag_ref = 0x02,
+	vru = 0x03,
+	vruahrs = 0x04
   };
   
-  struct ahrs_resetmode {
-	heading = 0x01;
-	object_inclination = 0x03;
-	aligment = 0x04;
-	default_heading = 0x05;
-	default_inclination = 0x06;
-	default_aligment = 0x07;
-  }
-
-protected:
-  void InitFun() override;
+  enum ahrs_resetmode {
+	heading = 0x01,
+	object_inclination = 0x03,
+	aligment = 0x04,
+	default_heading = 0x05,
+	default_inclination = 0x06,
+	default_aligment = 0x07
+  };
 
 private:
   // EasyCAT slave device specific info
@@ -195,37 +192,38 @@ private:
   // Ethercat utilities, describing index, subindex and bit length of each
   // configured PDO entry.
   static constexpr ec_pdo_entry_info_t kPdoEntries_[kDomainEntries_] = {
-    {0x5, 0x1, 8}, /**< output PDO: CMD_ID */
-    {0x5, 0x2, 8}, /**< output PDO: byte1 */
-    {0x5, 0x3, 8}, /**< output PDO: byte2 */
-    {0x5, 0x4, 8}, /**< output PDO: byte3 */
-    {0x5, 0x5, 8}, /**< output PDO: byte4 */
-    {0x5, 0x6, 8}, /**< output PDO: CMD_ID_check */
-    {0x6, 0x1, 32}, /**< input PDO: ang_eul_pitch */
-    {0x6, 0x2, 32}, /**< input PDO: ang_eul_roll */
-    {0x6, 0x3, 32}, /**< input PDO: ang_eul_yaw */
-    {0x6, 0x4, 32}, /**< input PDO: acc_x */
-    {0x6, 0x5, 32}, /**< input PDO: acc_y */
-    {0x6, 0x6, 32}, /**< input PDO: acc_z */
-    {0x6, 0x7, 32}, /**< input PDO: rate_of_turn_x */
-    {0x6, 0x8, 32}, /**< input PDO: rate_of_turn_y */
-    {0x6, 0x9, 32}, /**< input PDO: rate_of_turn_z */
-    {0x6, 0x10, 32}, /**< input PDO: quaternion_q1 */
-    {0x6, 0x11, 32}, /**< input PDO: quaternion_q2 */
-    {0x6, 0x12, 32}, /**< input PDO: snsr_temperature */
-    {0x6, 0x13, 32}, /**< input PDO: status_word */
-    {0x6, 0x14, 16}, /**< input PDO: selftest_result */
-    {0x6, 0x15, 8}, /**< input PDO: resp_CMD_ID */
-    {0x6, 0x16, 8}, /**< input PDO: quaternion_q3 */
-    {0x6, 0x17, 8}, /**< input PDO: status_byte */
-    {0x6, 0x18, 8}, /**< input PDO: quaternion_q4 */
-  };
+    {0x0005, 0x01, 8}, /* CMD_ID */
+    {0x0005, 0x02, 8}, /* byte1 */
+    {0x0005, 0x03, 8}, /* byte2 */
+    {0x0005, 0x04, 8}, /* byte3 */
+    {0x0005, 0x05, 8}, /* byte4 */
+    {0x0005, 0x06, 8}, /* CMD_ID_check */
+    {0x0006, 0x01, 32}, /* ang_eul_pitch */
+    {0x0006, 0x02, 32}, /* ang_eul_roll */
+    {0x0006, 0x03, 32}, /* ang_eul_yaw */
+    {0x0006, 0x04, 32}, /* acc_x */
+    {0x0006, 0x05, 32}, /* acc_y */
+    {0x0006, 0x06, 32}, /* acc_z */
+    {0x0006, 0x07, 32}, /* rate_of_turn_x */
+    {0x0006, 0x08, 32}, /* rate_of_turn_y */
+    {0x0006, 0x09, 32}, /* rate_of_turn_z */
+    {0x0006, 0x0a, 32}, /* quaternion_q1 */
+    {0x0006, 0x0b, 32}, /* quaternion_q2 */
+    {0x0006, 0x0c, 32}, /* quaternion_q3 */
+    {0x0006, 0x0d, 32}, /* quaternion_q4 */
+    {0x0006, 0x0e, 32}, /* snsr_temperature */
+    {0x0006, 0x0f, 32}, /* status_word */
+    {0x0006, 0x10, 16}, /* selftest_result */
+    {0x0006, 0x11, 8}, /* status_byte */
+    {0x0006, 0x12, 8}, /* resp_CMD_ID */
+};
+
 
   // Ethercat utilities, describing memory position of input and output PDOs
   // stack.
   static constexpr ec_pdo_info_t kPDOs_[2] = {
     {0x1600, 6, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_)}, /**< Output PDOs */
-    {0x1a00, 18, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 6}, /**< Inputs PDOs */
+    {0x1A00, 18, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 6}, /**< Inputs PDOs */
   };
 
   // Ethercat utilities, synchronization information
@@ -251,13 +249,13 @@ private:
     unsigned int rate_of_turn_z;
     unsigned int quaternion_q1;
     unsigned int quaternion_q2;
+    unsigned int quaternion_q3;
+    unsigned int quaternion_q4;
     unsigned int snsr_temperature;
     unsigned int status_word;
     unsigned int selftest_result;
-    unsigned int resp_CMD_ID;
-    unsigned int quaternion_q3;
     unsigned int status_byte;
-    unsigned int quaternion_q4;
+    unsigned int resp_CMD_ID;
   } offset_in_;
 
   // Useful ethercat struct to store output PDOs memory offset
