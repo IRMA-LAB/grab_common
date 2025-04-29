@@ -5,7 +5,7 @@
  * @brief File containing class implementation declared in mdxservoecslave.h.
  */
 
-#include "slaves/mdxservoecslave.h"
+#include "mdxservoecslave.h"
 
 namespace grabec {
 
@@ -19,24 +19,24 @@ MDXServoECData::MDXServoECData(const int8_t _op_mode,
 {}
 
 MDXServoECData::MDXServoECData(const int8_t _op_mode,
-                                                   const GSWDriveInPdos& input_pdos,
+                                                   const MDXServoECInPdos& input_pdos,
                                                    const bool verbose /* = false */)
   : op_mode(_op_mode)
 {
   // Set target value to current one
   switch (op_mode)
   {
-    case MDXServoECOperationModes::CYCLIC_POSITION:
+    case MDXServoECOpModes::CYCLIC_POSITION:
       value = input_pdos.pos_actual_value;
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_POSITION @ %d\n", value);
       break;
-    case MDXServoECOperationModes::CYCLIC_VELOCITY:
+    case MDXServoECOpModes::CYCLIC_VELOCITY:
       value = input_pdos.vel_actual_value;
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_VELOCITY @ %d\n", value);
       break;
-    case MDXServoECOperationModes::CYCLIC_TORQUE:
+    case MDXServoECOpModes::CYCLIC_TORQUE:
       value = input_pdos.torque_actual_value;
       if (verbose)
         printf("\tTarget operational mode: CYCLIC_TORQUE @ %d\n", value);
@@ -83,16 +83,8 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
   product_code_       = kProductCode;
   num_domain_entries_ = kDomainEntries;
   id_                 = id;
-    
+  
   domain_registers_[0]  = {alias_,
-                          position_,
-                          vendor_id_,
-                          product_code_,
-                          kErrorCodeIdx,
-                          kErrorCodeSubIdx,
-                          &offset_out_.error_code,
-                          nullptr};
-  domain_registers_[1]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
@@ -100,7 +92,7 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
                           kControlWordSubIdx,
                           &offset_out_.control_word,
                           nullptr};
-  domain_registers_[2]  = {alias_,
+  domain_registers_[1]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
@@ -108,7 +100,7 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
                           kOpModeSubIdx,
                           &offset_out_.op_mode,
                           nullptr};
-  domain_registers_[3]  = {alias_,
+  domain_registers_[2]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
@@ -116,7 +108,7 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
                           kTargetTorqueSubIdx,
                           &offset_out_.target_torque,
                           nullptr};
-  domain_registers_[4]  = {alias_,
+  domain_registers_[3]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
@@ -124,7 +116,7 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
                           kTargetPosSubIdx,
                           &offset_out_.target_position,
                           nullptr};
-  domain_registers_[5]  = {alias_,
+  domain_registers_[4]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
@@ -132,13 +124,21 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
                           kTargetVelSubIdx,
                           &offset_out_.target_velocity,
                           nullptr};
-  domain_registers_[6]  = {alias_,
+  domain_registers_[5]  = {alias_,
                           position_,
                           vendor_id_,
                           product_code_,
                           kDigOutIndex,
                           kDigOutSubIndex,
                           &offset_out_.digital_outputs,
+                          nullptr};
+  domain_registers_[6]  = {alias_,
+                          position_,
+                          vendor_id_,
+                          product_code_,
+                          kErrorCodeIdx,
+                          kErrorCodeSubIdx,
+                          &offset_in_.error_code,
                           nullptr};
   domain_registers_[7]  = {alias_,
                           position_,
@@ -243,7 +243,7 @@ RetVal MDXServoEC::sdoRequests(ec_slave_config_t* config_ptr)
 
   if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(
           config_ptr, kOpModeIdx, kOpModeSubIdx,
-          MDXServoECOperationModes::CYCLIC_POSITION)))
+          MDXServoECOpModes::CYCLIC_POSITION)))
   {
     std::string msg;
 #if USE_QT
@@ -258,7 +258,7 @@ RetVal MDXServoEC::sdoRequests(ec_slave_config_t* config_ptr)
   }
   ecrt_sdo_request_timeout(sdo_ptr, 500);
   if (ecrt_slave_config_sdo8(config_ptr, kOpModeIdx, kOpModeSubIdx,
-                             MDXServoECOperationModes::CYCLIC_POSITION) != 0)
+                             MDXServoECOpModes::CYCLIC_POSITION) != 0)
   {
     std::string msg;
 #if USE_QT
@@ -313,6 +313,7 @@ RetVal MDXServoEC::sdoRequests(ec_slave_config_t* config_ptr)
 
 void MDXServoEC::readInputs()
 {
+  input_pdos_.error_code     = EC_READ_U16(domain_data_ptr_ + offset_in_.error_code);
   input_pdos_.status_word     = EC_READ_U16(domain_data_ptr_ + offset_in_.status_word);
   input_pdos_.display_op_mode = EC_READ_S8(domain_data_ptr_ + offset_in_.display_op_mode);
   input_pdos_.pos_actual_value =
@@ -340,8 +341,6 @@ void MDXServoEC::readInputs()
 
 void MDXServoEC::writeOutputs()
 {
-  EC_WRITE_U16(domain_data_ptr_ + offset_out_.error_code,
-               output_pdos_.error_code.to_ulong());
   EC_WRITE_U16(domain_data_ptr_ + offset_out_.control_word,
                output_pdos_.control_word.to_ulong());
   EC_WRITE_S8(domain_data_ptr_ + offset_out_.op_mode, output_pdos_.op_mode);
@@ -416,7 +415,7 @@ void MDXServoEC::switchOn()
   output_pdos_.control_word.reset(ControlBit::ENABLE_OPERATION);
   output_pdos_.control_word.reset(ControlBit::FAULT);
   // Setup default operational mode before enabling the drive
-  output_pdos_.op_mode         = MDXServoEC::CYCLIC_POSITION;
+  output_pdos_.op_mode         = MDXServoECOpModes::CYCLIC_POSITION;
   output_pdos_.target_position = input_pdos_.pos_actual_value;
 }
 
@@ -469,7 +468,7 @@ void MDXServoEC::faultReset()
 void MDXServoEC::changePosition(const int32_t target_position,
                                           const bool verbose /*=false*/)
 {
-  if (input_pdos_.display_op_mode == MDXServoECOperationModes::CYCLIC_POSITION &&
+  if (input_pdos_.display_op_mode == MDXServoECOpModes::CYCLIC_POSITION &&
       prev_pos_target_ == target_position)
     return;
   prev_pos_target_ = target_position;
@@ -480,8 +479,8 @@ void MDXServoEC::changePosition(const int32_t target_position,
     printTarget(target_position);
   }
 
-  MDXServoECData* data = new GMDXServoECData(
-    MDXServoECOperationModes::CYCLIC_POSITION, target_position);
+  MDXServoECData* data = new MDXServoECData(
+    MDXServoECOpModes::CYCLIC_POSITION, target_position);
   setChange(data);
 }
 
@@ -493,7 +492,7 @@ void MDXServoEC::changeDeltaPosition(const int32_t delta_position)
 void MDXServoEC::changeVelocity(const int32_t target_velocity,
                                           const bool verbose /*=false*/)
 {
-  if (input_pdos_.display_op_mode == MDXServoECOperationModes::CYCLIC_VELOCITY &&
+  if (input_pdos_.display_op_mode == MDXServoECOpModes::CYCLIC_VELOCITY &&
       prev_vel_target_ == target_velocity)
     return;
   prev_vel_target_ = target_velocity;
@@ -505,7 +504,7 @@ void MDXServoEC::changeVelocity(const int32_t target_velocity,
   }
 
   MDXServoECData* data = new MDXServoECData(
-    GMDXServoECOperationModes::CYCLIC_VELOCITY, target_velocity);
+    MDXServoECOpModes::CYCLIC_VELOCITY, target_velocity);
   setChange(data);
 }
 
@@ -517,7 +516,7 @@ void MDXServoEC::changeDeltaVelocity(const int32_t delta_velocity)
 void MDXServoEC::changeTorque(const int16_t target_torque,
                                         const bool verbose /*=false*/)
 {
-  if (input_pdos_.display_op_mode == MDXServoECOperationModes::CYCLIC_TORQUE &&
+  if (input_pdos_.display_op_mode == MDXServoECOpModes::CYCLIC_TORQUE &&
       prev_torque_target_ == target_torque)
     return;
   prev_torque_target_ = target_torque;
@@ -529,7 +528,7 @@ void MDXServoEC::changeTorque(const int16_t target_torque,
   }
 
   MDXServoECData* data = new MDXServoECData(
-    MDXServoECOperationModes::CYCLIC_TORQUE, target_torque);
+    MDXServoECOpModes::CYCLIC_TORQUE, target_torque);
   setChange(data);
 }
 
@@ -662,13 +661,13 @@ STATE_DEFINE(MDXServoEC, OperationEnabled, MDXServoECData)
   output_pdos_.op_mode = data->op_mode;
   switch (data->op_mode)
   {
-    case MDXServoECOperationModes::CYCLIC_POSITION:
+    case MDXServoECOpModes::CYCLIC_POSITION:
       output_pdos_.target_position = data->value;
       break;
-    case MDXServoECOperationModes::CYCLIC_VELOCITY:
+    case MDXServoECOpModes::CYCLIC_VELOCITY:
       output_pdos_.target_velocity = data->value;
       break;
-    case MDXServoECOperationModes::CYCLIC_TORQUE:
+    case MDXServoECOpModes::CYCLIC_TORQUE:
       output_pdos_.target_torque = static_cast<int16_t>(data->value);
       break;
     default:
@@ -741,7 +740,7 @@ inline void MDXServoEC::printTarget(const MDXServoECData& data) const
 #else
   std::ostringstream msg_stream;
   msg_stream << "Drive " << id_ << " op mode " << data.op_mode
-             << " with target: " << target;
+             << " with target: " << data.value;
   msg = msg_stream.str();
 #endif
   ecPrintCb(msg);
