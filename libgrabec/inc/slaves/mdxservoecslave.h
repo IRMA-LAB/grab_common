@@ -32,7 +32,7 @@ namespace grabec {
  * Only few values are considered here for our purposes.
  */
 // clang-format off
-ENUM_CLASS(MDXServoECOperationModes,
+ENUM_CLASS(MDXServoECOpModes,
            NONE                  = -1,
            PROFILE_POSITION      = 1,
            VELOCITY_MODE         = 2,
@@ -56,7 +56,7 @@ struct MDXServoECInPdos
   int32_t pos_actual_value;    /**< pos_actual_value */
   int32_t vel_actual_value;    /**< vel_actual_value */
   int16_t torque_actual_value; /**< torque_actual_value */
-  uint digital_inputs;         /**< digital_inputs */
+  uint32_t digital_inputs;         /**< digital_inputs */
 };
 
 /**
@@ -65,7 +65,7 @@ struct MDXServoECInPdos
  * This is the data type to be passed when transitioning to OPERATION ENABLED state
  * according to our implementation of drive interface's state machine.
  */
-class GMDXServoECData: public EventData
+class MDXServoECData: public EventData
 {
  public:
   /**
@@ -102,7 +102,7 @@ class GMDXServoECData: public EventData
                             const int32_t _value = 0);
 
   int8_t op_mode =
-    MDXServoECOperationModes::NONE; /**< The desired operation mode of the drive. */
+    MDXServoECOpModes::NONE; /**< The desired operation mode of the drive. */
   int32_t value = 0; /**< The target set point for the desired operation mode. */
   uint32_t digital_outputs = 0; /**< digital outputs to be written on pdos. */
   bool only_digital = false; /**< flag to only write digital output while in operational mode. */
@@ -203,23 +203,10 @@ class MDXServoEC:
    */
   int16_t getTorque() const { return input_pdos_.torque_actual_value; }
   /**
-   * @brief Get actual drive auxiliary position (aka counts).
-   *
-   * This field can be used by external sensors connected to the drive, for instance an
-   * additional encoder.
-   * @return Actual drive auxiliary position (aka counts).
-   */
-  int getAuxPosition() const { return input_pdos_.aux_pos_actual_value; }
-  /**
-   * @brief GetAnalogInput
-   * @return
-   */
-  int16_t getAnalogInput() const { return input_pdos_.analog_input; }
-  /**
    * @brief GetDigitalInput
    * @return
    */
-  uint getDigitalInputs() const { return input_pdos_.digital_inputs; }
+  uint32_t getDigitalInputs() const { return input_pdos_.digital_inputs; }
   /**
    * @brief Get actual drive operational mode {_position, velocity, torque, none_}.
    * @return Actual drive operational mode.
@@ -472,14 +459,14 @@ class MDXServoEC:
 
   // ethercat utilities, can be retrieved in the xml config file provided by the vendor
   static constexpr ec_pdo_entry_info_t kPdoEntries_[kDomainEntries] = {
-    {kErrorCodeIdx, kErrorCodeSubIdx, 16}, // Start of RxPdo mapping (Outputs)
-    {kControlWordIdx, kControlWordSubIdx, 16},
+    {kControlWordIdx, kControlWordSubIdx, 16}, // Start of RxPdo mapping (Outputs)
     {kOpModeIdx, kOpModeSubIdx, 8},
     {kTargetTorqueIdx, kTargetTorqueSubIdx, 16},
     {kTargetPosIdx, kTargetPosSubIdx, 32},
     {kTargetVelIdx, kTargetVelSubIdx, 32},
     {kDigOutIndex, kDigOutSubIndex, 32},
-    {kStatusWordIdx, kStatusWordSubIdx, 16}, // Start of TxPdo mapping (Inputs)
+    {kErrorCodeIdx, kErrorCodeSubIdx, 16}, // Start of TxPdo mapping (Inputs)
+    {kStatusWordIdx, kStatusWordSubIdx, 16},
     {kDisplayOpModeIdx, kDisplayOpModeSubIdx, 8},
     {kPosActualValueIdx, kPosActualValueSubIdx, 32},
     {kVelActualValueIdx, kVelActualValueSubIdx, 32},
@@ -488,8 +475,8 @@ class MDXServoEC:
 
   // ethercat utilities, can be retrieved in the xml config file provided by the vendor
   static constexpr ec_pdo_info_t kPDOs_[2] = {
-    {0x1604, kDomainOutputs, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 0}, /* Outputs */
-    {0x1a04, kDomainInputs, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + kDomainOutputs}, /* Inputs */
+    {0x1600, kDomainOutputs, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 0}, /* Outputs */
+    {0x1a00, kDomainInputs, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + kDomainOutputs}, /* Inputs */
   };
 
   static constexpr ec_sync_info_t kSyncs_[5] = {
