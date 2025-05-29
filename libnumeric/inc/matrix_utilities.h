@@ -347,6 +347,13 @@ template <uint rows, uint cols> MatrixXd<rows, cols> Zeros();
  */
 template <uint rows, uint cols> MatrixXd<rows, cols> ExtProduct(MatrixXd<rows, 1>& vect,
                                 MatrixXd<1, cols>& vect2);
+/**
+ * Returns diagonal matrix.
+ *
+ * @param[in] vvector The vertical vector to be diagonalized.
+ * @return The square matrix with the input vector elements in the main diagonal.
+ */
+template <typename T, uint dim> MatrixXd<dim, dim> Diag(const VectorX<T, dim>& vvect);
 
 } //  end namespace grabnum
 

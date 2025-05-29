@@ -1,7 +1,7 @@
 /**
  * @file cdpr_types.h
  * @author Edoardo Idà, Simone Comari
- * @date May 2022
+ * @date 07 Feb 2020
  * @brief File containing kinematics-related types to be included in the GRAB CDPR
  * library.
  *
@@ -173,6 +173,8 @@
 #ifndef GRABCOMMON_LIBCDPR_CDPR_TYPES_H
 #define GRABCOMMON_LIBCDPR_CDPR_TYPES_H
 
+#define M_PI 3.14159265358979323846
+
 #include <armadillo>
 
 #include "matrix_utilities.h"
@@ -182,9 +184,9 @@
 
 #define POSE_DIM 6 /**< pose dim. of a body in space with 3-angle parametrization */
 #define POSE_QUAT_DIM                                                                    \
-  7 /**< pose dim. of a body in space with quaternion parametrization */
+7 /**< pose dim. of a body in space with quaternion parametrization */
 
-using namespace grabnum;
+  using namespace grabnum;
 
 /**
  * @brief Convert a 3D row vector from GRAB format to armadillo format.
@@ -212,13 +214,13 @@ arma::vec toArmaVec(Vector3d vect, bool copy = true);
 arma::vec toArmaVec(
   VectorXd<POSE_DIM> vect,
   bool copy =
-    true); /**
-            * @brief Convert a 7D column vector from GRAB format to armadillo format.
-            * @param[in] vect A 7D column vector of double in GRAB format.
-            * @param[in] copy If _True_ values are copied, otherwise the same piece of
-            * memory is used. Be careful when doing so.
-            * @return A 7D column vector of double in armadillo format.
-            */
+  true); /**
+   * @brief Convert a 7D column vector from GRAB format to armadillo format.
+   * @param[in] vect A 7D column vector of double in GRAB format.
+   * @param[in] copy If _True_ values are copied, otherwise the same piece of
+   * memory is used. Be careful when doing so.
+   * @return A 7D column vector of double in armadillo format.
+   */
 arma::vec toArmaVec(VectorXd<POSE_QUAT_DIM> vect, bool copy = true);
 
 /**
@@ -237,45 +239,20 @@ arma::mat toArmaMat(Matrix3d mat, bool copy = true);
  * @return A 6D matrix of double in armadillo format.
  */
 arma::mat toArmaMat(Matrix6d mat, bool copy = true);
-/**
- * @brief Convert a nxm double matrix from GRAB format to armadillo format.
- * @param[in] mat A nxm double matrix of double in GRAB format.
- * @param[in] copy If _True_ values are copied, otherwise the same piece of memory is
- * used. Be careful when doing so.
- * @return A nxm double matrix of double in armadillo format.
- */
-template <uint dim1,uint dim2>
-arma::mat toArmaMat_generic(Matrix<double,dim1,dim2> mat, bool copy = true);
+
 /**
  * @brief Convert a 3D column vector from armadillo format to GRAB format.
  * @param[in] vect A 3D column vector of double in armadillo format.
  * @return A 3D column vector of double in GRAB format.
  */
 grabnum::Vector3d fromArmaVec3(const arma::vec3& vect);
-/**
- * @brief Convert a 4D column vector from armadillo format to GRAB format.
- * @param[in] vect A 4D column vector of double in armadillo format.
- * @return A 4D column vector of double in GRAB format.
- */
-grabnum::Vector4d fromArmaVec4(const arma::vec4& vect);
-/**
- * @brief Convert a 6D column vector from armadillo format to GRAB format.
- * @param[in] vect A 6D column vector of double in armadillo format.
- * @return A 6D column vector of double in GRAB format.
- */
-grabnum::Vector6d fromArmaVec6(const arma::vec6& vect);
-grabnum::Matrix<double, 4, 3> fromArmaMat4x3(arma::mat input_matrix);
-grabnum::Matrix<double, 4, 6> fromArmaMat4x6(arma::mat input_matrix);
-grabnum::Matrix<double, 6, 4> fromArmaMat6x4(arma::mat input_matrix);
-template <uint dim1, uint dim2>
-grabnum::Matrix<double, dim1, dim2> fromArmaMat6x4(arma::mat input_matrix);
 
 /**
  * @brief Namespace for CDPR-related utilities, such as kinematics and dynamics.
  */
 namespace grabcdpr {
 
-//------ Enums -----------------------------------------------------------------------//
+   //------ Enums -----------------------------------------------------------------------//
 
 /**
  * @brief Rotation parametrization enum.
@@ -288,11 +265,11 @@ enum RotParametrization
   TAIT_BRYAN,   /**< _Tait-Bryan_ angles convention and @f$X_1Y_2Z_3@f$. */
   RPY,          /**< _Roll, Pitch, Yaw_ angles convention (from aviation). */
   TILT_TORSION, /**< _Tilt-and-torsion_ angles, a variation of _Euler_ angles convention.
-                 */
+   */
   QUATERNION    /**< _Quaternions_ convention (not angles). */
 };
 
-//------ Parameters Structs ----------------------------------------------------------//
+   //------ Parameters Structs ----------------------------------------------------------//
 
 /**
  * @brief Structure collecting parameters related to a generic 6DoF platform.
@@ -319,16 +296,15 @@ struct PlatformParams
  */
 struct PulleyParams
 {
-  grabnum::Vector3d pos_OD_glob; /**< [m] vector @f$\mathbf{d}_i@f$. */
-  grabnum::Vector3d vers_i;  /**< versor @f$\hat{\mathbf{i}}_i@f$ of _i-th_ swivel pulley
-                                expressed in global frame. */
-  grabnum::Vector3d vers_j;  /**< versor @f$\hat{\mathbf{j}}_i@f$ of _i-th_ swivel pulley
-                                expressed in global frame. */
-  grabnum::Vector3d vers_k;  /**< versor @f$\hat{\mathbf{k}}_i@f$ of _i-th_ swivel pulley
-                                expressed in global frame. */
+  grabnum::Vector3d pos_OA_glob; /**< [m] vector @f$\mathbf{a}_i@f$. */
+  grabnum::Vector3d vers_i_loc;  /**< versor @f$\hat{\mathbf{i}}_i@f$ of _i-th_ swivel pulley
+                               expressed in local frame. */
+  grabnum::Vector3d vers_j_loc;  /**< versor @f$\hat{\mathbf{j}}_i@f$ of _i-th_ swivel pulley
+                               expressed in local frame. */
+  grabnum::Vector3d vers_k_loc;  /**< versor @f$\hat{\mathbf{k}}_i@f$ of _i-th_ swivel pulley
+                               expressed in local frame. */
   double radius = 0.0;       /**< [m] _i-th_ swivel pulley radius length @f$r_i@f$ */
   double transmission_ratio; /**< _i-th_ pulley counts-to-radians transmition ratio. */
-  double swivel0 = 0.0;
 
   /**
    * @brief Returns the swivel pulley encoder counts-to-radians factor.
@@ -348,11 +324,11 @@ struct PulleyParams
    */
   void orthogonalizeVersors()
   {
-    vers_k = vers_k / grabnum::Norm(vers_k);
-    vers_i = grabnum::Cross(vers_j, vers_k);
-    vers_i = vers_i / grabnum::Norm(vers_i);
-    vers_j = grabnum::Cross(vers_k, vers_i);
-    vers_j = vers_j / grabnum::Norm(vers_j);
+    vers_k_loc = vers_k_loc / grabnum::Norm(vers_k_loc);
+    vers_i_loc = grabnum::Cross(vers_j_loc, vers_k_loc);
+    vers_i_loc = vers_i_loc / grabnum::Norm(vers_i_loc);
+    vers_j_loc = grabnum::Cross(vers_k_loc, vers_i_loc);
+    vers_j_loc = vers_j_loc / grabnum::Norm(vers_j_loc);
   }
 };
 
@@ -361,17 +337,10 @@ struct PulleyParams
  */
 struct WinchParams
 {
-  grabnum::Vector3d pos_PA_loc; /**< vector @f$\mathbf{a}_i'@f$. */
-  double l0 = 0.0; /**< [m] length between @f$D_i@f$ and the exit point of the _i-th_
+  grabnum::Vector3d pos_PD_loc; /**< vector @f$\mathbf{d}_i'@f$. */
+  double l0 = 0.0; /**< [m] length between @f$A_i@f$ and the exit point of the _i-th_
                       cable from the corresponding winch. */
   double transmission_ratio; /**< counts-to-meters transmission ratio. */
-  double tension_bias =
-    0.0; /**< [N] tension bias in linear transformation loadcell value --> tension. */
-  double tension_gain =
-    1.; /**< [N] tension gain in linear transformation loadcell value --> tension. */
-  double kp = 0.01; /**< Proportional factor of PI controller (torque --> cable vel). */
-  double ki = 0.0;  /**< Integral factor of PI controller (torque --> cable vel). */
-  double kd = 0.0;  /**< Derivative factor of PI controller (torque --> cable vel). */
 };
 
 /**
@@ -400,7 +369,7 @@ struct RobotParams
    * @return IDs of active actuators in the daisy chain.
    * @see activeActuatorsNum()
    */
-  std::vector<id_t> activeActuatorsId() const;
+  std::vector<unsigned int> activeActuatorsId() const;
 
   /**
    * @brief Returns the number of active actuators in the daisy chain.
@@ -408,20 +377,9 @@ struct RobotParams
    * @see activeActuatorsId()
    */
   size_t activeActuatorsNum() const;
-
-  /**
-   * @brief Get a subset of original parameters without inactive components.
-   * @return A subset of original CDPR parameters.
-   */
-  RobotParams getOnlyActiveComponents() const;
-
-  /**
-   * @brief Remove parameters of inactive actuators components.
-   */
-  void removeInactiveComponents();
 };
 
-//------ Variables Structs -----------------------------------------------------------//
+   //------ Variables Structs -----------------------------------------------------------//
 
 /**
  * @brief Structure collecting all common variables related to a generic 6DoF platform.
@@ -479,7 +437,7 @@ struct PlatformVarsBase
                                  moments, expressed in the global frame. */
   grabnum::Vector6d
     total_load; /**< vector containing components of total external and dynamic forces and
-                 moments, expressed in the global frame. */
+     moments, expressed in the global frame. */
   /** @} */     // end of Dynamics group
 };
 
@@ -489,7 +447,7 @@ struct PlatformVarsBase
  * @see PlatformQuatVarsStruct
  * @note See @ref legend for symbols reference.
  */
-struct PlatformVars: PlatformVarsBase
+struct PlatformVars : PlatformVarsBase
 {
   RotParametrization angles_type; /**< rotation parametrization used. */
 
@@ -699,7 +657,7 @@ struct PlatformVars: PlatformVarsBase
  * @see PlatformVarsQuatStruct
  * @note See @ref legend for symbols reference.
  */
-struct PlatformVarsQuat: PlatformVarsBase
+struct PlatformVarsQuat : PlatformVarsBase
 {
   /** @addtogroup ZeroOrderKinematics
    * @{
@@ -884,8 +842,8 @@ struct CableVarsBase
   double swivel_ang; /**< [_rad_] _i-th_ pulley swivel angle @f$\sigma_i@f$. */
   double tan_ang;    /**< [_rad_] _i-th_ pulley tangent angle @f$\psi_i@f$. */
 
-  grabnum::Vector3d pos_PA_glob; /**< [_m_] vector @f$\mathbf{a}'_i@f$. */
-  grabnum::Vector3d pos_OA_glob; /**< [_m_] vector @f$\mathbf{a}_i@f$. */
+  grabnum::Vector3d pos_PD_glob; /**< [_m_] vector @f$\mathbf{a}'_i@f$. */
+  grabnum::Vector3d pos_OD_glob; /**< [_m_] vector @f$\mathbf{a}_i@f$. */
   grabnum::Vector3d pos_DA_glob; /**< [_m_] vector @f$\boldsymbol{\rho}^*_i@f$. */
   grabnum::Vector3d pos_BA_glob; /**< [_m_] vector @f$\boldsymbol{\rho}_i@f$. */
 
@@ -894,7 +852,9 @@ struct CableVarsBase
   grabnum::Vector3d vers_n; /**< _i-th_ swivel pulley versor @f$\hat{\mathbf{n}}_i@f$. */
   grabnum::Vector3d vers_t; /**< _i-th_ cable versor @f$\hat{\mathbf{t}}_i@f$. */
 
-  grabnum::MatrixXd<1, POSE_DIM> geom_jacob_row; /**< _i-th_ row of geometric jacobian. */
+  grabnum::MatrixXd<1, POSE_DIM> geom_jacob_row_l; /**< _i-th_ row of geometric jacobian. */
+  /** @} */                                      // end of ZeroOrderKinematics group
+  grabnum::MatrixXd<1, POSE_DIM> geom_jacob_row_s; /**< _i-th_ row of geometric jacobian. */
   /** @} */                                      // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
@@ -937,12 +897,14 @@ struct CableVarsBase
  * @brief A specialized version of CableVarsBase when using a minimal orientation
  * parametrization, i.e. with 3 angles.
  */
-struct CableVars: CableVarsBase
+struct CableVars : CableVarsBase
 {
   /** @addtogroup ZeroOrderKinematics
    * @{
    */
-  grabnum::RowVectorXd<POSE_DIM> anal_jacob_row; /**< _i-th_ row of analitic jacobian. */
+  grabnum::RowVectorXd<POSE_DIM> anal_jacob_row_l; /**< _i-th_ row of analitic jacobian. */
+  /** @} */                                      // end of ZeroOrderKinematics group
+  grabnum::RowVectorXd<POSE_DIM> anal_jacob_row_s; /**< _i-th_ row of analitic jacobian. */
   /** @} */                                      // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
@@ -957,7 +919,7 @@ struct CableVars: CableVarsBase
  * @brief A specialized version of CableVarsBase when using a quaternions for orientation
  * parametrization.
  */
-struct CableVarsQuat: CableVarsBase
+struct CableVarsQuat : CableVarsBase
 {
   /** @addtogroup ZeroOrderKinematics
    * @{
@@ -983,23 +945,28 @@ struct RobotVarsBase
   /** @addtogroup ZeroOrderKinematics
    * @{
    */
-  arma::mat::fixed<4, 6> geom_jacobian; /**< geometric jacobian. */
-  arma::mat::fixed<4, 6> anal_jacobian; /**< analytical jacobian. */
-  /** @} */                             // end of ZeroOrderKinematics group
+  arma::mat geom_jacobian; /**< geometric jacobian. */
+  arma::mat anal_jacobian; /**< analytical jacobian. */
+  /** @} */                // end of ZeroOrderKinematics group
+
+  MatrixXd<8, POSE_DIM> geom_jacobian_l;
+  MatrixXd<8, POSE_DIM> geom_jacobian_s;
+
+  MatrixXd<8, POSE_DIM> anal_jacobian_l;
+  MatrixXd<8, POSE_DIM> anal_jacobian_s;
 
   /** @addtogroup FirstOrderKinematics
    * @{
    */
-  arma::mat::fixed<4, 6> geom_jacobian_d; /**< geometric jacobian first derivative. */
-  arma::mat::fixed<4, 6> anal_jacobian_d; /**< analytical jacobian first derivative. */
-  /** @} */                               // end of FirstOrderKinematics group
+  arma::mat geom_jacobian_d; /**< geometric jacobian first derivative. */
+  arma::mat anal_jacobian_d; /**< analytical jacobian first derivative. */
+  /** @} */                  // end of FirstOrderKinematics group
 
   /** @addtogroup Dynamics
    * @{
    */
-  arma::vec::fixed<4>
-    tension_vector; /**< [N] tensions vector, collecting tension on each cable.*/
-  /** @} */         // end of Dynamics group
+  arma::vec tension_vector; /**< [N] tensions vector, collecting tension on each cable.*/
+  /** @} */                 // end of Dynamics group
 };
 
 /**
@@ -1008,7 +975,7 @@ struct RobotVarsBase
  * This structure employs 3-angle parametrization for the orientation of the platform.
  * @see RobotVarsQuat
  */
-struct RobotVars: RobotVarsBase
+struct RobotVars : RobotVarsBase
 {
   PlatformVars platform;         /**< variables of a generic 6DoF platform with angles. */
   std::vector<CableVars> cables; /**< vector of variables of a single cables in a CDPR. */
@@ -1055,7 +1022,7 @@ struct RobotVars: RobotVarsBase
  * This structure employs quaternion parametrization for the orientation of the platform.
  * @see RobotVars
  */
-struct RobotVarsQuat: RobotVarsBase
+struct RobotVarsQuat : RobotVarsBase
 {
   PlatformVarsQuat
     platform; /**< variables of a generic 6DoF platform with quaternions. */
@@ -1085,17 +1052,11 @@ struct RobotVarsQuat: RobotVarsBase
    */
   void updateJacobians();
 };
-/**
- * @brief Structure collecting all variables related to a generic 6DoF CDPR.
- *
- * This structure employs 3-angle parametrization for the orientation of the platform
- * and includes roll, pitch and yaw frame orientation.
- */
-struct RobotVarsMobileFrame: RobotVars
-{
-  double FrameRoll;  /**< Roll angle.*/
-  double FramePitch; /**< Pitch angle.*/
-  double FrameYaw;   /**< Yaw angle.*/
+
+struct Measures {
+  grabnum::VectorXd<8> lengths;
+  grabnum::VectorXd<8> swivels;
+  grabnum::Vector3d	epsilon;
 };
 
 } // end namespace grabcdpr
