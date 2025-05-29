@@ -91,24 +91,24 @@ void updatePlatformPose(const Vector3d& position, const grabgeom::Quaternion& or
                         const PlatformParams& params, PlatformVarsQuat& platform);
 
 /**
- * @brief calcPosA
+ * @brief calcPosD
  * @param params
  * @param platform
- * @param pos_PA_glob
- * @param pos_OA_glob
+ * @param pos_PD_glob
+ * @param pos_OD_glob
  * @param pos_DA_glob
  */
-void calcPosA(const ActuatorParams& params, const PlatformVarsBase& platform,
-              Vector3d& pos_PA_glob, Vector3d& pos_OA_glob, Vector3d& pos_DA_glob);
+void calcPosD(const Vector3d& pos_PD_loc, const Vector3d& pos_OA_glob,
+              const Vector3d& position, const Matrix3d rot_mat, CableVarsBase& cable);
 
 /**
- * @brief Update global position of point @f$A_i@f$ and relative segments.
+ * @brief Update global position of point @f$D_i@f$ and relative segments.
  *
  * Given current platform variables @f$\mathbf{R}, \mathbf{p}_P@f$, the following
  * quantities are updated:
  * @f[
- * \mathbf{a}'_i = \mathbf{R}(\boldsymbol{\varepsilon}) ^\mathcal{P}\mathbf{a}'_i \\
- * \mathbf{a}_i = \mathbf{p}_P + \mathbf{a}'_i \\
+ * \mathbf{d}'_i = \mathbf{R}(\boldsymbol{\varepsilon}) ^\mathcal{P}\mathbf{d}'_i \\
+ * \mathbf{d}_i = \mathbf{p}_P + \mathbf{d}'_i \\
  * \boldsymbol{\rho}^*_i = \mathbf{a}_i - \mathbf{d}_i
  * @f]
  * being @f$^\mathcal{P}\mathbf{a}'_i, \mathbf{d}_i@f$ known parameters.
@@ -117,7 +117,7 @@ void calcPosA(const ActuatorParams& params, const PlatformVarsBase& platform,
  * @param[out] cable The cable structure including the positions to be updated.
  * @note See @ref legend for symbols reference.
  */
-void updatePosA(const ActuatorParams& params, const PlatformVarsBase& platform,
+void updatePosD(const ActuatorParams& params, const PlatformVarsBase& platform,
                 CableVarsBase& cable);
 
 /**
@@ -139,8 +139,8 @@ void updatePosA(const ActuatorParams& params, const PlatformVarsBase& platform,
  * @f$ \hat{\mathbf{u}}_i \perp \hat{\mathbf{w}}_i \perp \hat{\mathbf{k}}_i @f$.
  * @see updatePulleyVersors()
  */
-void calcPulleyVersors(const PulleyParams& params, const double swivel_ang,
-                       Vector3d& vers_u, Vector3d& vers_w);
+void calcPulleyVersors(const Vector3d& vers_i_loc, const Vector3d& vers_j_loc,
+                       CableVarsBase& cable);
 
 /**
  * @brief Update swivel pulley versors @f$\hat{\mathbf{u}}_i, \hat{\mathbf{w}}_i@f$.
@@ -169,7 +169,8 @@ void updatePulleyVersors(const PulleyParams& params, CableVarsBase& cable);
  * constraint
  * @f[ \hat{\mathbf{w}}_i \cdot \boldsymbol{\rho}^*_i = 0 @f]
  */
-double calcSwivelAngle(const PulleyParams& params, const Vector3d& pos_DA_glob);
+double calcSwivelAngle(const Vector3d& vers_i_loc, const Vector3d& vers_j_loc,
+                       const Vector3d& pos_DA_glob, const Matrix3d& rot_mat);
 
 /**
  * @brief Calculate pulley swivel angle @f$\sigma_i@f$.
@@ -178,7 +179,8 @@ double calcSwivelAngle(const PulleyParams& params, const Vector3d& pos_DA_glob);
  * @return Swivel angle @f$\sigma_i@f$ in radians.
  * @see CalcSwivelAngle()
  */
-void updateSwivelAngle(const PulleyParams& params, CableVarsBase& cable);
+void updateSwivelAngle(const PulleyParams& params, const PlatformVarsBase& platform,
+                       CableVarsBase& cable);
 
 /**
  * @brief Calculate pulley tangent angle @f$\psi_i@f$.
@@ -203,7 +205,7 @@ void updateSwivelAngle(const PulleyParams& params, CableVarsBase& cable);
  * @f[ \hat{\mathbf{n}}_i \cdot \boldsymbol{\rho}_i = 0 @f]
  */
 double calcTangentAngle(const PulleyParams& params, const Vector3d& vers_u,
-                        const Vector3d& pos_DA_glob);
+                        const Vector3d& pos_DA_glob, const Matrix3d& rot_mat);
 /**
  * @brief Calculate pulley tangent angle @f$\psi_i@f$.
  * @param[in] params Swivel pulley parameters.
@@ -211,7 +213,8 @@ double calcTangentAngle(const PulleyParams& params, const Vector3d& vers_u,
  * @return Tangent angle @f$\psi_i@f$  in radians.
  * @see CalcTangentAngle()
  */
-void updateTangentAngle(const PulleyParams& params, CableVarsBase& cable);
+void updateTangentAngle(const PulleyParams& params, const PlatformVarsBase& platform,
+                        CableVarsBase& cable);
 
 /**
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\mathbf{t}}_i@f$ and
@@ -245,9 +248,8 @@ void updateTangentAngle(const PulleyParams& params, CableVarsBase& cable);
  * together with the fact that, by definition,
  * @f$ \hat{\mathbf{w}}_i \perp \hat{\mathbf{t}}_i \perp \hat{\mathbf{n}}_i @f$.
  */
-void calcCableVectors(const PulleyParams& params, const Vector3d& vers_u,
-                      const Vector3d& pos_DA_glob, const double tan_ang, Vector3d& vers_n,
-                      Vector3d& vers_t, Vector3d& pos_BA_glob);
+void calcCableVectors(const double& radius, const Vector3d& vers_k_loc,
+                      const Matrix3d& rot_mat, CableVarsBase& cable);
 
 /**
  * @brief Calculate cable versors @f$\hat{\mathbf{n}}_i, \hat{\mathbf{t}}_i@f$ and
@@ -257,7 +259,8 @@ void calcCableVectors(const PulleyParams& params, const Vector3d& vers_u,
  * calculated.
  * @see CalcCableVectors()
  */
-void updateCableVectors(const PulleyParams& params, CableVarsBase& cable);
+void updateCableVectors(const PulleyParams& params, const PlatformVarsBase& platform,
+                        CableVarsBase& cable);
 
 /**
  * @brief Calculate cable length @f$l_i@f$.
@@ -275,8 +278,8 @@ void updateCableVectors(const PulleyParams& params, CableVarsBase& cable);
  * constraint
  * @f[ \boldsymbol{\rho}_i \cdot \boldsymbol{\rho}_i = l_i^2 @f]
  */
-double calcCableLen(const double pulley_radius, const Vector3d& pos_BA_glob,
-                    const double tan_ang);
+double calcCableLen(const double& pulley_radius, const Vector3d& pos_BA_glob,
+                    const double& tan_ang);
 
 /**
  * @brief Calculate cable length @f$l_i@f$.
@@ -326,17 +329,27 @@ double calcMotorCounts(const double tau, const double cable_len,
 double calcMotorCounts(const ActuatorParams& params, const CableVarsBase& cable);
 
 /**
- * @brief UpdateJacobiansRow
+ * @brief UpdateJacobiansRow_l
  * @param H_mat
  * @param cable
  */
-void updateJacobiansRow(const Matrix3d H_mat, CableVars& cable);
+void updateJacobiansRow_l(const ActuatorParams& params,
+                          const PlatformVars& platform, CableVars& cable);
 /**
- * @brief UpdateJacobiansRow
+ * @brief UpdateJacobiansRow_l
  * @param H_mat
  * @param cable
  */
-void updateJacobiansRow(const MatrixXd<3, 4> H_mat, CableVarsQuat& cable);
+void updateJacobiansRow_l(const ActuatorParams& params,
+                          const PlatformVarsQuat& platform, CableVarsQuat& cable);
+
+/**
+ * @brief UpdateJacobiansRow_s
+ * @param H_mat
+ * @param cable
+ */
+void updateJacobiansRow_s(const ActuatorParams& params,
+                          const PlatformVars& platform, CableVars& cable);
 
 /**
  * @brief Update all zero-order variables of a single cable at once.
@@ -396,6 +409,7 @@ void updateIK0(const Vector3d& position, const grabgeom::Quaternion& orientation
  * @brief Calculate cable length jacobian.
  * @param[in] vars CDPR variables/status.
  * @return Cable length jacobian matrix.
+ * NOTE: this function is used for DK, but it has to be tested
  */
 arma::mat calcJacobianL(const RobotVars& vars);
 
@@ -403,6 +417,7 @@ arma::mat calcJacobianL(const RobotVars& vars);
  * @brief Calculate swivel angles jacobian.
  * @param[in] vars CDPR variables/status.
  * @return Swivel angles jacobian matrix.
+ * NOTE: this function is used for DK, but it has to be tested
  */
 arma::mat calcJacobianSw(const RobotVars& vars);
 
@@ -460,6 +475,21 @@ bool solveDK0(const std::vector<double>& cables_length,
  * @see solveDK0()
  */
 bool updateDK0(const RobotParams& params, RobotVars& vars);
+
+/**\
+ * @brief Cost function for a nonlinear least square used for state estimation (DK)
+ *
+ * Measures of cable lengths, swivel angles and inclinometer can be used to estimate the EE pose.
+ * @param[in] params A reference to the robot parameters structure
+ * @param[in] state_est_meas Sensor measures for state estimation
+ * @param[in] vars CDPR variables
+ * @param[in] pose The pose at the k-th iteration
+ * @param[out] F residual array at the k-th iteration
+ * @param[out] J jacobian at the k-th iteration
+ */
+void costFunDkLengthSwivelAHRS(const RobotParams& params, const Measures& state_est_meas,
+                               RobotVars& vars, const Vector6d pose,
+                               VectorXd<19>& F, MatrixXd<19, 6>& J);
 
 /** @} */ // end of ZeroOrderKinematics group
 
