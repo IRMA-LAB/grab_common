@@ -7,7 +7,7 @@
 
 #include <cstring>
 
-#include "xsensahrsec.h"
+#include "slaves/xsensahrsec.h"
 
 namespace grabec
 {
@@ -161,52 +161,52 @@ bool xsensahrsec::SendData()
 {
   BufferOut.Cust.CMD_ID = 0x00;
   BufferOut.Cust.CMD_ID_check = 0x00;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x00)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::GoToConfig()
 {
   BufferOut.Cust.CMD_ID = 0x01;
   BufferOut.Cust.CMD_ID_check = 0x01;
-  
+
   if (BufferIn.Cust.resp_CMD_ID==0x01)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::GoToMeasurement()
 {
   BufferOut.Cust.CMD_ID = 0x02;
   BufferOut.Cust.CMD_ID_check = 0x02;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x01)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::Reset()
 {
   BufferOut.Cust.CMD_ID = 0x03;
   BufferOut.Cust.CMD_ID_check = 0x03;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x03)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::FilterSelection(uint8_t filter, uint8_t bias)
@@ -215,52 +215,52 @@ bool xsensahrsec::FilterSelection(uint8_t filter, uint8_t bias)
   BufferOut.Cust.CMD_ID_check = 0x04;
   BufferOut.Cust.byte1 = filter;
   BufferOut.Cust.byte2 = bias;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x04)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::RunSelfTest()
 {
   BufferOut.Cust.CMD_ID = 0x05;
   BufferOut.Cust.CMD_ID_check = 0x05;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x05 && BufferIn.Cust.selftest_result)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::AlignmentRotLocal()
 {
   BufferOut.Cust.CMD_ID = 0x06;
   BufferOut.Cust.CMD_ID_check = 0x06;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x06)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::AlignmentRotSensor()
 {
   BufferOut.Cust.CMD_ID = 0x07;
   BufferOut.Cust.CMD_ID_check = 0x07;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x07)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::ResetOrientation(uint8_t reset_mode)
@@ -269,13 +269,13 @@ bool xsensahrsec::ResetOrientation(uint8_t reset_mode)
   BufferOut.Cust.CMD_ID_check = 0x08;
   BufferOut.Cust.byte1 = 0x00;
   BufferOut.Cust.byte2 = reset_mode;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x08)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::ResetStoreOrientation(uint8_t reset_mode)
@@ -284,13 +284,13 @@ bool xsensahrsec::ResetStoreOrientation(uint8_t reset_mode)
   BufferOut.Cust.CMD_ID_check = 0x09;
   BufferOut.Cust.byte1 = 0x00;
   BufferOut.Cust.byte2 = reset_mode;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x09)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::NoRotation(uint16_t bias_compute_time)
@@ -299,37 +299,37 @@ bool xsensahrsec::NoRotation(uint16_t bias_compute_time)
   BufferOut.Cust.CMD_ID_check = 0x0A;
   BufferOut.Cust.byte1 = 0x00;
   BufferOut.Cust.byte1 = bias_compute_time; // TODO: correct this assigment, you have to shift the bytes
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x0B)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::Null()
 {
   BufferOut.Cust.CMD_ID = 0x0B;
   BufferOut.Cust.CMD_ID_check = 0x0B;
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0x0B)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 bool xsensahrsec::CheckErrorAHRS()
 {
-  
+
    if (BufferIn.Cust.resp_CMD_ID==0xFF)
-	{
-		return true;
-	}
-	else
-		return false;
+  {
+    return true;
+  }
+  else
+    return false;
 }
 
 } // end namespace grabec

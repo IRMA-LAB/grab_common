@@ -5,7 +5,7 @@
  * @brief File containing class implementation declared in mdxservoecslave.h.
  */
 
-#include "mdxservoecslave.h"
+#include "slaves/mdxservoecslave.h"
 
 namespace grabec {
 
@@ -83,7 +83,7 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
   product_code_       = kProductCode;
   num_domain_entries_ = kDomainEntries;
   id_                 = id;
-  
+
   domain_registers_[0]  = {alias_,
                           position_,
                           vendor_id_,
