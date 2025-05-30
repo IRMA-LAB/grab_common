@@ -19,6 +19,17 @@
 namespace grabec
 {
 
+struct DataForSingleActuator
+{
+  const int16_t& loadcell_;
+  const int32_t& encoder_;
+  const uint8_t& encoder_enable_;
+
+  DataForSingleActuator(const int16_t& loadcell, const int32_t& encoder, uint8_t& encoder_enable)
+    : loadcell_(loadcell), encoder_(encoder), encoder_enable_(encoder_enable) {}
+};
+
+
 /**
  * @brief The XelBssctIrma8 class
  */
@@ -60,7 +71,7 @@ public:
    * @brief Output buffer union, i.e. data received from master (read).
    */
 
-  typedef struct 
+  typedef struct
   {
     uint8_t CH0_Enable_Counter_6;
     uint8_t CH1_Enable_Counter_6;
@@ -77,7 +88,7 @@ public:
   /**
    * @brief Input buffer union, i.e. data sent to master (write).
    */
-  typedef struct 
+  typedef struct
   {
     int16_t CH0_Digital_Output_Data_4;
     int16_t CH1_Digital_Output_Data_4;
@@ -99,10 +110,18 @@ public:
   } CustBufferIn; /**< Input buffer, i.e. data sent to master (write). */
   CustBufferIn BufferIn;
 
+  // Vector filled by parse_mapping(). Will conatin referencese to the PDOs
+  std::vector<DataForSingleActuator> sensor_data_for_actuators_;
+
 protected:
   void initFun() override;
 
 private:
+  // This function prepare some strutures to send to the actuators in order to have
+  // the encoder, loadcell and encoder enable associated to the corresponding actuator
+  // this is done to keep the ifrastructure of functions build on GoldSoloWhistleDrive
+  std::vector<DataForSingleActuator> parse_mapping();
+
   // EasyCAT slave device specific info
   static constexpr uint16_t kDomainEntries_ = 372;
   static constexpr uint8_t kAlias_         = 0;
@@ -113,7 +132,7 @@ private:
   // configured PDO entry.
   static constexpr ec_pdo_entry_info_t kPdoEntries_[] = {
     {0x2040, 3, 1}, /**< output PDO: _DC_SYNC_COUNT_CLR_1 */
-    {0x0000, 0, 15}, /**< output PDO: GAP_2_1 */
+    {0x0000, 0, 15}, /**< output PDstd::vector<DataForSingleActuator> parse_mapping();O: GAP_2_1 */
     {0x7000, 1, 1}, /**< output PDO: DO_0_2 */
     {0x7000, 2, 1}, /**< output PDO: DO_1_2 */
     {0x7000, 3, 1}, /**< output PDO: DO_2_2 */

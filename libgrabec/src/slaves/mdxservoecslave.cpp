@@ -65,7 +65,7 @@ constexpr ec_pdo_info_t MDXServoEC::kPDOs_[];
 constexpr ec_sync_info_t MDXServoEC::kSyncs_[];
 constexpr char* MDXServoEC::kStatesStr_[];
 
-MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
+MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position, const DataForSingleActuator& data_for_single_actuator
 #if USE_QT
                                            ,
                                            QObject* parent /*= NULL*/
@@ -75,7 +75,8 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
 #if USE_QT
     QObject(parent),
 #endif
-    StateMachine(ST_MAX_STATES)
+    StateMachine(ST_MAX_STATES),
+    extern_pdos_(data_for_single_actuator)
 {
   alias_              = kAlias;
   position_           = slave_position;
@@ -196,6 +197,9 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
 
   drive_state_ = ST_START;
   prev_state_  = static_cast<States>(GetCurrentState());
+  //extern_pdos_.in_pdo_loadcell = data_for_single_actuator.loadcell_;
+  //extern_pdos_.in_pdo_encoder = data_for_single_actuator.encoder_;
+  //extern_pdos_.out_pdo_encoder_enable = data_for_single_actuator.encoder_enable_;
 }
 
 MDXServoEC::States

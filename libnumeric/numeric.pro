@@ -9,7 +9,6 @@ HEADERS += \
 SOURCES += \
     $$PWD/src/matrix.cpp \
     $$PWD/src/matrix_utilities.tcc \
-    $$PWD/src/solvers.cpp \
     $$PWD/src/filters.cpp
 
 INCLUDEPATH += $$PWD/inc
