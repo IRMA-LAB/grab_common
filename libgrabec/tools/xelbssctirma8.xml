@@ -1,0 +1,2547 @@
+<?xml version="1.0" ?>
+<EtherCATInfo>
+  <!-- Slave 0 -->
+  <Vendor FileVersion="1">
+    <Id>#x000005E1</Id>
+    <Name LcId="1033">LS ELECTRIC</Name>
+    <ImageData16x14>424DD6020000000000003600000028000000100000000E000000010018000000000000000000C40E0000C40E00000000000000000000F7FCFBF6FCFBF5FBFBF4FBFBF3FBFAF4FBFBF7FCFCFCFEFDFAFDFCF5FBFBF2FBFAF3FBFAF3FBFAF3FBFAF3FBFAF3FBFAF6FCFBFDFEFEFFFFFFFFFFFFFEFFFFFDFEFEFCFEFEFCFEFEFEFFFFFFFFFFFDFEFEFAFDFDF9FDFDF9FDFDF9FDFDF5FBFBF8FCFCFDFEFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFDFDF3FBFBFCFEFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF9FDFDFBFDFDFDFEFEFFFFFEC5B4A18A5735946545905E3EA0775CCBBDAD996D4F915F41926141986A4CB69983EBECE8F6FFFFF5FCFCFFFFFFFFFFFE9568417637007B3F13824A267F452192623E895530834B298953317E431A681F008F5F3AEEF1EEF9FFFFFFFFFFFFFFFEAF9074753400B6997EF9FAF7F3F7F4F0F1EDF8FCFAEBE8DFD9CBBFC1AA95763603671F00C9BBAAFFFFFFFFFFFFFFFFFECFC3B37433009A704AFAFFFFF7FFFFFCFFFFD2C6BA824A2676360D793A11773707834A24DAD4CAFCFFFFFFFFFFFFFFFEEBEFEC7C4110814716EAECE8F7FFFFFBFFFFA27D5D6013008F5C30DBD4C7DFDAD0ECECE5F8FFFFF7FEFCF8FCFCF7FCFCF3FBFB936541631900CEC2B2FBFFFFF9FFFFD3C7BA75340D6E2A00854E2789542F824A25CDBEA7FEFFFFF6FCFBF3FBFAF3FBFAD3C8BBA27B61D4CBBEF8FEFEF3FBFBF9FFFFDCD3C8AF9077A47F62A37E63966A5CA98EAC7E5FF79C83F3E7EBF9F3FBFAF3FCFCFDFFFFF6FFFFF2FBFBF2FBFBF3FBFBFAFFFFFDFFFFFEFFFFF9FFFFDFE0FFC0B3FFAA94F4C9BCF7DAD9F8F4FBFBF4FBFBF4FBFBF4FBFBF4FBFBF4FBFBF3FBFBF3FBFBF3FBFBF3FBFBF3FBFBF3FBFBF3FBFBF3FBFBF3FBFBF3FBFAF6FBFBF6FBFBF6FBFBF6FBFBF6FBFBF6FBFBF3FBFBF3FBFAF3FBFAF3FBFAF3FBFAF3FBFAF3FBFAF3FBFAF3FBFAF3FBFA</ImageData16x14>
+  </Vendor>
+  <Descriptions>
+	<Groups>
+      <Group SortOrder="0">
+        <Type>LS ELECTRIC EtherCAT Coupler(MDP)</Type>
+        <Name LcId="1031">LS ELECTRIC EtherCAT Adapter</Name>
+        <Name LcId="1033">LS ELECTRIC EtherCAT Adapter</Name>
+        <ImageData16x14>424DD6020000000000003600000028000000100000000E0000000100180000000000A002000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFBFBFBC9CACA8DA0957E9788B6BCB9E5E5E5D5D5D5CBCBCBFAFAFAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBDBCBCA3A5A38E908FB0B0AFFFFFFFFCFCFCC1C1C1FDFDFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB9B9B9A6A5A6989898B2B2B2FFFFFFF9F9F9C1C1C1FDFDFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB8B8B8A3A3A3969696B2B2B2FFFFFFF9F9F9C1C1C1FDFDFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB8B8B8A3A3A3969696B2B2B2FFFFFFF9F9F9C1C1C1FDFDFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB8B8B8A3A3A3969696B2B2B2FFFFFFF9F9F9C1C1C1FDFDFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB8B8B8A3A3A3969696B2B2B2FFFFFFF9F9F9C1C1C1FDFDFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB7B7B7A6A7A7969797B4B3B3FFFFFFFEFBFCC2C1C2FDFDFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBBBBBB565554696A69BAB9BBFFFEFECEEEE6B7BFBCFFFEFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBEBEBFB9B9B8909090B3B3B3FCFBFCABC6AEAFB5AFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB8B8B8A4A4A4979898B3B3B3FEFEFCE6E4F9BEBDC2FEFEFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBBBBBB565552686969B9B9B7F5F6EEFFFFF4C5C5C1FDFDFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBCBCBCB7B7B8908F8DA1A1AD9F9EE59D9BEBB0B1C3FFFFFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFBFBCCCCCCBCBCBCB2B2B2AAAAC88E8EFC8888FBAFAFDAFAFAFAFFFFFFFFFFFFFFFFFFFFFFFF</ImageData16x14>
+      </Group>
+    </Groups>
+    <Devices>
+      <Device>
+        <Type ProductCode="#x00005fc1" RevisionNo="#x00000002">XEL-BSSCT EtherCAT Slave(MDP) Rev2</Type>
+        <Name><![CDATA[XEL-BSSCT EtherCAT Slave(MDP) Rev2]]></Name>
+        <Sm Enable="1" StartAddress="#x1000" ControlByte="#x26" DefaultSize="256" />
+        <Sm Enable="1" StartAddress="#x1200" ControlByte="#x22" DefaultSize="256" />
+        <Sm Enable="1" StartAddress="#x1400" ControlByte="#x64" DefaultSize="0" />
+        <Sm Enable="1" StartAddress="#x1800" ControlByte="#x20" DefaultSize="0" />
+        <RxPdo Sm="2" Fixed="1" Mandatory="1">
+          <Index>#x1680</Index>
+          <Name>XEL-BSSCT RxPDO Entry</Name>
+          <Entry>
+            <Index>#x2040</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_DC_SYNC_COUNT_CLR</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>15</BitLen>
+          </Entry>
+        </RxPdo>
+        <RxPdo Sm="2" Fixed="1" Mandatory="1">
+          <Index>#x1600</Index>
+          <Name>Digital Output Data</Name>
+          <Entry>
+            <Index>#x7000</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 0</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7000</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 1</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7000</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 2</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7000</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 3</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7000</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 4</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7000</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 5</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7000</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 6</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7000</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 7</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7000</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>8</BitLen>
+            <Name>uSIbdnxe0 90</Name>
+            <DataType>UINT8</DataType>
+          </Entry>
+        </RxPdo>
+        <RxPdo Sm="2" Fixed="1" Mandatory="1">
+          <Index>#x1601</Index>
+          <Name>Digital Output Data</Name>
+          <Entry>
+            <Index>#x7010</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 0</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7010</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 1</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7010</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 2</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7010</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 3</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7010</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 4</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7010</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 5</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7010</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 6</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7010</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DO 7</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+	  <Entry>
+	    <Index>#x7010</Index>
+	    <SubIndex>9</SubIndex>
+	    <BitLen>8</BitLen>
+	    <Name>uSIbdnxe0 90</Name>
+	    <DataType>UINT8</DataType>
+	 </Entry>
+        </RxPdo>
+        <RxPdo Sm="2" Fixed="1" Mandatory="1">
+          <Index>#x1602</Index>
+          <Name>Error Clear Request</Name>
+          <Entry>
+            <Index>#x7020</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Error Clear Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>15</BitLen>
+          </Entry>
+        </RxPdo>
+        <RxPdo Sm="2" Fixed="1" Mandatory="1">
+          <Index>#x1603</Index>
+          <Name>Error Clear Request</Name>
+          <Entry>
+            <Index>#x7030</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Error Clear Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>15</BitLen>
+          </Entry>
+        </RxPdo>
+        <RxPdo Sm="2" Fixed="1" Mandatory="1">
+          <Index>#x1604</Index>
+          <Name>HSC Control Data Set</Name>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Counter</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Count Direction Select</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Auxiliary Function Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Compare Function</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Compare Output Signal</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 0 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 1 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Carry/Borrow Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Aux-Func Ext. Input</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>15</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Counter</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>16</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>17</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Count Direction Select</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>18</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Auxiliary Function Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>19</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Compare Function</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>20</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Compare Output Signal</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>21</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 0 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>22</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 1 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>24</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Carry/Borrow Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>25</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>26</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Aux-Func Ext. Input</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7040</Index>
+            <SubIndex>27</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+        </RxPdo>
+        <RxPdo Sm="2" Fixed="1" Mandatory="1">
+          <Index>#x1605</Index>
+          <Name>HSC Control Data Set</Name>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Counter</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Count Direction Select</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Auxiliary Function Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Compare Function</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Compare Output Signal</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 0 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 1 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Carry/Borrow Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Aux-Func Ext. Input</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>15</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Counter</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>16</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>17</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Count Direction Select</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>18</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Auxiliary Function Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>19</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Compare Function</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>20</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Compare Output Signal</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>21</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 0 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>22</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 1 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>24</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Carry/Borrow Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>25</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>26</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Aux-Func Ext. Input</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7050</Index>
+            <SubIndex>27</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+        </RxPdo>
+        <RxPdo Sm="2" Fixed="1" Mandatory="1">
+          <Index>#x1606</Index>
+          <Name>HSC Control Data Set</Name>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Counter</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Count Direction Select</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Auxiliary Function Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Compare Function</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Compare Output Signal</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 0 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 1 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Carry/Borrow Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Aux-Func Ext. Input</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>15</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Counter</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>16</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>17</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Count Direction Select</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>18</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Auxiliary Function Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>19</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Compare Function</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>20</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Compare Output Signal</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>21</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 0 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>22</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 1 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>24</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Carry/Borrow Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>25</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>26</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Aux-Func Ext. Input</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7060</Index>
+            <SubIndex>27</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+        </RxPdo>
+        <RxPdo Sm="2" Fixed="1" Mandatory="1">
+          <Index>#x1607</Index>
+          <Name>HSC Control Data Set</Name>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Counter</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Count Direction Select</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Auxiliary Function Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Compare Function</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Compare Output Signal</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 0 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 1 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Carry/Borrow Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Enable Aux-Func Ext. Input</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>15</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Counter</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>16</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>17</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Count Direction Select</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>18</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Auxiliary Function Reques</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>19</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Compare Function</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>20</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Compare Output Signal</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>21</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 0 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>22</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 1 EQUAL Reset</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>24</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Carry/Borrow Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>25</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Enable</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>26</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Enable Aux-Func Ext. Input</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x7070</Index>
+            <SubIndex>27</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Reset Request</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>2</BitLen>
+          </Entry>
+        </RxPdo>
+        <TxPdo Sm="3" Fixed="1" Mandatory="1">
+          <Index>#x1a80</Index>
+          <Name>XEL-BSSCT TxPDO Entry</Name>
+          <Entry>
+            <Index>#x2000</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_RUN</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2000</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_ERROR</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_IO_TYER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_IO_DEER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_IO_RWER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_IP_IFER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_BPRM_ER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_IOPRM_ER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_SPPRM_ER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_CPPRM_ER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_SWDT_ER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2010</Index>
+            <SubIndex>15</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_IOSIZE_ER</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2020</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_REFRESH_OT_WAR</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>3</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x2040</Index>
+            <SubIndex>26</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_EXT_ERR_FLAG_0SLT</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2040</Index>
+            <SubIndex>27</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_EXT_ERR_FLAG_1SLT</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2040</Index>
+            <SubIndex>28</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_EXT_ERR_FLAG_2SLT</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2040</Index>
+            <SubIndex>29</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_EXT_ERR_FLAG_3SLT</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2040</Index>
+            <SubIndex>30</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_EXT_ERR_FLAG_4SLT</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2040</Index>
+            <SubIndex>31</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_EXT_ERR_FLAG_5SLT</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2040</Index>
+            <SubIndex>32</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_EXT_ERR_FLAG_6SLT</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2040</Index>
+            <SubIndex>33</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>_EXT_ERR_FLAG_7SLT</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>8</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x2030</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>_REFRESH_MAX</Name>
+            <DataType>UINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2030</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>_REFRESH_MIN</Name>
+            <DataType>UINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x2030</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>_REFRESH_CUR</Name>
+            <DataType>UINT</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo Sm="3" Fixed="1" Mandatory="1">
+          <Index>#x1a00</Index>
+          <Name>Digital Input Data</Name>
+          <Entry>
+            <Index>#x6000</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 0</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6000</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 1</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6000</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 2</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6000</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 3</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6000</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 4</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6000</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 5</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6000</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 6</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6000</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 7</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6000</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>8</BitLen>
+            <Name>uSIbdnxe0 90</Name>
+            <DataType>UINT8</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo Sm="3" Fixed="1" Mandatory="1">
+          <Index>#x1a01</Index>
+          <Name>Digital Input Data</Name>
+          <Entry>
+            <Index>#x6010</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 0</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6010</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 1</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6010</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 2</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6010</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 3</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6010</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 4</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6010</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 5</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6010</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 6</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6010</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>DI 7</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6010</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>8</BitLen>
+            <Name>uSIbdnxe0 90</Name>
+            <DataType>UINT8</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo Sm="3" Fixed="1" Mandatory="1">
+          <Index>#x1a02</Index>
+          <Name>Analog Status</Name>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>14</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Ready Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Activation Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Activation Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH2 Activation Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH3 Activation Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>4</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Error</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Error</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH2 Error</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6020</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH3 Error</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>4</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Disconnection Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Disconnection Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH2 Disconnection Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH3 Disconnection Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>12</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Upper Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Upper Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH2 Upper Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH3 Upper Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>12</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>>CH0 Lower Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>>CH1 Lower Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>>CH2 Lower Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6022</Index>
+            <SubIndex>14</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>>CH3 Lower Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>12</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6021</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CH0 Digital Output Data</Name>
+            <DataType>INT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6021</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CH1 Digital Output Data</Name>
+            <DataType>INT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6021</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CH2 Digital Output Data</Name>
+            <DataType>INT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6021</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CH3 Digital Output Data</Name>
+            <DataType>INT</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo Sm="3" Fixed="1" Mandatory="1">
+          <Index>#x1a03</Index>
+          <Name>Analog Status</Name>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>14</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Ready Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Activation Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Activation Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH2 Activation Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH3 Activation Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>4</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Error</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Error</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH2 Error</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6030</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH3 Error</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>4</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Disconnection Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Disconnection Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH2 Disconnection Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH3 Disconnection Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>12</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Upper Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Upper Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH2 Upper Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH3 Upper Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>12</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Lower Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Lower Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH2 Lower Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6032</Index>
+            <SubIndex>14</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH3 Lower Alarm</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>12</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6031</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CH0 Digital Output Data</Name>
+            <DataType>INT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6031</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CH1 Digital Output Data</Name>
+            <DataType>INT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6031</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CH2 Digital Output Data</Name>
+            <DataType>INT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6031</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CH3 Digital Output Data</Name>
+            <DataType>INT</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo Sm="3" Fixed="1" Mandatory="1">
+          <Index>#x1a04</Index>
+          <Name>HSC Status Data Set</Name>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Count Direction Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Carry Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Borrow Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Auxiliary Function Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 0 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 1 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>6</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Ready Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Count Direction Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>15</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Carry Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>16</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Borrow Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>17</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Auxiliary Function Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>18</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 0 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>19</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 1 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>6</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>21</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Latch Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Sampling Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Input Frequency Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Rev./Unit Time Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Latch Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Sampling Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Input Frequency Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Rev./Unit Time Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo Sm="3" Fixed="1" Mandatory="1">
+          <Index>#x1a05</Index>
+          <Name>HSC Status Data Set</Name>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Count Direction Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Carry Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Borrow Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Auxiliary Function Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 0 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 1 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>6</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Ready Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Count Direction Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>15</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Carry Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>16</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Borrow Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>17</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Auxiliary Function Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>18</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 0 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>19</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 1 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>6</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6050</Index>
+            <SubIndex>21</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Latch Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Sampling Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Input Frequency Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Rev./Unit Time Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Latch Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Sampling Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Input Frequency Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6051</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Rev./Unit Time Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo Sm="3" Fixed="1" Mandatory="1">
+          <Index>#x1a06</Index>
+          <Name>HSC Status Data Set</Name>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Count Direction Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Carry Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Borrow Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Auxiliary Function Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 0 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 1 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>6</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Ready Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Count Direction Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>15</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Carry Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>16</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Borrow Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>17</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Auxiliary Function Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>18</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 0 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>19</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 1 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>6</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6060</Index>
+            <SubIndex>21</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Latch Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Sampling Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Input Frequency Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Rev./Unit Time Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Latch Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Sampling Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Input Frequency Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6061</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Rev./Unit Time Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo Sm="3" Fixed="1" Mandatory="1">
+          <Index>#x1a07</Index>
+          <Name>HSC Status Data Set</Name>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Count Direction Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Preset Ext. Input Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Carry Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Borrow Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Auxiliary Function Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 0 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Compare 1 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>6</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH0 Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>11</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>Ready Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>12</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Count Direction Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>13</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Preset Ext. Input Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>15</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Carry Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>16</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Borrow Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>17</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Auxiliary Function Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>18</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 0 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>19</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Compare 1 Output Status</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>6</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6070</Index>
+            <SubIndex>21</SubIndex>
+            <BitLen>1</BitLen>
+            <Name>CH1 Error Flag</Name>
+            <DataType>BOOL</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x0000</Index>
+            <BitLen>1</BitLen>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>1</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>2</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Latch Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>3</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Sampling Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>4</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Input Frequency Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>5</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH0 Rev./Unit Time Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>6</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>7</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Latch Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>8</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Sampling Count Data</Name>
+            <DataType>DINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>9</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Input Frequency Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6071</Index>
+            <SubIndex>10</SubIndex>
+            <BitLen>32</BitLen>
+            <Name>CH1 Rev./Unit Time Data</Name>
+            <DataType>UDINT</DataType>
+          </Entry>
+        </TxPdo>
+      </Device>
+    </Devices>
+  </Descriptions>
+</EtherCATInfo>
+
