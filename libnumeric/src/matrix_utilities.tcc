@@ -404,14 +404,14 @@ template <uint rows, uint cols> MatrixXd<rows, cols> ExtProduct(const MatrixXd<r
   return mat;
 }
 
-template <typename T, uint dim> MatrixXd<dim, dim> Diag(const VectorX<T, dim>& vvect)
+template <typename T, unsigned int dim> MatrixXd<dim, dim> Diag(const VectorX<T, dim>& vvect)
 {
-  MatrixXd<dim, dim> matrix_diag(0);
+	MatrixXd<dim, dim> matrix_diag(0); 
 
-  for (uint i = 1; i <= dim; i++)
-    matrix_diag(i,i) = vvect(i);
-
-  return matrix_diag;
+	for (unsigned int i = 1; i <= dim; i++)
+		matrix_diag(1,1)=vvect(i);
+	
+	return matrix_diag;
 }
 
 } //  end namespace grabnum

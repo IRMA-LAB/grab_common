@@ -18,7 +18,7 @@
 #endif
 
 #include "StateMachine.h"
-
+#include "slaves/xelbssctirma8.h"
 #include "ethercatslave.h"
 #include "grabec_types.h"
 
@@ -44,7 +44,6 @@ ENUM_CLASS(MDXServoECOpModes,
            CYCLIC_VELOCITY       = 9,
            CYCLIC_TORQUE         = 10)
 // clang-format on
-
 /**
  * A simple way to store the pdos input values
  */
@@ -163,7 +162,7 @@ class MDXServoEC:
    * @param[in] slave_position Slave position in ethercat chain.
    * @param[in] parent The Qt parent, in this case the actuator it belongs to.
    */
-  MDXServoEC(const id_t id, const uint8_t slave_position
+  MDXServoEC(const id_t id, const uint8_t slave_position, const DataForSingleActuator& data_for_single_actuator
 #if USE_QT
                        ,
                        QObject* parent = nullptr
@@ -390,6 +389,9 @@ class MDXServoEC:
 #endif
 
  protected:
+  const DataForSingleActuator& extern_pdos_;
+
+
   MDXServoECInPdos input_pdos_; /**< input_pdos_ */
 
   /**

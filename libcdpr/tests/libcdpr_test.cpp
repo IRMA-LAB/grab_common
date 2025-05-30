@@ -687,7 +687,7 @@ void LibcdprTest::initTestCase()
 
   // Load robot parameters
   RobotConfigJsonParser parser;
-  parser.parseFile(QString("../tests/pass.json"), &params_);
+  parser.ParseFile(QString("../tests/pass.json"), &params_);
   params_.removeInactiveComponents();
   // Load same robot parameters in matlab workspace
   matlab_ptr_->eval(
@@ -701,16 +701,16 @@ void LibcdprTest::testRobotConfigJsonParser()
 {
   // test parsing with different inputs
   RobotConfigJsonParser parser;
-  QVERIFY(!parser.parseFile("../tests/fail1.json"));
-  QVERIFY(!parser.parseFile(QString("../tests/fail2.json")));
-  QVERIFY(parser.parseFile(QString("../tests/pass.json")));
+  QVERIFY(!parser.ParseFile("../tests/fail1.json"));
+  QVERIFY(!parser.ParseFile(QString("../tests/fail2.json")));
+  QVERIFY(parser.ParseFile(QString("../tests/pass.json")));
 
   // test getters
-  grabcdpr::RobotParams params = parser.getConfigStruct();
-  parser.getConfigStruct(&params);
+  grabcdpr::RobotParams params = parser.GetConfigStruct();
+  parser.GetConfigStruct(&params);
 
   // test display
-  parser.printConfig();
+  parser.PrintConfig();
 }
 
 //--------- Inverse Kinematics ---------------//

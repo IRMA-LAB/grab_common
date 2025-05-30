@@ -106,6 +106,7 @@ XelBssctIrma8::XelBssctIrma8(const uint8_t slave_position)
   slave_pdo_entries_ptr_ = const_cast<ec_pdo_entry_info_t*>(kPdoEntries_);
   slave_pdos_ptr_ = const_cast<ec_pdo_info_t*>(kPDOs_);
   slave_sync_ptr_ = const_cast<ec_sync_info_t*>(kSyncs_);
+  sensor_data_for_actuators_ = parse_mapping();
 }
 
 XelBssctIrma8::~XelBssctIrma8()
@@ -196,6 +197,29 @@ void XelBssctIrma8::initFun()
   /*
    * Your code here..
    */
+}
+
+std::vector<DataForSingleActuator> XelBssctIrma8::parse_mapping(){
+  std::vector<DataForSingleActuator> data;
+  // Parse the file and fill the data vector
+  DataForSingleActuator actuator_1(BufferIn.CH2_Digital_Output_Data_5, BufferIn.CH1_Count_Data_6, BufferOut.CH1_Enable_Counter_6);
+  data.push_back(actuator_1);
+  DataForSingleActuator actuator_2(BufferIn.CH1_Digital_Output_Data_4, BufferIn.CH0_Count_Data_7, BufferOut.CH0_Enable_Counter_7);
+  data.push_back(actuator_2);
+  DataForSingleActuator actuator_3(BufferIn.CH0_Digital_Output_Data_5, BufferIn.CH0_Count_Data_8, BufferOut.CH0_Enable_Counter_8);
+  data.push_back(actuator_3);
+  DataForSingleActuator actuator_4(BufferIn.CH1_Digital_Output_Data_5, BufferIn.CH1_Count_Data_7, BufferOut.CH1_Enable_Counter_7);
+  data.push_back(actuator_4);
+  DataForSingleActuator actuator_5(BufferIn.CH0_Digital_Output_Data_4, BufferIn.CH1_Count_Data_8, BufferOut.CH1_Enable_Counter_8);
+  data.push_back(actuator_5);
+  DataForSingleActuator actuator_6(BufferIn.CH3_Digital_Output_Data_4, BufferIn.CH0_Count_Data_9, BufferOut.CH0_Enable_Counter_9);
+  data.push_back(actuator_6);
+  DataForSingleActuator actuator_7(BufferIn.CH2_Digital_Output_Data_4, BufferIn.CH1_Count_Data_9, BufferOut.CH1_Enable_Counter_9);
+  data.push_back(actuator_7);
+  DataForSingleActuator actuator_8(BufferIn.CH3_Digital_Output_Data_5, BufferIn.CH0_Count_Data_6, BufferOut.CH0_Enable_Counter_6);
+  data.push_back(actuator_8);
+  // This is a placeholder implementation
+  return data;
 }
 
 } // end namespace grabec
