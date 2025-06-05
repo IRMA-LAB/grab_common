@@ -23,7 +23,7 @@ struct DataForSingleActuator
 {
   const int16_t& loadcell_;
   const int32_t& encoder_;
-  const uint8_t& encoder_enable_;
+  uint8_t& encoder_enable_;
 
   DataForSingleActuator(const int16_t& loadcell, const int32_t& encoder, uint8_t& encoder_enable)
     : loadcell_(loadcell), encoder_(encoder), encoder_enable_(encoder_enable) {}
