@@ -202,6 +202,19 @@ class MDXServoEC:
    */
   int16_t getTorque() const { return input_pdos_.torque_actual_value; }
   /**
+   * @brief Get actual drive auxiliary position (aka counts).
+   *
+   * This field can be used by external sensors connected to the drive, for instance an
+   * additional encoder.
+   * @return Actual drive auxiliary position (aka counts).
+   */
+  int getAuxPosition() const { return extern_pdos_.encoder_; }
+  /**
+   * @brief GetAnalogInput
+   * @return
+   */
+  int16_t getAnalogInput() const { return extern_pdos_.loadcell_; }
+  /**
    * @brief GetDigitalInput
    * @return
    */

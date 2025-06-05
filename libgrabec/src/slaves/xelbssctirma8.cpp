@@ -26,7 +26,7 @@ XelBssctIrma8::XelBssctIrma8(const uint8_t slave_position)
   alias_ = kAlias_;
   vendor_id_ = kVendorID_;
   product_code_ = kProductCode_;
-  num_domain_entries_ = kDomainEntries_;
+  num_domain_entries_ = static_cast<uint8_t>(kDomainEntries_);
   position_ = slave_position;
   domain_registers_[0] = {alias_, position_, vendor_id_, product_code_,
                                 0x6021, 1,

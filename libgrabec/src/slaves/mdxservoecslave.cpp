@@ -199,7 +199,7 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position, const DataFo
   prev_state_  = static_cast<States>(GetCurrentState());
   //extern_pdos_.in_pdo_loadcell = data_for_single_actuator.loadcell_;
   //extern_pdos_.in_pdo_encoder = data_for_single_actuator.encoder_;
-  //extern_pdos_.out_pdo_encoder_enable = data_for_single_actuator.encoder_enable_;
+  extern_pdos_.encoder_enable_ = true;
 }
 
 MDXServoEC::States
@@ -364,6 +364,7 @@ void MDXServoEC::writeOutputs()
 
 void MDXServoEC::safeExit()
 {
+  extern_pdos_.encoder_enable_ = false;
   switch (prev_state_)
   {
     case ST_START:

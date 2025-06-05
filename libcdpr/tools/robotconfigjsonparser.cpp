@@ -146,14 +146,13 @@ bool RobotConfigJsonParser::extractPlatform(const json& raw_data)
   try
   {
     config_params_.platform.rot_parametrization =
-      str2RotParametrization(raw_data["rotation_parametrization"]);
+      str2RotParametrization(raw_data["platform"]["rotation_parametrization"]);
   }
   catch (std::exception)
   {
     std::cerr << "[ERROR] Missing or invalid rotation parametrization" << std::endl;
     return false;
   }
-
   if (raw_data.count("platform") != 1)
   {
     std::cerr << "[ERROR] Missing or invalid platform structure!" << std::endl;
@@ -187,6 +186,7 @@ bool RobotConfigJsonParser::extractPlatform(const json& raw_data)
               << std::endl;
     return false;
   }
+
   return arePlatformParamsValid();
 }
 
@@ -218,19 +218,19 @@ bool RobotConfigJsonParser::extractActuators(const json& raw_data)
 
       for (uint8_t i = 0; i < 3; i++)
       {
-		field = "winch";
-		subfield = "pos_PD_loc";
-		actuator_params.winch.pos_PD_loc(i + 1) = actuator[field][subfield].at(i).at(0);
+    field = "winch";
+    subfield = "pos_PD_loc";
+    actuator_params.winch.pos_PD_loc(i + 1) = actuator[field][subfield].at(i).at(0);
 
-		field = "pulley";
-		subfield = "pos_OA_glob";
-		actuator_params.pulley.pos_OA_glob(i + 1) = actuator[field][subfield].at(i).at(0);
-		subfield = "vers_i_loc";
-		actuator_params.pulley.vers_i_loc(i + 1) = actuator[field][subfield].at(i).at(0);
-		subfield = "vers_j_loc";
-		actuator_params.pulley.vers_j_loc(i + 1) = actuator[field][subfield].at(i).at(0);
-		subfield = "vers_k_loc";
-		actuator_params.pulley.vers_k_loc(i + 1) = actuator[field][subfield].at(i).at(0);
+    field = "pulley";
+    subfield = "pos_OA_glob";
+    actuator_params.pulley.pos_OA_glob(i + 1) = actuator[field][subfield].at(i).at(0);
+    subfield = "vers_i_loc";
+    actuator_params.pulley.vers_i_loc(i + 1) = actuator[field][subfield].at(i).at(0);
+    subfield = "vers_j_loc";
+    actuator_params.pulley.vers_j_loc(i + 1) = actuator[field][subfield].at(i).at(0);
+    subfield = "vers_k_loc";
+    actuator_params.pulley.vers_k_loc(i + 1) = actuator[field][subfield].at(i).at(0);
       }
 
       subfield                                  = "transmission_ratio";
@@ -307,12 +307,12 @@ bool RobotConfigJsonParser::areWinchParamsValid(const grabcdpr::WinchParams& par
     ret = false;
   }
 
-  if (params.transmission_ratio >= 0.0) // THIS CONDITION IS NOT VALID FOR IRMA8 WHERE THEY CAN BE POS OR NEG
-  {
-    std::cerr << "[ERROR] winch transmission ratio must be strictly negative!"
-              << std::endl;
-    ret = false;
-  }
+//  if (params.transmission_ratio >= 0.0) // THIS CONDITION IS NOT VALID FOR IRMA8 WHERE THEY CAN BE POS OR NEG
+//  {
+//    std::cerr << "[ERROR] winch transmission ratio must be strictly negative!"
+//              << std::endl;
+//    ret = false;
+//  }
 
   return ret;
 }
