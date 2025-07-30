@@ -22,6 +22,7 @@ xsensahrsec::xsensahrsec(const uint8_t slave_position)
   vendor_id_ = kVendorID_;
   product_code_ = kProductCode_;
   num_domain_entries_ = kDomainEntries_;
+  sync_dc_params_ = xsens_sync_dc_;
   position_ = slave_position;
   domain_registers_[0] = {alias_, position_, vendor_id_, product_code_,
                           kPdoEntries_[0].index, kPdoEntries_[0].subindex,

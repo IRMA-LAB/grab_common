@@ -41,17 +41,17 @@ public:
   * @brief Function to config the AHRS
   */
   bool GoToConfig();
-  
+
   /**
   * @brief External transition function to Measurement_State
   */
   bool GoToMeasurement();
-  
+
   /**
   * @brief External reset of the AHRS, WARN: the output data is set to default
   */
   bool Reset();
-  
+
   /**
   * @brief Function to set the filter to be used, WARN: use after GoToConfig() function
   */
@@ -61,30 +61,30 @@ public:
   * @brief Function to execute a selftest
   */
   bool RunSelfTest();
-  
+
   /**
-  * @brief Gives the RotLocal rotation matrix as output in quaternions. 
-  * RotLocal is the rotation matrix between the pre-defined inertial reference frame 
+  * @brief Gives the RotLocal rotation matrix as output in quaternions.
+  * RotLocal is the rotation matrix between the pre-defined inertial reference frame
   * (ENU) and the desired one
   */
   bool AlignmentRotLocal();
-  
+
   /**
-  * @brief Gives the RotSensor rotation matrix as output in quaternions. 
-  * RotSensor is the rotation matrix between the AHRS frame and the desired one 
+  * @brief Gives the RotSensor rotation matrix as output in quaternions.
+  * RotSensor is the rotation matrix between the AHRS frame and the desired one
   * (usually EE frame)
   */
   bool AlignmentRotSensor();
-  
+
   /**
-  * @brief Function to modify the inertial and mobile reference frames through resets 
-  * of inclination, heading and aligment 
+  * @brief Function to modify the inertial and mobile reference frames through resets
+  * of inclination, heading and aligment
   */
   bool ResetOrientation(uint8_t reset_mode);
-  
+
   /**
-  * @brief Function to modify the inertial and mobile reference frames through resets 
-  * of inclination, heading and aligment. Additionally to the previous command, it 
+  * @brief Function to modify the inertial and mobile reference frames through resets
+  * of inclination, heading and aligment. Additionally to the previous command, it
   * keeps the frame modifications after the reset.
   */
   bool ResetStoreOrientation(uint8_t reset_mode);
@@ -93,12 +93,12 @@ public:
   * @brief Function to perform a manual estimate of the gyroscope bias. No rotation is updated.
   */
   bool NoRotation(uint16_t bias_compute_time);
-  
+
   /**
   * @brief Function to give a null input to the inclinometer, nothing change.
   */
   bool Null();
-  
+
   /**
   * @brief Function to check if the AHRS is in error state.
   */
@@ -159,32 +159,32 @@ public:
       uint8_t resp_CMD_ID;
     } Cust; /**< Custom structure resembling input entries as defined in the config. */
   } BufferIn; /**< Input buffer, i.e. data sent to master (write). */
-  
+
   enum ahrs_filters {
-	responsive = 0x01,
-	robust = 0x02,
-	general = 0x03
+  responsive = 0x01,
+  robust = 0x02,
+  general = 0x03
   };
-  
+
   enum ahrs_bias {
-	north_reference = 0x01,
-	fixed_mag_ref = 0x02,
-	vru = 0x03,
-	vruahrs = 0x04
+  north_reference = 0x01,
+  fixed_mag_ref = 0x02,
+  vru = 0x03,
+  vruahrs = 0x04
   };
-  
+
   enum ahrs_resetmode {
-	heading = 0x01,
-	object_inclination = 0x03,
-	aligment = 0x04,
-	default_heading = 0x05,
-	default_inclination = 0x06,
-	default_aligment = 0x07
+  heading = 0x01,
+  object_inclination = 0x03,
+  aligment = 0x04,
+  default_heading = 0x05,
+  default_inclination = 0x06,
+  default_aligment = 0x07
   };
 
 private:
   // EasyCAT slave device specific info
-  static constexpr uint8_t kDomainEntries_ = 24;
+  static constexpr uint16_t kDomainEntries_ = 24;
   static constexpr uint8_t kAlias_         = 0;
   static constexpr uint32_t kVendorID_     = 0x0000079a;
   static constexpr uint32_t kProductCode_  = 0xdeafbeef;
@@ -269,7 +269,9 @@ private:
     unsigned int CMD_ID_check;
   } offset_out_;
 
-  ec_pdo_entry_reg_t domain_registers_[kDomainEntries_]; // ethercat utility
+  sync_dc_t xsens_sync_dc_ = {true, 0x300, 2000000,2000200000,0,0};
+
+  ec_pdo_entry_reg_t domain_registers_[kDomainEntries_ + 1]; // ethercat utility
 };
 
 } // end namespace grabec

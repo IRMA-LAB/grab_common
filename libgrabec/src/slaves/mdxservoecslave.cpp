@@ -78,12 +78,20 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position, const DataFo
     StateMachine(ST_MAX_STATES),
     extern_pdos_(data_for_single_actuator)
 {
+  if (slave_position ==0){
+    print = true;
+  }
+  static_assert(sizeof(uint) == sizeof(uint32_t), "uint and uint32_t are not the same size");
+  static_assert(std::is_same<uint, uint32_t>::value, "uint and uint32_t are not the same type");
+  static_assert(sizeof(int) == sizeof(int32_t), "int and int32_t are not the same size");
+  static_assert(std::is_same<int, int32_t>::value, "int and int32_t are not the same type");
   alias_              = kAlias;
   position_           = slave_position;
   vendor_id_          = kVendorID;
   product_code_       = kProductCode;
   num_domain_entries_ = kDomainEntries;
   id_                 = id;
+  sync_dc_params_ = mdx_sync_dc_;
 
   domain_registers_[0]  = {alias_,
                           position_,
@@ -197,10 +205,36 @@ MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position, const DataFo
 
   drive_state_ = ST_START;
   prev_state_  = static_cast<States>(GetCurrentState());
-  //extern_pdos_.in_pdo_loadcell = data_for_single_actuator.loadcell_;
-  //extern_pdos_.in_pdo_encoder = data_for_single_actuator.encoder_;
+
   extern_pdos_.encoder_enable_ = true;
 }
+//___________________ELIMINABILE RISOLVENDO MOTIONDEVICES____________________________
+// Define dummy variables
+int16_t MDXServoEC::dummy_loadcell_ = 0;
+int32_t MDXServoEC::dummy_encoder_ = 0;
+uint8_t MDXServoEC::dummy_encoder_enable_ = 0;
+
+// Define dummy_data_ binding to dummy variables
+DataForSingleActuator MDXServoEC::dummy_data_(
+  MDXServoEC::dummy_loadcell_,
+  MDXServoEC::dummy_encoder_,
+  MDXServoEC::dummy_encoder_enable_
+  );
+MDXServoEC::MDXServoEC(const id_t id, const uint8_t slave_position
+#if USE_QT
+                       ,
+                       QObject* parent /*= NULL*/
+#endif
+                       )
+  :
+#if USE_QT
+    QObject(parent),
+#endif
+    StateMachine(ST_MAX_STATES),
+    extern_pdos_(dummy_data_)
+{std::cout<<"---------ERROR SHOULD NOT BE HERE (motion device constrctor-----------------"<<std::endl;
+}
+//-----------------------------------------------------------------------------------
 
 MDXServoEC::States
 MDXServoEC::getDriveState(const std::bitset<16>& status_word)
@@ -317,6 +351,7 @@ RetVal MDXServoEC::sdoRequests(ec_slave_config_t* config_ptr)
 
 void MDXServoEC::readInputs()
 {
+  //std::cout<<"inside read input "<<std::endl;
   input_pdos_.error_code     = EC_READ_U16(domain_data_ptr_ + offset_in_.error_code);
   input_pdos_.status_word     = EC_READ_U16(domain_data_ptr_ + offset_in_.status_word);
   input_pdos_.display_op_mode = EC_READ_S8(domain_data_ptr_ + offset_in_.display_op_mode);
@@ -327,8 +362,10 @@ void MDXServoEC::readInputs()
   input_pdos_.torque_actual_value =
     EC_READ_S16(domain_data_ptr_ + offset_in_.torque_actual_value);
   input_pdos_.digital_inputs = EC_READ_U32(domain_data_ptr_ + offset_in_.digital_inputs);
-
+  input_pdos_.analog_input = extern_pdos_.loadcell_;
+  input_pdos_.aux_pos_actual_value = extern_pdos_.encoder_;
   drive_state_ = getDriveState(input_pdos_.status_word);
+
   if (drive_state_ != GetCurrentState())
   {
     if (drive_state_ == ST_OPERATION_ENABLED)
@@ -343,19 +380,22 @@ void MDXServoEC::readInputs()
   }
 }
 
+
 void MDXServoEC::writeOutputs()
 {
+
   EC_WRITE_U16(domain_data_ptr_ + offset_out_.control_word,
                output_pdos_.control_word.to_ulong());
   EC_WRITE_S8(domain_data_ptr_ + offset_out_.op_mode, output_pdos_.op_mode);
+
   if (drive_state_ == ST_OPERATION_ENABLED || drive_state_ == ST_SWITCHED_ON)
   {
+    EC_WRITE_S16(domain_data_ptr_ + offset_out_.target_torque,
+                 output_pdos_.target_torque);
     EC_WRITE_S32(domain_data_ptr_ + offset_out_.target_position,
                  output_pdos_.target_position);
     EC_WRITE_S32(domain_data_ptr_ + offset_out_.target_velocity,
                  output_pdos_.target_velocity);
-    EC_WRITE_S16(domain_data_ptr_ + offset_out_.target_torque,
-                 output_pdos_.target_torque);
     EC_WRITE_U32(domain_data_ptr_ + offset_out_.digital_outputs,
                  output_pdos_.digital_outputs);
   }

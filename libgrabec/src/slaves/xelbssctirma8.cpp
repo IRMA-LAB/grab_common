@@ -20,13 +20,15 @@ namespace grabec
 constexpr ec_pdo_entry_info_t XelBssctIrma8::kPdoEntries_[];
 constexpr ec_pdo_info_t XelBssctIrma8::kPDOs_[];
 constexpr ec_sync_info_t XelBssctIrma8::kSyncs_[];
+//std::vector<DataForSingleActuator> XelBssctIrma8::sensor_data_for_actuators_;
 
 XelBssctIrma8::XelBssctIrma8(const uint8_t slave_position)
 {
   alias_ = kAlias_;
   vendor_id_ = kVendorID_;
   product_code_ = kProductCode_;
-  num_domain_entries_ = static_cast<uint8_t>(kDomainEntries_);
+  num_domain_entries_ = kDomainEntries_;
+  sync_dc_params_ = xelb_sync_dc_;
   position_ = slave_position;
   domain_registers_[0] = {alias_, position_, vendor_id_, product_code_,
                                 0x6021, 1,
@@ -135,7 +137,6 @@ void XelBssctIrma8::readInputs()
   BufferIn.CH1_Digital_Output_Data_5 = EC_READ_S16(domain_data_ptr_ + offset_in_.CH1_Digital_Output_Data_5);
   BufferIn.CH2_Digital_Output_Data_5 = EC_READ_S16(domain_data_ptr_ + offset_in_.CH2_Digital_Output_Data_5);
   BufferIn.CH3_Digital_Output_Data_5 = EC_READ_S16(domain_data_ptr_ + offset_in_.CH3_Digital_Output_Data_5);
-
   BufferIn.CH0_Count_Data_6 = EC_READ_S32(domain_data_ptr_ + offset_in_.CH0_Count_Data_6);
 
   BufferIn.CH1_Count_Data_6 = EC_READ_S32(domain_data_ptr_ + offset_in_.CH1_Count_Data_6);
@@ -202,22 +203,22 @@ void XelBssctIrma8::initFun()
 std::vector<DataForSingleActuator> XelBssctIrma8::parse_mapping(){
   std::vector<DataForSingleActuator> data;
   // Parse the file and fill the data vector
-  DataForSingleActuator actuator_1(BufferIn.CH2_Digital_Output_Data_5, BufferIn.CH1_Count_Data_6, BufferOut.CH1_Enable_Counter_6);
+  DataForSingleActuator actuator_0(BufferIn.CH2_Digital_Output_Data_5, BufferIn.CH1_Count_Data_6, BufferOut.CH1_Enable_Counter_6);
+  data.push_back(actuator_0);
+  DataForSingleActuator actuator_1(BufferIn.CH1_Digital_Output_Data_4, BufferIn.CH0_Count_Data_7, BufferOut.CH0_Enable_Counter_7);
   data.push_back(actuator_1);
-  DataForSingleActuator actuator_2(BufferIn.CH1_Digital_Output_Data_4, BufferIn.CH0_Count_Data_7, BufferOut.CH0_Enable_Counter_7);
+  DataForSingleActuator actuator_2(BufferIn.CH0_Digital_Output_Data_5, BufferIn.CH0_Count_Data_8, BufferOut.CH0_Enable_Counter_8);
   data.push_back(actuator_2);
-  DataForSingleActuator actuator_3(BufferIn.CH0_Digital_Output_Data_5, BufferIn.CH0_Count_Data_8, BufferOut.CH0_Enable_Counter_8);
+  DataForSingleActuator actuator_3(BufferIn.CH1_Digital_Output_Data_5, BufferIn.CH1_Count_Data_7, BufferOut.CH1_Enable_Counter_7);
   data.push_back(actuator_3);
-  DataForSingleActuator actuator_4(BufferIn.CH1_Digital_Output_Data_5, BufferIn.CH1_Count_Data_7, BufferOut.CH1_Enable_Counter_7);
+  DataForSingleActuator actuator_4(BufferIn.CH0_Digital_Output_Data_4, BufferIn.CH1_Count_Data_8, BufferOut.CH1_Enable_Counter_8);
   data.push_back(actuator_4);
-  DataForSingleActuator actuator_5(BufferIn.CH0_Digital_Output_Data_4, BufferIn.CH1_Count_Data_8, BufferOut.CH1_Enable_Counter_8);
+  DataForSingleActuator actuator_5(BufferIn.CH3_Digital_Output_Data_4, BufferIn.CH0_Count_Data_9, BufferOut.CH0_Enable_Counter_9);
   data.push_back(actuator_5);
-  DataForSingleActuator actuator_6(BufferIn.CH3_Digital_Output_Data_4, BufferIn.CH0_Count_Data_9, BufferOut.CH0_Enable_Counter_9);
+  DataForSingleActuator actuator_6(BufferIn.CH2_Digital_Output_Data_4, BufferIn.CH1_Count_Data_9, BufferOut.CH1_Enable_Counter_9);
   data.push_back(actuator_6);
-  DataForSingleActuator actuator_7(BufferIn.CH2_Digital_Output_Data_4, BufferIn.CH1_Count_Data_9, BufferOut.CH1_Enable_Counter_9);
+  DataForSingleActuator actuator_7(BufferIn.CH3_Digital_Output_Data_5, BufferIn.CH0_Count_Data_6, BufferOut.CH0_Enable_Counter_6);
   data.push_back(actuator_7);
-  DataForSingleActuator actuator_8(BufferIn.CH3_Digital_Output_Data_5, BufferIn.CH0_Count_Data_6, BufferOut.CH0_Enable_Counter_6);
-  data.push_back(actuator_8);
   // This is a placeholder implementation
   return data;
 }

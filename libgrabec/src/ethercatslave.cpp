@@ -8,7 +8,6 @@
 #include "ethercatslave.h"
 
 namespace grabec {
-
 EthercatSlave::~EthercatSlave() {} // necessary for pure abstract destructor
 
 //--------- Public functions ---------------------------------------------------------//
@@ -36,12 +35,17 @@ RetVal EthercatSlave::configure(ec_master_t* master_ptr, ec_slave_config_t** con
   }
   ecPrintCb("Configuring PDOs: " + getRetValStr(OK));
 
+  if (sync_dc_params_.use_dc_sync){
+     ecrt_slave_config_dc(*config_ptr, sync_dc_params_.assign_activate, sync_dc_params_.sync0_cycle_time , sync_dc_params_.sync0_shift_time,
+                           sync_dc_params_.sync1_cycle_time,sync_dc_params_.sync1_shift_time);
+  }
+
   RetVal ret = sdoRequests(*config_ptr);
   ecPrintCb("Creating SDO request: " + getRetValStr(ret), ret ? 'r' : 'w');
   return ret;
 }
 
-ec_pdo_entry_reg_t EthercatSlave::getDomainRegister(const uint8_t index) const
+ec_pdo_entry_reg_t EthercatSlave::getDomainRegister(const uint16_t index) const
 {
   return domain_registers_ptr_[index];
 }

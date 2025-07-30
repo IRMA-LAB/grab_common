@@ -119,11 +119,11 @@ protected:
 private:
   // This function prepare some strutures to send to the actuators in order to have
   // the encoder, loadcell and encoder enable associated to the corresponding actuator
-  // this is done to keep the ifrastructure of functions build on GoldSoloWhistleDrive
+  // this is done to keep the ifrastructure of functions build in GoldSoloWhistleDrive
   std::vector<DataForSingleActuator> parse_mapping();
 
   // EasyCAT slave device specific info
-  static constexpr uint16_t kDomainEntries_ = 372;
+  static constexpr uint16_t kDomainEntries_ = 24;
   static constexpr uint8_t kAlias_         = 0;
   static constexpr uint32_t kVendorID_     = 0x000005e1;
   static constexpr uint32_t kProductCode_  = 0x00005fc1;
@@ -571,7 +571,9 @@ private:
     unsigned int CH1_Enable_Counter_9;
   } offset_out_;
 
-  ec_pdo_entry_reg_t domain_registers_[25]; // ethercat utility
+  sync_dc_t xelb_sync_dc_ = {true, 0x300, 2000000,0,0,0};
+
+  ec_pdo_entry_reg_t domain_registers_[kDomainEntries_ +1 ]; // ethercat utility
 };
 
 } // end namespace grabec

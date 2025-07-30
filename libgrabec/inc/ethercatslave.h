@@ -16,6 +16,7 @@
  */
 namespace grabec {
 
+
 /**
  * @brief EtherCAT slave pure abstract class interface.
  *
@@ -74,20 +75,20 @@ class EthercatSlave
    * @param[in] index Index of inquired domain register.
    * @return EtherCAT domain register.
    */
-  ec_pdo_entry_reg_t getDomainRegister(const uint8_t index) const;
+  ec_pdo_entry_reg_t getDomainRegister(const uint16_t index) const;
 
   /**
    * @brief Get total number of domain entries.
    * @return Total number of domain entries.
    */
-  uint8_t getDomainEntriesNum() const { return num_domain_entries_; }
+  uint16_t getDomainEntriesNum() const { return num_domain_entries_; }
 
  protected:
   /**
    * @addtogroup EthercatUtilities
    * @{
    */
-  uint8_t num_domain_entries_; /**< Number of ethercat domain entries. */
+  uint16_t num_domain_entries_; /**< Number of ethercat domain entries. */
   uint16_t alias_;             /**< Position of master(?) */
   uint16_t position_;          /**< Position of slave wrt master's. */
   uint32_t vendor_id_;         /**< Vendor unique identifier. */
@@ -99,6 +100,21 @@ class EthercatSlave
   ec_pdo_entry_info_t* slave_pdo_entries_ptr_; /**< Pointer to ethercat PDOs entries. */
   ec_pdo_info_t* slave_pdos_ptr_;              /**< Pointer to ethercat PDOs. */
   ec_sync_info_t* slave_sync_ptr_;             /**< Pointer to ethercat sync(?) */
+
+  struct sync_dc_t {
+    bool use_dc_sync = false;
+    uint16_t assign_activate = 0x0;
+    uint32_t sync0_cycle_time = 0;
+    int32_t sync0_shift_time = 0;
+    uint32_t sync1_cycle_time = 0;
+    int32_t sync1_shift_time = 0;
+    sync_dc_t(){} //default constructor
+    sync_dc_t(bool use_sync, uint16_t ass_act, uint32_t sync0_ct, int32_t sync0_st, uint32_t sync1_ct, int32_t sync1_st)
+      : use_dc_sync(use_sync), assign_activate(ass_act),
+        sync0_cycle_time(sync0_ct), sync0_shift_time(sync0_st),
+        sync1_cycle_time(sync1_ct), sync1_shift_time(sync1_st) {}
+  } sync_dc_params_;
+
   /** @} */                                    // end of EthercatUtilities group
 
   /**
