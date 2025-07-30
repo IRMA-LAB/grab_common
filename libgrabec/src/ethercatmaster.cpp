@@ -9,6 +9,24 @@
 
 namespace grabec {
 
+struct timespec EthercatMaster::wakeupTime; // static attribute re-definition
+
+struct timespec timespec_add(struct timespec time1, struct timespec time2)
+{
+  struct timespec result;
+
+  if ((time1.tv_nsec + time2.tv_nsec) >= NSEC_PER_SEC) {
+    result.tv_sec = time1.tv_sec + time2.tv_sec + 1;
+    result.tv_nsec = time1.tv_nsec + time2.tv_nsec - NSEC_PER_SEC;
+  } else {
+    result.tv_sec = time1.tv_sec + time2.tv_sec;
+    result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
+  }
+
+  return result;
+}
+
+
 EthercatMaster::EthercatMaster() { check_state_flags_.reset(); }
 
 EthercatMaster::~EthercatMaster()
@@ -72,6 +90,9 @@ void EthercatMaster::ecPrintCb(const std::string& msg, const char color /* = 'w'
 void EthercatMaster::startUpFunWrapper(void* obj)
 {
   static_cast<EthercatMaster*>(obj)->ecStartUpFun();
+  // get current time - from Etherlab dc_user example for DC synchronization
+  clock_gettime(CLOCK_TO_USE, &wakeupTime);
+
 }
 
 void EthercatMaster::loopFunWrapper(void* obj)
@@ -91,9 +112,22 @@ void EthercatMaster::emergencyExitFunWrapper(void* obj)
 
 void EthercatMaster::loopFunction()
 {
+    wakeupTime = timespec_add(wakeupTime, cycletime);
+    clock_nanosleep(CLOCK_TO_USE, TIMER_ABSTIME, &wakeupTime, NULL);
+
+       // Write application time to master
+       //
+       // It is a good idea to use the target time (not the measured time) as
+       // application time, because it is more stable.
+       //
+    ecrt_master_application_time(master_ptr_, TIMESPEC2NS(wakeupTime));
+
   // Receive data
   ecrt_master_receive(master_ptr_);
   ecrt_domain_process(domain_ptr_);
+
+  // get current time - from Etherlab dc_user example for DC synchronization
+
   // Check EtherCAT network state
   checkConfigState();
   checkMasterState();
@@ -101,6 +135,20 @@ void EthercatMaster::loopFunction()
   // If everything is ok, execute main function of master
   if (check_state_flags_.all()) // EthercatStateFlagsBit all set
     ecWorkFun();
+
+  //DC sync stuff
+  if (sync_ref_counter) {
+    sync_ref_counter--;
+  } else {
+    sync_ref_counter = 1; // sync every cycle
+
+    clock_gettime(CLOCK_TO_USE, &sync_time);
+
+    ecrt_master_sync_reference_clock_to(master_ptr_, TIMESPEC2NS(sync_time));
+  }
+  ecrt_master_sync_slave_clocks(master_ptr_);
+
+
   // Write data
   ecrt_domain_queue(domain_ptr_);
   ecrt_master_send(master_ptr_);
@@ -138,6 +186,18 @@ void EthercatMaster::endFunction()
         slave_ptr->safeExit();
         slave_ptr->writeOutputs();
       }
+
+    if (sync_ref_counter) {
+      sync_ref_counter--;
+    } else {
+      sync_ref_counter = 1; // sync every cycle
+
+      clock_gettime(CLOCK_TO_USE, &sync_time);
+
+      ecrt_master_sync_reference_clock_to(master_ptr_, TIMESPEC2NS(sync_time));
+    }
+    ecrt_master_sync_slave_clocks(master_ptr_);
+
     // Write data
     ecrt_domain_queue(domain_ptr_);
     ecrt_master_send(master_ptr_);
@@ -162,8 +222,8 @@ void EthercatMaster::emergencyExitFunction()
 uint8_t EthercatMaster::initProtocol()
 {
   std::vector<ec_pdo_entry_reg_t> domain_registers;
-  domain_registers.resize(num_domain_elements_);
-
+  domain_registers.resize(num_domain_elements_);//correzione
+  //domain_registers.resize(128);
   // Requesting to initialize master 0
   if (!(master_ptr_ = ecrt_request_master(0)))
   {
@@ -195,12 +255,21 @@ uint8_t EthercatMaster::initProtocol()
 
   // Configuring domain
   getDomainElements(domain_registers);
+  std::cout<<"domain_reg_size"<<domain_registers.size();
+  for (size_t i = 0; i < domain_registers.size(); ++i) {
+    printf("Reg %zu: idx=0x%X sub=0x%X => offset=%ud\n",
+           i,
+           domain_registers[i].index,
+           domain_registers[i].subindex,
+           *domain_registers[i].offset);
+  }
   if (ecrt_domain_reg_pdo_entry_list(domain_ptr_, domain_registers.data()) != 0)
   {
     ecPrintCb("...Registering PDOs' entries: " + getRetValStr(EREG), 'r');
     return EREG;
   }
   ecPrintCb("...Registering PDOs' entries: " + getRetValStr(OK));
+
 
   if (ecrt_master_activate(master_ptr_) < 0)
   {
@@ -219,7 +288,6 @@ uint8_t EthercatMaster::initProtocol()
   // Initialize slaves
   for (size_t i = 0; i < slaves_ptrs_.size(); i++)
     slaves_ptrs_[i]->init(domain_data_ptr_);
-
   return OK;
 }
 
@@ -369,12 +437,13 @@ void EthercatMaster::getDomainElements(std::vector<ec_pdo_entry_reg_t>& regs) co
   size_t index = 0;
   for (EthercatSlave* slave_ptr : slaves_ptrs_)
   {
-    for (uint8_t j = 0; j < slave_ptr->getDomainEntriesNum(); j++)
+    for (uint16_t j = 0; j < slave_ptr->getDomainEntriesNum(); j++)
     {
       regs[index] = slave_ptr->getDomainRegister(j);
       index++;
     }
   }
+  std::cout<<"final index"<<index<<std::endl;
 }
 
 std::string EthercatMaster::getAlStateStr(const uint al_state) const

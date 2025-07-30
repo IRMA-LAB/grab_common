@@ -29,12 +29,25 @@
 #include "ethercatslave.h"
 #include "grabec_types.h"
 #include "threads.h"
+/****************************************************************************/
+
+// Application parameters
+#define CLOCK_TO_USE CLOCK_MONOTONIC
+
+/****************************************************************************/
+
+#define NSEC_PER_SEC (1000000000L)
+#define TIMESPEC2NS(T) ((uint64_t) (T).tv_sec * NSEC_PER_SEC + (T).tv_nsec)
+
+/****************************************************************************/
 
 /**
  * @brief Namespace for GRAB EtherCAT library.
  */
 namespace grabec {
 
+// Function taken fomr Etherlab exaple dc_user for DC synchronization
+struct timespec timespec_add(struct timespec time1, struct timespec time2);
 /**
  * @brief Ethercat Master interface.
  *
@@ -170,9 +183,14 @@ class EthercatMaster
 
   std::vector<EthercatSlave*> slaves_ptrs_; /**< Vector of pointers to slaves. */
   size_t num_slaves_;                     /**< Number of slaves on the ethercat network */
-  uint8_t num_domain_elements_       = 0; /**< Number of elements in ethercat domain. */
+  uint16_t num_domain_elements_       = 0; /**< Number of elements in ethercat domain. */
   double max_shutdown_wait_time_sec_ = 1; /**< Maximum waiting time to shutdown slaves */
 
+  //static unsigned int sync_ref_counter = 0;
+  unsigned int sync_ref_counter = 0;
+  struct timespec sync_time;
+  static struct timespec wakeupTime;
+  const struct timespec cycletime = {0, threads_params_.cycle_time_nsec};
   /**
    * @brief EtherCAT start up function, called once before the cycle begins.
    */

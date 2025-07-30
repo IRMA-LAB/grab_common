@@ -55,7 +55,9 @@ struct MDXServoECInPdos
   int32_t pos_actual_value;    /**< pos_actual_value */
   int32_t vel_actual_value;    /**< vel_actual_value */
   int16_t torque_actual_value; /**< torque_actual_value */
-  uint32_t digital_inputs;         /**< digital_inputs */
+  uint digital_inputs;         /**< digital_inputs */
+  int16_t analog_input;        /**< analog_input */
+  int aux_pos_actual_value;    /**< aux_pos_actual_value */
 };
 
 /**
@@ -160,6 +162,7 @@ class MDXServoEC:
    * @brief Constructor.
    * @param[in] id Drive ID.
    * @param[in] slave_position Slave position in ethercat chain.
+   * @param[in] data_for_single_actuator pdos of xelbssct that should be associated to this object.
    * @param[in] parent The Qt parent, in this case the actuator it belongs to.
    */
   MDXServoEC(const id_t id, const uint8_t slave_position, const DataForSingleActuator& data_for_single_actuator
@@ -168,7 +171,26 @@ class MDXServoEC:
                        QObject* parent = nullptr
 #endif
   );
+  //___________________ELIMINABILE RISOLVENDO MOTIONDEVICES____________________________
+  /**
+   * @brief second Constructor introduced only for compatibiliy with old code and
+   * motion_devces.h and .cpp. Could be removed if all cdpr alars was updated to remove
+   * motiondevices istances.
+   */
+  MDXServoEC(const id_t id, const uint8_t slave_position
+#if USE_QT
+             ,
+             QObject* parent = nullptr
+#endif
+             );
+  // Dummy variables to bind references inside DataForSingleActuator
+  static int16_t dummy_loadcell_;
+  static int32_t dummy_encoder_;
+  static uint8_t dummy_encoder_enable_;
 
+     // Dummy static instance of DataForSingleActuator
+  static DataForSingleActuator dummy_data_;
+    //__________________________________________________________________________________
   /**
    * @brief Get latest known physical drive state.
    * @param[in] status_word Drive status bit word as read from the corresponding PDO.
@@ -208,12 +230,12 @@ class MDXServoEC:
    * additional encoder.
    * @return Actual drive auxiliary position (aka counts).
    */
-  int getAuxPosition() const { return extern_pdos_.encoder_; }
+  int getAuxPosition() const { return input_pdos_.aux_pos_actual_value; }
   /**
    * @brief GetAnalogInput
    * @return
    */
-  int16_t getAnalogInput() const { return extern_pdos_.loadcell_; }
+  int16_t getAnalogInput() const { return input_pdos_.analog_input; }
   /**
    * @brief GetDigitalInput
    * @return
@@ -374,6 +396,7 @@ class MDXServoEC:
   /**
    * @brief Write output PDOs.
    */
+
   void writeOutputs() override final;
   /**
    * @brief Function called before shutting down the slave.
@@ -404,7 +427,6 @@ class MDXServoEC:
  protected:
   const DataForSingleActuator& extern_pdos_;
 
-
   MDXServoECInPdos input_pdos_; /**< input_pdos_ */
 
   /**
@@ -414,9 +436,9 @@ class MDXServoEC:
   {
     std::bitset<16> control_word; /**< control_word */
     int8_t op_mode;               /**< op_mode */
-    int16_t target_torque;        /**< target_torque */
-    int32_t target_position;      /**< target_position */
-    int32_t target_velocity;      /**< target_velocity */
+    int16_t target_torque = 0;        /**< target_torque */
+    int32_t target_position = 0;      /**< target_position */
+    int32_t target_velocity = 0;      /**< target_velocity */
     uint32_t digital_outputs = 0x0000;      /**< digital_outputs */
   } output_pdos_;                 /**< output_pdos_ */
 
@@ -434,7 +456,7 @@ class MDXServoEC:
  private:
   static constexpr uint8_t kDomainInputs            = 7;
   static constexpr uint8_t kDomainOutputs           = 6;
-  static constexpr uint8_t kDomainEntries           = kDomainInputs + kDomainOutputs;
+  static constexpr uint16_t kDomainEntries           = kDomainInputs + kDomainOutputs;
   static constexpr uint8_t kAlias                   = 0;
   static constexpr uint32_t kVendorID               = 0x00000168;
   static constexpr uint32_t kProductCode            = 0x00000011;
@@ -526,6 +548,9 @@ class MDXServoEC:
     unsigned int aux_pos_actual_value;
   } offset_in_;
 
+  sync_dc_t mdx_sync_dc_ = {true, 0x300, 2000000,0,2000000,0};
+  bool print = false;
+  int32_t initial_pos = 0;
   // clang-format off
   ENUM_CLASS(StatusBit,
              READY_TO_SWITCH_ON = 0,
