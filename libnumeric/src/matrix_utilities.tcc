@@ -235,6 +235,21 @@ T Dot(const Matrix<T, 1, dim>& hvect, const VectorX<T, dim>& vvect)
   return result;
 }
 
+
+template <typename T, uint rows, uint cols>
+Matrix<T, rows, cols> Abs(const Matrix<T, rows, cols>& mat)
+{
+  Matrix<T, rows, cols> result;
+  for (uint i = 1; i <= rows; ++i)
+  {
+    for (uint j = 1; j <= cols; ++j)
+    {
+      result(i, j) = std::abs(mat(i, j));
+    }
+  }
+  return result;
+}
+
 template <typename T, uint dim> double Norm(const VectorX<T, dim>& vvect)
 {
   T result = 0;
@@ -249,6 +264,13 @@ template <typename T, uint dim> double Norm(const Matrix<T, 1, dim>& hvect)
   for (uint i = 1; i <= dim; ++i)
     result += hvect(i) * hvect(i);
   return sqrt(result);
+}
+
+template <typename T, uint dim> double NormInf(const VectorX<T, dim>& vvect)
+{
+  VectorX<T, dim> temp;
+  temp = Abs(vvect);
+  return temp.Max();
 }
 
 template <typename T>
@@ -406,12 +428,12 @@ template <uint rows, uint cols> MatrixXd<rows, cols> ExtProduct(const MatrixXd<r
 
 template <typename T, unsigned int dim> MatrixXd<dim, dim> Diag(const VectorX<T, dim>& vvect)
 {
-	MatrixXd<dim, dim> matrix_diag(0); 
+  MatrixXd<dim, dim> matrix_diag(0);
 
-	for (unsigned int i = 1; i <= dim; i++)
-		matrix_diag(1,1)=vvect(i);
-	
-	return matrix_diag;
+  for (unsigned int i = 1; i <= dim; i++)
+    matrix_diag(1,1)=vvect(i);
+
+  return matrix_diag;
 }
 
 } //  end namespace grabnum

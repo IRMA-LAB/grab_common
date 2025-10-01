@@ -6,6 +6,9 @@ HEADERS += \
     $$PWD/inc/ethercatslave.h \
     $$PWD/inc/grabec_types.h \
     $$PWD/inc/slaves/goldsolowhistledrive.h \
+    $$PWD/inc/slaves/mdxservoecslave.h \
+    $$PWD/inc/slaves/xelbssctirma8.h \
+    $$PWD/inc/slaves/xsensahrsec.h
 
 SOURCES += \
     $$PWD/../grabcommon.cpp \
@@ -13,6 +16,9 @@ SOURCES += \
     $$PWD/src/ethercatslave.cpp \
     $$PWD/src/slaves/goldsolowhistledrive.cpp \
     $$PWD/tests/libgrabec_test.cpp \
+    $$PWD/src/slaves/mdxservoecslave.cpp \
+    $$PWD/src/slaves/xsensahrsec.cpp \
+    $$PWD/src/slaves/xelbssctirma8.cpp
 
 INCLUDEPATH += \
       $$PWD/inc \

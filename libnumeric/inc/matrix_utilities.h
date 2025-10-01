@@ -218,7 +218,15 @@ T Dot(const VectorX<T, dim>& vvect1, const VectorX<T, dim>& vvect2);
  */
 template <typename T, uint dim>
 T Dot(const Matrix<T, 1, dim>& hvect, const VectorX<T, dim>& vvect);
-
+/**
+ * @brief Returns a matrix where each element is the absolute value of
+ * the corresponding element in *this.
+ * @param[in] mat generic matrix
+ *
+ * @return A new matrix of same size with absolute values of each element.
+ */
+template <typename T, uint rows, uint cols>
+Matrix<T, rows, cols> Abs(const Matrix<T, rows, cols>& mat);
 /**
  * Vector L2-norm (i.e. Euclidean norm).
  *
@@ -234,6 +242,14 @@ template <typename T, uint dim> double Norm(const VectorX<T, dim>& vvect);
  * @return A scalar value.
  */
 template <typename T, uint dim> double Norm(const Matrix<T, 1, dim>& hvect);
+
+/**
+ * Vector inf-norm
+ *
+ * @param[in] vvect A m-dimensional vertical vector.
+ * @return A scalar value.
+ */
+template <typename T, uint dim> double NormInf(const VectorX<T, dim>& vvect);
 
 /**
  * Vector cross-product operation.
@@ -356,7 +372,7 @@ template <uint rows, uint cols> MatrixXd<rows, cols> ExtProduct(MatrixXd<rows, 1
 */
 template <typename T, unsigned int dim>
 MatrixXd<dim, dim> Diag(const VectorX<T, dim>& vvect);
-	
+
 } //  end namespace grabnum
 
 // This is a trick to define templated functions in a source file.
