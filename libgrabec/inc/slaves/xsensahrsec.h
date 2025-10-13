@@ -35,15 +35,15 @@ public:
   /**
    * @brief Function to enable data transfer from the AHRS
    */
-  double getRoll() const {return BufferIn.Cust.ang_eul_roll; };
+  float getRoll() const {return BufferIn.Cust.ang_eul_roll; };
   /**
    * @brief Function to enable data transfer from the AHRS
    */
-  double getPitch() const {return BufferIn.Cust.ang_eul_pitch; };
+  float getPitch() const {return BufferIn.Cust.ang_eul_pitch; };
   /**
    * @brief Function to enable data transfer from the AHRS
    */
-  double getYaw() const {return BufferIn.Cust.ang_eul_yaw; };
+  float getYaw() const {return BufferIn.Cust.ang_eul_yaw; };
   /**
   * @brief Function to enable data transfer from the AHRS
   */

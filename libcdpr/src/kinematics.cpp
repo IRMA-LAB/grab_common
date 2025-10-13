@@ -357,14 +357,15 @@ namespace grabcdpr {
         Vector3d AHRS_noise;
         for (unsigned int i = 0; i < vars.cables.size(); i++) {
             length_noise(i + 1) = 1 / 0.005;                    // 5 mm of std
-            swivel_noise(i + 1) = 1 / (0.5 * M_PI / 180);       // 0.5 deg of std
+            swivel_noise(i + 1) = 1 / (0.01 * M_PI / 180);       // 0.01 deg of std
         }
         for (unsigned int i = 1; i <= 3; i++)
-            AHRS_noise(i) = 1 / (1 * M_PI / 180);               // 1 deg of std
+            AHRS_noise(i) = 1 / (0.8 * M_PI / 180);               // 0.8 deg of std
         VectorXd<19> weights;
         weights.SetBlock<8, 1>(1, 1, length_noise);
         weights.SetBlock<8, 1>(9, 1, swivel_noise);
         weights.SetBlock<3, 1>(17, 1, AHRS_noise);
+        std::cout<<"Weights: "<<weights<<std::endl;
 
         // inverse kinematics update
         updateIK0(pose, params, vars);
@@ -374,12 +375,15 @@ namespace grabcdpr {
             cable_lengths(i + 1) = vars.cables[i].length;
             swivel_angles(i + 1) = vars.cables[i].swivel_ang;
         }
+        std::cout<<"Modeled lengths: "<<cable_lengths<<std::endl;
+        std::cout<<"Modeled swivels: "<<swivel_angles<<std::endl;
 
         // residual vector and jacobian computation
         F.SetBlock<8, 1>(1, 1, cable_lengths - state_est_meas.lengths);
         F.SetBlock<8, 1>(9, 1, swivel_angles - state_est_meas.swivels);
         F.SetBlock<3, 1>(17, 1, pose.GetBlock<3, 1>(4, 1) - state_est_meas.epsilon);
         F = Diag(weights) * F;
+        std::cout<<"Residuals: "<<F<<std::endl;
 
         Matrix3d my_eye(0);
         my_eye.SetBlock<1, 1>(1, 1, 1);
@@ -389,6 +393,7 @@ namespace grabcdpr {
         J.SetBlock<8, 6>(9, 1, vars.anal_jacobian_s);
         J.SetBlock<3, 6>(17, 1, HorzCat(Matrix3d(0), my_eye));
         J = Diag(weights) * J;
+        std::cout<<"Jacobian: "<<J<<std::endl;
     }
 
 } // end namespace grabcdpr
