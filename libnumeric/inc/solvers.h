@@ -360,14 +360,14 @@ int LevembergMarquardt(
   static const T optol = 1e-4*ftol;
 
      // solver handlers
-  bool done = false;
+  bool done;
   uint iter = 0;
   bool success_step = true;
   VectorX<T, unk_dim> damping(1e-3); // adaptive damping
   int exitflag;
 
      // cost function variables
-  VectorX<T, unk_dim> s;
+  VectorX<T, unk_dim> s(0);
   VectorX<T, res_dim> F;
   Matrix<T, res_dim, unk_dim> J;
   T fval;
@@ -376,13 +376,18 @@ int LevembergMarquardt(
   VectorX<T, unk_dim> sol_new;
   VectorX<T, res_dim> F_new;
   Matrix<T, res_dim, unk_dim> J_new;
-  T fval_new;
+  T fval_new = 0.0;
 
   fun_ptr(solution, F, J);
   fval = pow(Norm(F),2)/2;
 
+     // test convergence with tentative solution
+  TestConvergenceLM(J.Transpose()*F,optol,ftol,iter,solution,
+                    fval_new,xtol,s,fval,nmax,done,exitflag);
+
   while(!done) {
-    // classic LM step with damping
+
+       // classic LM step with damping
     s =-Linsolve((J.Transpose()*J+Diag(damping)),J.Transpose()*F);
     sol_new = solution + s;
 
@@ -390,7 +395,7 @@ int LevembergMarquardt(
     fval_new = pow(Norm(F_new),2)/2;
 
        // damping scaling
-    if (fval_new<=fval)
+    if (fval_new<=fval+EPSILON)
     {
       solution = sol_new;
       F = F_new;
@@ -430,15 +435,18 @@ void TestConvergenceLM(grabnum::VectorX<T, unk_dim> grad_cost_fun, const T opt_t
     exitflag = 1;
     done = true;
   }
-  else if (std::abs(new_cost_fun-old_cost_fun)<=fun_tol*old_cost_fun)
+  else if (iter > 0)
   {
-    exitflag = 3;
-    done = true;
-  }
-  else if (grabnum::Norm(step)<=step_tol*(1.5e-8+grabnum::Norm(x)))
-  {
-    exitflag = 4;
-    done = true;
+    if (std::abs(new_cost_fun-old_cost_fun)<=fun_tol*old_cost_fun)
+    {
+      exitflag = 3;
+      done = true;
+    }
+    else if (grabnum::Norm(step)<=step_tol*(1.5e-8+grabnum::Norm(x)))
+    {
+      exitflag = 4;
+      done = true;
+    }
   }
 }
 
