@@ -235,6 +235,21 @@ T Dot(const Matrix<T, 1, dim>& hvect, const VectorX<T, dim>& vvect)
   return result;
 }
 
+
+template <typename T, uint rows, uint cols>
+Matrix<T, rows, cols> Abs(const Matrix<T, rows, cols>& mat)
+{
+  Matrix<T, rows, cols> result;
+  for (uint i = 1; i <= rows; ++i)
+  {
+    for (uint j = 1; j <= cols; ++j)
+    {
+      result(i, j) = std::abs(mat(i, j));
+    }
+  }
+  return result;
+}
+
 template <typename T, uint dim> double Norm(const VectorX<T, dim>& vvect)
 {
   T result = 0;
@@ -249,6 +264,13 @@ template <typename T, uint dim> double Norm(const Matrix<T, 1, dim>& hvect)
   for (uint i = 1; i <= dim; ++i)
     result += hvect(i) * hvect(i);
   return sqrt(result);
+}
+
+template <typename T, uint dim> double NormInf(const VectorX<T, dim>& vvect)
+{
+  VectorX<T, dim> temp;
+  temp = Abs(vvect);
+  return temp.Max();
 }
 
 template <typename T>
@@ -279,7 +301,7 @@ Matrix<T, rows - 1, cols - 1> GetCofactor(const Matrix<T, rows, cols>& matrix,
   uint i = 1, j = 1;
   Matrix<T, rows - 1, cols - 1> cofactor;
 
-  // Looping for each element of the matrix
+         // Looping for each element of the matrix
   for (uint row = 1; row <= rows; ++row)
     for (uint col = 1; col <= cols; ++col)
     {
@@ -344,33 +366,50 @@ template <typename T, uint dim> MatrixXd<dim, dim> Cholesky(const Matrix<T, dim,
 }
 
 template <typename T, uint dim>
-MatrixXd<dim, dim> Inverse(const Matrix<T, dim, dim>& matrix)
+MatrixXd<dim, dim> Inverse(const Matrix<T, dim, dim>& matrix) // TODO: test this AI inverse
 {
-  MatrixXd<dim, dim> matrix_inv = matrix;
-  float ratio, a;
-  uint i, j, k, n;
-  for (i = 0; i < n; i++)
-    for (j = n; j < 2 * n; j++)
-      if (i == (j - n))
-        matrix_inv[i][j] = 1.0;
-      else
-        matrix_inv[i][j] = 0.0;
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
-      if (i != j)
-      {
-        ratio = matrix_inv[j][i] / matrix_inv[i][i];
-        for (k = 0; k < 2 * n; k++)
-          matrix_inv[j][k] -= ratio * matrix_inv[i][k];
+  if (!matrix.IsSquare())
+    throw std::runtime_error("Matrix must be square to be invertible.");
+
+         // Create an augmented matrix [A | I]
+  MatrixXd<dim, 2 * dim> augmented_matrix;
+  augmented_matrix.SetBlock<dim, dim>(1, 1, matrix);
+  augmented_matrix.SetBlock<dim, dim>(1, dim + 1, MatrixXd<dim, dim>(1.0)); // Eye()
+
+         // Apply Gauss-Jordan elimination
+  for (uint i = 1; i <= dim; ++i) {
+    // Find pivot
+    uint pivot_row = i;
+    for (uint j = i + 1; j <= dim; ++j) {
+      if (std::abs(augmented_matrix(j, i)) > std::abs(augmented_matrix(pivot_row, i))) {
+        pivot_row = j;
       }
-  for (i = 0; i < n; i++)
-  {
-    a = matrix_inv[i][i];
-    for (j = 0; j < 2 * n; j++)
-      matrix_inv[i][j] /= a;
+    }
+    if (pivot_row != i)
+      augmented_matrix.SwapRow(i, pivot_row);
+    T pivot_val = augmented_matrix(i, i);
+    if (std::abs(pivot_val) < 1e-12)  // Using a small epsilon for floating point
+      throw std::runtime_error("Matrix is singular and cannot be inverted.");
+
+           // Normalize the pivot row
+    for (uint j = i; j <= 2 * dim; ++j)
+      augmented_matrix(i, j) /= pivot_val;
+
+           // Eliminate other entries in the column
+    for (uint j = 1; j <= dim; ++j) {
+      if (i == j) continue;
+      T factor = augmented_matrix(j, i);
+
+      for (uint k = i; k <= 2 * dim; ++k)
+        augmented_matrix(j, k) -= factor * augmented_matrix(i, k);
+
+    }
   }
-  return matrix_inv;
+
+         // Extract the inverse matrix from the right side of the augmented matrix
+  return augmented_matrix.template GetBlock<dim, dim>(1, dim + 1);
 }
+
 
 template <typename T, uint dim> double Mean(const VectorX<T, dim>& vvect)
 {
@@ -403,4 +442,15 @@ template <uint rows, uint cols> MatrixXd<rows, cols> ExtProduct(const MatrixXd<r
   }
   return mat;
 }
+
+template <typename T, unsigned int dim> MatrixXd<dim, dim> Diag(const VectorX<T, dim>& vvect)
+{
+  MatrixXd<dim, dim> matrix_diag(0);
+
+  for (unsigned int i = 1; i <= dim; i++)
+    matrix_diag(i,i)=vvect(i);
+
+  return matrix_diag;
+}
+
 } //  end namespace grabnum
