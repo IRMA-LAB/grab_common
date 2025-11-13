@@ -328,7 +328,7 @@ void UnderActuatedRobotVars::updateGeometricJacobians()
     resize();
   // Standard jacobian update
   for (uint8_t i = 0; i < cables.size(); ++i)
-    geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row.Data());
+    geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row_l.Data());
   // Under-actuated-related update
   arma::uvec act_indeces   = find(platform.mask == 1);
   arma::uvec unact_indeces = find(platform.mask == 0);
@@ -350,7 +350,7 @@ void UnderActuatedRobotVars::updateAnaliticJacobians()
     resize();
   // Standard jacobian update
   for (uint8_t i = 0; i < cables.size(); ++i)
-    anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row.Data());
+    anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row_l.Data());
   // Under-actuated-related update
   arma::uvec act_indeces   = find(platform.mask == 1);
   arma::uvec unact_indeces = find(platform.mask == 0);
@@ -373,8 +373,8 @@ void UnderActuatedRobotVars::updateJacobians()
   // Standard jacobian update
   for (uint8_t i = 0; i < cables.size(); ++i)
   {
-    geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row.Data());
-    anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row.Data());
+    geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row_l.Data());
+    anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row_l.Data());
   }
   // Under-actuated-related update
   arma::uvec act_indeces   = find(platform.mask == 1);
@@ -406,8 +406,8 @@ void UnderActuatedRobotVars::updateJacobians_nomask()
   // Standard jacobian update
   for (uint8_t i = 0; i < cables.size(); ++i)
   {
-    geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row.Data());
-    anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row.Data());
+    geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row_l.Data());
+    anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row_l.Data());
   }
 //  // Under-actuated-related update
 //  arma::uvec act_indeces   = find(platform.mask == 1);

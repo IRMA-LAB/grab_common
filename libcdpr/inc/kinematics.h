@@ -326,18 +326,23 @@ double calcMotorCounts(const double tau, const double cable_len,
 double calcMotorCounts(const ActuatorParams& params, const CableVarsBase& cable);
 
 /**
- * @brief UpdateJacobiansRow
+ * @brief UpdateJacobiansRow_l
  * @param H_mat
  * @param cable
  */
-void updateJacobiansRow(const Matrix3d H_mat, CableVars& cable);
+void updateJacobiansRow_l(const Matrix3d H_mat, CableVars& cable);
 /**
- * @brief UpdateJacobiansRow
+ * @brief UpdateJacobiansRow_l
  * @param H_mat
  * @param cable
  */
-void updateJacobiansRow(const MatrixXd<3, 4> H_mat, CableVarsQuat& cable);
-
+void updateJacobiansRow_l(const MatrixXd<3, 4> H_mat, CableVarsQuat& cable);
+/**
+ * @brief updateJacobiansRow_s
+ * @param H_mat
+ * @param cable
+ */
+void updateJacobiansRow_s(const Matrix3d H_mat, CableVars& cable);
 /**
  * @brief Update all zero-order variables of a single cable at once.
  * @param[in] platform A reference to the updated platform structure.
@@ -460,6 +465,20 @@ bool solveDK0(const std::vector<double>& cables_length,
  * @see solveDK0()
  */
 bool updateDK0(const RobotParams& params, RobotVars& vars);
+
+/**
+ * @brief costFunDkLengthSwivelAHRS can be used as a cost function for a
+ *        nonlinear least squares solver
+ * @param params CDPR parameters
+ * @param state_est_meas measurements available
+ * @param vars
+ * @param pose
+ * @param F
+ * @param J
+ */
+void costFunDkLengthSwivelAHRS(const RobotParams& params, const Measures& state_est_meas,
+                               RobotVars& vars, const Vector6d pose,
+                               VectorXd<11>& F, MatrixXd<11, 6>& J);
 
 /** @} */ // end of ZeroOrderKinematics group
 

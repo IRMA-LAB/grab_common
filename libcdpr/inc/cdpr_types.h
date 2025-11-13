@@ -182,9 +182,9 @@
 
 #define POSE_DIM 6 /**< pose dim. of a body in space with 3-angle parametrization */
 #define POSE_QUAT_DIM                                                                    \
-  7 /**< pose dim. of a body in space with quaternion parametrization */
+7 /**< pose dim. of a body in space with quaternion parametrization */
 
-using namespace grabnum;
+  using namespace grabnum;
 
 /**
  * @brief Convert a 3D row vector from GRAB format to armadillo format.
@@ -212,13 +212,13 @@ arma::vec toArmaVec(Vector3d vect, bool copy = true);
 arma::vec toArmaVec(
   VectorXd<POSE_DIM> vect,
   bool copy =
-    true); /**
-            * @brief Convert a 7D column vector from GRAB format to armadillo format.
-            * @param[in] vect A 7D column vector of double in GRAB format.
-            * @param[in] copy If _True_ values are copied, otherwise the same piece of
-            * memory is used. Be careful when doing so.
-            * @return A 7D column vector of double in armadillo format.
-            */
+  true); /**
+   * @brief Convert a 7D column vector from GRAB format to armadillo format.
+   * @param[in] vect A 7D column vector of double in GRAB format.
+   * @param[in] copy If _True_ values are copied, otherwise the same piece of
+   * memory is used. Be careful when doing so.
+   * @return A 7D column vector of double in armadillo format.
+   */
 arma::vec toArmaVec(VectorXd<POSE_QUAT_DIM> vect, bool copy = true);
 
 /**
@@ -288,7 +288,7 @@ enum RotParametrization
   TAIT_BRYAN,   /**< _Tait-Bryan_ angles convention and @f$X_1Y_2Z_3@f$. */
   RPY,          /**< _Roll, Pitch, Yaw_ angles convention (from aviation). */
   TILT_TORSION, /**< _Tilt-and-torsion_ angles, a variation of _Euler_ angles convention.
-                 */
+   */
   QUATERNION    /**< _Quaternions_ convention (not angles). */
 };
 
@@ -321,11 +321,11 @@ struct PulleyParams
 {
   grabnum::Vector3d pos_OD_glob; /**< [m] vector @f$\mathbf{d}_i@f$. */
   grabnum::Vector3d vers_i;  /**< versor @f$\hat{\mathbf{i}}_i@f$ of _i-th_ swivel pulley
-                                expressed in global frame. */
+                               expressed in global frame. */
   grabnum::Vector3d vers_j;  /**< versor @f$\hat{\mathbf{j}}_i@f$ of _i-th_ swivel pulley
-                                expressed in global frame. */
+                               expressed in global frame. */
   grabnum::Vector3d vers_k;  /**< versor @f$\hat{\mathbf{k}}_i@f$ of _i-th_ swivel pulley
-                                expressed in global frame. */
+                               expressed in global frame. */
   double radius = 0.0;       /**< [m] _i-th_ swivel pulley radius length @f$r_i@f$ */
   double transmission_ratio; /**< _i-th_ pulley counts-to-radians transmition ratio. */
   double swivel0 = 0.0;
@@ -479,7 +479,7 @@ struct PlatformVarsBase
                                  moments, expressed in the global frame. */
   grabnum::Vector6d
     total_load; /**< vector containing components of total external and dynamic forces and
-                 moments, expressed in the global frame. */
+     moments, expressed in the global frame. */
   /** @} */     // end of Dynamics group
 };
 
@@ -894,7 +894,8 @@ struct CableVarsBase
   grabnum::Vector3d vers_n; /**< _i-th_ swivel pulley versor @f$\hat{\mathbf{n}}_i@f$. */
   grabnum::Vector3d vers_t; /**< _i-th_ cable versor @f$\hat{\mathbf{t}}_i@f$. */
 
-  grabnum::MatrixXd<1, POSE_DIM> geom_jacob_row; /**< _i-th_ row of geometric jacobian. */
+  grabnum::MatrixXd<1, POSE_DIM> geom_jacob_row_l; /**< _i-th_ row of geometric jacobian. */
+  grabnum::MatrixXd<1, POSE_DIM> geom_jacob_row_s; /**< _i-th_ row of geometric jacobian. */
   /** @} */                                      // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
@@ -942,7 +943,8 @@ struct CableVars: CableVarsBase
   /** @addtogroup ZeroOrderKinematics
    * @{
    */
-  grabnum::RowVectorXd<POSE_DIM> anal_jacob_row; /**< _i-th_ row of analitic jacobian. */
+  grabnum::RowVectorXd<POSE_DIM> anal_jacob_row_l; /**< _i-th_ row of analitic jacobian. */
+  grabnum::RowVectorXd<POSE_DIM> anal_jacob_row_s; /**< _i-th_ row of analitic jacobian. */
   /** @} */                                      // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
@@ -963,7 +965,7 @@ struct CableVarsQuat: CableVarsBase
    * @{
    */
   grabnum::RowVectorXd<POSE_QUAT_DIM>
-    anal_jacob_row; /**< _i-th_ row of analitic jacobian. */
+    anal_jacob_row_l; /**< _i-th_ row of analitic jacobian. */
   /** @} */         // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
@@ -984,7 +986,12 @@ struct RobotVarsBase
    * @{
    */
   arma::mat::fixed<4, 6> geom_jacobian; /**< geometric jacobian. */
-  arma::mat::fixed<4, 6> anal_jacobian; /**< analytical jacobian. */
+  arma::mat::fixed<4, 6> anal_jacobian; /**< geometric jacobian. */
+
+  MatrixXd<4, 6> geom_jacobian_l; /**< geometric jacobian. */
+  MatrixXd<4, 6> geom_jacobian_s; /**< geometric jacobian. */
+  MatrixXd<4, 6> anal_jacobian_l; /**< analytical jacobian. */
+  MatrixXd<4, 6> anal_jacobian_s; /**< analytical jacobian. */
   /** @} */                             // end of ZeroOrderKinematics group
 
   /** @addtogroup FirstOrderKinematics
@@ -1096,6 +1103,12 @@ struct RobotVarsMobileFrame: RobotVars
   double FrameRoll;  /**< Roll angle.*/
   double FramePitch; /**< Pitch angle.*/
   double FrameYaw;   /**< Yaw angle.*/
+};
+
+struct Measures {
+  grabnum::VectorXd<4> lengths;
+  grabnum::VectorXd<4> swivels;
+  grabnum::Vector3d	epsilon;
 };
 
 } // end namespace grabcdpr

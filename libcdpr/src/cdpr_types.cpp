@@ -385,13 +385,13 @@ RobotVars::RobotVars(const size_t num_cables, const RotParametrization _angles_t
 void RobotVars::resize()
 {
   // Geometric jacobians
-  geom_jacobian.clear();
-  geom_jacobian_d.clear();
+  // geom_jacobian.clear();
+  // geom_jacobian_d.clear();
   //geom_jacobian.resize(cables.size(), POSE_DIM);
   //geom_jacobian_d.resize(cables.size(), POSE_DIM);
   // Analitic jacobians
-  anal_jacobian.clear();
-  anal_jacobian_d.clear();
+  // anal_jacobian.clear();
+  // anal_jacobian_d.clear();
   //anal_jacobian.resize(cables.size(), POSE_DIM);
   //anal_jacobian_d.resize(cables.size(), POSE_DIM);
   // Tension vector
@@ -402,17 +402,18 @@ void RobotVars::resize()
 void RobotVars::updateJacobians()
 {
   // Safety check
-
  // if (geom_jacobian.n_rows != cables.size() || anal_jacobian.n_rows != cables.size())
-    ///*resize();*/
+ //    resize();
 
   for (uint8_t i = 0; i < cables.size(); ++i)
   {
+    // geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row.Data());
+    // anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row.Data());
 
-    geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row.Data());
-
-    anal_jacobian.row(i) = arma::rowvec6(cables[i].anal_jacob_row.Data());
-
+    geom_jacobian_l.SetBlock<1, 6>(i + 1, 1, cables[i].geom_jacob_row_l);
+    anal_jacobian_l.SetBlock<1, 6>(i + 1, 1, cables[i].anal_jacob_row_l);
+    geom_jacobian_s.SetBlock<1, 6>(i + 1, 1, cables[i].geom_jacob_row_s);
+    anal_jacobian_s.SetBlock<1, 6>(i + 1, 1, cables[i].anal_jacob_row_s);
   }
 
 }
@@ -447,8 +448,8 @@ void RobotVarsQuat::updateJacobians()
     /*resize();*/
   for (uint8_t i = 0; i < cables.size(); ++i)
   {
-    geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row.Data());
-    anal_jacobian.row(i) = arma::rowvec7(cables[i].anal_jacob_row.Data());
+    geom_jacobian.row(i) = arma::rowvec6(cables[i].geom_jacob_row_l.Data());
+    anal_jacobian.row(i) = arma::rowvec7(cables[i].anal_jacob_row_l.Data());
   }
 }
 

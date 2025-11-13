@@ -135,26 +135,39 @@ double calcMotorCounts(const ActuatorParams& params, const CableVarsBase& cable)
                          params.pulley.radius, cable.tan_ang);
 }
 
-void updateJacobiansRow(const Matrix3d H_mat, CableVars& cable)
+void updateJacobiansRow_l(const Matrix3d H_mat, CableVars& cable)
 {
-  cable.geom_jacob_row.SetBlock<1, 3>(1, 1, cable.vers_t.Transpose());
-  cable.geom_jacob_row.SetBlock<1, 3>(
+  cable.geom_jacob_row_l.SetBlock<1, 3>(1, 1, cable.vers_t.Transpose());
+  cable.geom_jacob_row_l.SetBlock<1, 3>(
     1, 4, -cable.vers_t.Transpose() * Skew(cable.pos_PA_glob));
 
-  cable.anal_jacob_row = cable.geom_jacob_row;
-  cable.anal_jacob_row.SetBlock<1, 3>(1, 4,
-                                      cable.anal_jacob_row.GetBlock<1, 3>(1, 4) * H_mat);
+  cable.anal_jacob_row_l = cable.geom_jacob_row_l;
+  cable.anal_jacob_row_l.SetBlock<1, 3>(1, 4,
+                                      cable.anal_jacob_row_l.GetBlock<1, 3>(1, 4) * H_mat);
 }
 
-void updateJacobiansRow(const MatrixXd<3, 4> H_mat, CableVarsQuat& cable)
+void updateJacobiansRow_l(const MatrixXd<3, 4> H_mat, CableVarsQuat& cable)
 {
-  cable.geom_jacob_row.SetBlock<1, 3>(1, 1, cable.vers_t.Transpose());
-  cable.geom_jacob_row.SetBlock<1, 3>(
+  cable.geom_jacob_row_l.SetBlock<1, 3>(1, 1, cable.vers_t.Transpose());
+  cable.geom_jacob_row_l.SetBlock<1, 3>(
     1, 4, -cable.vers_t.Transpose() * Skew(cable.pos_PA_glob));
 
-  cable.anal_jacob_row.SetBlock<1, 3>(1, 1, cable.geom_jacob_row.GetBlock<1, 3>(1, 1));
-  cable.anal_jacob_row.SetBlock<1, 4>(1, 4,
-                                      cable.geom_jacob_row.GetBlock<1, 3>(1, 4) * H_mat);
+  cable.anal_jacob_row_l.SetBlock<1, 3>(1, 1, cable.geom_jacob_row_l.GetBlock<1, 3>(1, 1));
+  cable.anal_jacob_row_l.SetBlock<1, 4>(1, 4,
+                                      cable.geom_jacob_row_l.GetBlock<1, 3>(1, 4) * H_mat);
+}
+
+void updateJacobiansRow_s(const Matrix3d H_mat, CableVars& cable)
+{
+  cable.geom_jacob_row_s.SetBlock<1, 3>(1, 1, cable.vers_w.Transpose());
+  cable.geom_jacob_row_s.SetBlock<1, 3>(
+    1, 4, -cable.vers_w.Transpose() * Skew(cable.pos_PA_glob));
+  cable.geom_jacob_row_s = cable.geom_jacob_row_s /
+                           Dot(cable.vers_u, cable.pos_DA_glob);
+
+  cable.anal_jacob_row_s = cable.geom_jacob_row_s;
+  cable.anal_jacob_row_s.SetBlock<1, 3>(1, 4,
+                                      cable.anal_jacob_row_s.GetBlock<1, 3>(1, 4) * H_mat);
 }
 
 void updateCableZeroOrd(const ActuatorParams& params, const PlatformVars& platform,
@@ -166,7 +179,8 @@ void updateCableZeroOrd(const ActuatorParams& params, const PlatformVars& platfo
   updateTangentAngle(params.pulley, cable); // from 2nd kinematic constraint.
   updateCableVectors(params.pulley, cable); // from 1st kinematic constraint.
   updateCableLen(params.pulley, cable);     // from 3rd kinematic constraint.
-  updateJacobiansRow(platform.h_mat, cable);
+  updateJacobiansRow_l(platform.h_mat, cable);
+  updateJacobiansRow_s(platform.h_mat, cable);
 }
 
 void updateCableZeroOrd(const ActuatorParams& params, const PlatformVarsQuat& platform,
@@ -178,7 +192,7 @@ void updateCableZeroOrd(const ActuatorParams& params, const PlatformVarsQuat& pl
   updateTangentAngle(params.pulley, cable); // from 2nd kinematic constraint.
   updateCableVectors(params.pulley, cable); // from 1st kinematic constraint.
   updateCableLen(params.pulley, cable);     // from 3rd kinematic constraint.
-  updateJacobiansRow(platform.h_mat, cable);
+  updateJacobiansRow_l(platform.h_mat, cable);
 }
 
 void updateIK0(const Vector3d& position, const Vector3d& orientation,
@@ -314,6 +328,50 @@ bool updateDK0(const RobotParams& params, RobotVars& vars)
   }
   // Could not solve optimization (failed direct kinematics)
   return false;
+}
+
+void costFunDkLengthSwivelAHRS(const RobotParams& params, const Measures& state_est_meas,
+                               RobotVars& vars, const Vector6d pose,
+                               VectorXd<11>& F, MatrixXd<11, 6>& J) {
+
+  // sensor errors for normalization
+  Vector4d length_noise;
+  Vector4d swivel_noise;
+  Vector3d AHRS_noise;
+  for (unsigned int i = 0; i < vars.cables.size(); i++) {
+    length_noise(i + 1) = 1 / 0.004;                    // 4 mm of std
+    swivel_noise(i + 1) = 1 / (0.8 * M_PI / 180);       // 0.8 deg of std
+  }
+  for (unsigned int i = 1; i <= 3; i++)
+    AHRS_noise(i) = 1 / (1 * M_PI / 180);               // 1 deg of std
+  VectorXd<11> weights;
+  weights.SetBlock<4, 1>(1, 1, length_noise);
+  weights.SetBlock<4, 1>(5, 1, swivel_noise);
+  weights.SetBlock<3, 1>(9, 1, AHRS_noise);
+
+         // inverse kinematics update
+  updateIK0(pose, params, vars);
+  Vector4d cable_lengths;
+  Vector4d swivel_angles;
+  for (unsigned int i = 0; i < vars.cables.size(); i++) {
+    cable_lengths(i + 1) = vars.cables[i].length;
+    swivel_angles(i + 1) = vars.cables[i].swivel_ang;
+  }
+
+         // residual vector and jacobian computation
+  F.SetBlock<4, 1>(1, 1, cable_lengths - state_est_meas.lengths);
+  F.SetBlock<4, 1>(5, 1, swivel_angles - state_est_meas.swivels);
+  F.SetBlock<3, 1>(9, 1, pose.GetBlock<3, 1>(4, 1) - state_est_meas.epsilon);
+  F = Diag(weights) * F;
+
+  Matrix3d my_eye(0);
+  my_eye.SetBlock<1, 1>(1, 1, 1);
+  my_eye.SetBlock<1, 1>(2, 2, 1);
+  my_eye.SetBlock<1, 1>(3, 3, 1);
+  J.SetBlock<4, 6>(1, 1, vars.anal_jacobian_l);
+  J.SetBlock<4, 6>(5, 1, vars.anal_jacobian_s);
+  J.SetBlock<3, 6>(9, 1, HorzCat(Matrix3d(0), my_eye));
+  J = Diag(weights) * J;
 }
 
 } // end namespace grabcdpr
