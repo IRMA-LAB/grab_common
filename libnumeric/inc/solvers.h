@@ -395,6 +395,7 @@ int LevembergMarquardt(
     fval_new = pow(Norm(F_new),2)/2;
 
            // damping scaling
+    std::cout<<"Difference: "<<fval_new-fval<<std::endl;
     if (fval_new<=fval+EPSILON)
     {
       solution = sol_new;

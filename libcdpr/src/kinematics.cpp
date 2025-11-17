@@ -339,11 +339,11 @@ void costFunDkLengthSwivelAHRS(const RobotParams& params, const Measures& state_
   Vector4d swivel_noise;
   Vector3d AHRS_noise;
   for (unsigned int i = 0; i < vars.cables.size(); i++) {
-    length_noise(i + 1) = 1 / 0.004;                    // 4 mm of std
-    swivel_noise(i + 1) = 1 / (0.8 * M_PI / 180);       // 0.8 deg of std
+    length_noise(i + 1) = 1 / 0.002;                    // 2 mm of std
+    swivel_noise(i + 1) = 1 / (0.4 * M_PI / 180);       // 0.4 deg of std
   }
   for (unsigned int i = 1; i <= 3; i++)
-    AHRS_noise(i) = 1 / (1 * M_PI / 180);               // 1 deg of std
+    AHRS_noise(i) = 1 / (2 * M_PI / 180);               // 2 deg of std
   VectorXd<11> weights;
   weights.SetBlock<4, 1>(1, 1, length_noise);
   weights.SetBlock<4, 1>(5, 1, swivel_noise);
