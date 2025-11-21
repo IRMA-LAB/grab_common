@@ -8,7 +8,8 @@ HEADERS += \
     $$PWD/inc/under_actuated_utils.h \
     $$PWD/tools/json.hpp \
     $$PWD/tools/robotconfigjsonparser.h \
-    $$PWD/../grabcommon.h
+    $$PWD/../grabcommon.h \
+    inc/TensionDistribution.h
 
 SOURCES += \
     $$PWD/src/cdpr_types.cpp \
@@ -19,7 +20,8 @@ SOURCES += \
     $$PWD/src/dynamics.cpp \
     $$PWD/src/under_actuated_utils.cpp \
     $$PWD/tools/robotconfigjsonparser.cpp \
-    $$PWD/../grabcommon.cpp
+    $$PWD/../grabcommon.cpp \
+    src/TensionDistribution.cpp
 
 INCLUDEPATH += \
     $$PWD/inc \

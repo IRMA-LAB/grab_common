@@ -57,7 +57,8 @@ SOURCES       = src/cdpr_types.cpp \
 		src/dynamics.cpp \
 		src/under_actuated_utils.cpp \
 		tools/robotconfigjsonparser.cpp \
-		../grabcommon.cpp 
+		../grabcommon.cpp \
+		src/TensionDistribution.cpp 
 OBJECTS       = cdpr_types.o \
 		kinematics.o \
 		diffkinematics.o \
@@ -66,7 +67,8 @@ OBJECTS       = cdpr_types.o \
 		dynamics.o \
 		under_actuated_utils.o \
 		robotconfigjsonparser.o \
-		grabcommon.o
+		grabcommon.o \
+		TensionDistribution.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -153,7 +155,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		inc/under_actuated_utils.h \
 		tools/json.hpp \
 		tools/robotconfigjsonparser.h \
-		../grabcommon.h src/cdpr_types.cpp \
+		../grabcommon.h \
+		inc/TensionDistribution.h src/cdpr_types.cpp \
 		src/kinematics.cpp \
 		src/diffkinematics.cpp \
 		src/diff2kinematics.cpp \
@@ -161,7 +164,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		src/dynamics.cpp \
 		src/under_actuated_utils.cpp \
 		tools/robotconfigjsonparser.cpp \
-		../grabcommon.cpp
+		../grabcommon.cpp \
+		src/TensionDistribution.cpp
 QMAKE_TARGET  = cdpr
 DESTDIR       = 
 TARGET        = libcdpr.a
@@ -349,8 +353,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents inc/cdpr_types.h inc/kinematics.h inc/diffkinematics.h inc/diff2kinematics.h inc/statics.h inc/dynamics.h inc/under_actuated_utils.h tools/json.hpp tools/robotconfigjsonparser.h ../grabcommon.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/cdpr_types.cpp src/kinematics.cpp src/diffkinematics.cpp src/diff2kinematics.cpp src/statics.cpp src/dynamics.cpp src/under_actuated_utils.cpp tools/robotconfigjsonparser.cpp ../grabcommon.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents inc/cdpr_types.h inc/kinematics.h inc/diffkinematics.h inc/diff2kinematics.h inc/statics.h inc/dynamics.h inc/under_actuated_utils.h tools/json.hpp tools/robotconfigjsonparser.h ../grabcommon.h inc/TensionDistribution.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/cdpr_types.cpp src/kinematics.cpp src/diffkinematics.cpp src/diff2kinematics.cpp src/statics.cpp src/dynamics.cpp src/under_actuated_utils.cpp tools/robotconfigjsonparser.cpp ../grabcommon.cpp src/TensionDistribution.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -421,35 +425,10 @@ kinematics.o: src/kinematics.cpp inc/kinematics.h \
 		inc/dynamics.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o kinematics.o src/kinematics.cpp
 
-diffkinematics.o: src/diffkinematics.cpp inc/diffkinematics.h \
-		../libnumeric/inc/matrix_utilities.h \
-		../libnumeric/inc/matrix.h \
-		../libnumeric/inc/common.h \
-		../libnumeric/src/matrix.cpp \
-		../libnumeric/src/matrix_utilities.tcc \
-		../libgeom/inc/rotations.h \
-		inc/cdpr_types.h \
-		../libgeom/inc/quaternions.h \
-		inc/kinematics.h \
-		inc/statics.h \
-		../../grab_common/grabcommon.h \
-		inc/dynamics.h
+diffkinematics.o: src/diffkinematics.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o diffkinematics.o src/diffkinematics.cpp
 
-diff2kinematics.o: src/diff2kinematics.cpp inc/diff2kinematics.h \
-		inc/diffkinematics.h \
-		../libnumeric/inc/matrix_utilities.h \
-		../libnumeric/inc/matrix.h \
-		../libnumeric/inc/common.h \
-		../libnumeric/src/matrix.cpp \
-		../libnumeric/src/matrix_utilities.tcc \
-		../libgeom/inc/rotations.h \
-		inc/cdpr_types.h \
-		../libgeom/inc/quaternions.h \
-		inc/kinematics.h \
-		inc/statics.h \
-		../../grab_common/grabcommon.h \
-		inc/dynamics.h
+diff2kinematics.o: src/diff2kinematics.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o diff2kinematics.o src/diff2kinematics.cpp
 
 statics.o: src/statics.cpp inc/statics.h \
@@ -477,20 +456,7 @@ dynamics.o: src/dynamics.cpp inc/dynamics.h \
 		../libgeom/inc/rotations.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dynamics.o src/dynamics.cpp
 
-under_actuated_utils.o: src/under_actuated_utils.cpp inc/under_actuated_utils.h \
-		inc/cdpr_types.h \
-		../libnumeric/inc/matrix_utilities.h \
-		../libnumeric/inc/matrix.h \
-		../libnumeric/inc/common.h \
-		../libnumeric/src/matrix.cpp \
-		../libnumeric/src/matrix_utilities.tcc \
-		../libgeom/inc/quaternions.h \
-		../libgeom/inc/rotations.h \
-		inc/kinematics.h \
-		inc/statics.h \
-		../../grab_common/grabcommon.h \
-		inc/dynamics.h \
-		../libnumeric/inc/solvers.h
+under_actuated_utils.o: src/under_actuated_utils.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o under_actuated_utils.o src/under_actuated_utils.cpp
 
 robotconfigjsonparser.o: tools/robotconfigjsonparser.cpp tools/robotconfigjsonparser.h \
@@ -507,6 +473,18 @@ robotconfigjsonparser.o: tools/robotconfigjsonparser.cpp tools/robotconfigjsonpa
 
 grabcommon.o: ../grabcommon.cpp ../grabcommon.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o grabcommon.o ../grabcommon.cpp
+
+TensionDistribution.o: src/TensionDistribution.cpp inc/TensionDistribution.h \
+		../../grab_common/grabcommon.h \
+		../libnumeric/inc/matrix_utilities.h \
+		../libnumeric/inc/matrix.h \
+		../libnumeric/inc/common.h \
+		../libnumeric/src/matrix.cpp \
+		../libnumeric/src/matrix_utilities.tcc \
+		inc/cdpr_types.h \
+		../libgeom/inc/quaternions.h \
+		../libgeom/inc/rotations.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o TensionDistribution.o src/TensionDistribution.cpp
 
 ####### Install
 
