@@ -373,8 +373,10 @@ MatrixXd<dim, dim> Inverse(const Matrix<T, dim, dim>& matrix) // TODO: test this
 
      // Create an augmented matrix [A | I]
   MatrixXd<dim, 2 * dim> augmented_matrix;
-  augmented_matrix.SetBlock<dim, dim>(1, 1, matrix);
-  augmented_matrix.SetBlock<dim, dim>(1, dim + 1, MatrixXd<dim, dim>(1.0)); // Eye()
+//  augmented_matrix.SetBlock<dim, dim>(1, 1, matrix);
+  augmented_matrix.SetBlock(1, 1, matrix);
+//  augmented_matrix.SetBlock<dim, dim>(1, dim + 1, MatrixXd<dim, dim>(1.0)); // Eye()
+  augmented_matrix.SetBlock(1, dim + 1, MatrixXd<dim, dim>(1.0)); // Eye()
 
      // Apply Gauss-Jordan elimination
   for (uint i = 1; i <= dim; ++i) {
