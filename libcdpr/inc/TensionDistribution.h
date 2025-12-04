@@ -22,8 +22,8 @@ struct Index_and_limits{
     indices_to_set(2) = 0;
     limits_to_set(1) = 0;
     limits_to_set(2) = 0;
-    CTL_for_TD(1)=30;
-    CTL_for_TD(2)=400;
+    CTL_for_TD(1)=15;
+    CTL_for_TD(2)=250;
   }
   Vector2d CTL_for_TD;
   Vector2u indices_to_set;

@@ -53,6 +53,21 @@ bool updateCablesTensionDistribution(RobotVars& vars)
      // vars.tension_vector= toArmaMat_generic(tau);
       return true;
     }
+    else if ((tau.Min()<Idx_and_lim.CTL_for_TD(1)) && (tau.Max()>Idx_and_lim.CTL_for_TD(2)))
+    {
+      double maxdiff=tau.Max()-Idx_and_lim.CTL_for_TD(2);
+      double mindiff=Idx_and_lim.CTL_for_TD(1)-tau.Min();
+
+      if (maxdiff>mindiff)
+      {
+        Idx_and_lim.indices_to_set(1)=tau.MaxIdx();
+        Idx_and_lim.limits_to_set(1)=Idx_and_lim.CTL_for_TD(2);
+      } else
+      {
+        Idx_and_lim.indices_to_set(1)=tau.MinIdx();
+        Idx_and_lim.limits_to_set(1)=Idx_and_lim.CTL_for_TD(1);
+      }
+    }
     else if (tau.Max()>Idx_and_lim.CTL_for_TD(2))
     {
       Idx_and_lim.indices_to_set(1)=tau.MaxIdx();
@@ -121,6 +136,22 @@ bool updateCablesTensionDistribution(RobotVars& vars)
       // vars.tension_vector= toArmaMat_generic(tau);
       return true;
     }
+    else if ((tau.Min()<Idx_and_lim.CTL_for_TD(1)) && (tau.Max()>Idx_and_lim.CTL_for_TD(2)))
+    {
+      double maxdiff=tau.Max()-Idx_and_lim.CTL_for_TD(2);
+      double mindiff=Idx_and_lim.CTL_for_TD(1)-tau.Min();
+
+      if (maxdiff>mindiff)
+      {
+        Idx_and_lim.indices_to_set(2)=tau.MaxIdx();
+        Idx_and_lim.limits_to_set(2)=Idx_and_lim.CTL_for_TD(2);
+      } else
+      {
+        Idx_and_lim.indices_to_set(2)=tau.MinIdx();
+        Idx_and_lim.limits_to_set(2)=Idx_and_lim.CTL_for_TD(1);
+      }
+    }
+
     else if (tau.Max()>Idx_and_lim.CTL_for_TD(2))
     {
       Idx_and_lim.indices_to_set(2)=tau.MaxIdx();
