@@ -85,6 +85,7 @@ bool updateCablesTensionDistribution(RobotVars& vars);
 
    MatrixXd<2,1> TDBaricenter(arma::mat Polygon);
 
+   int getcount(){return cnt;};
   private:
 
    double maxTension=250;
@@ -94,6 +95,7 @@ bool updateCablesTensionDistribution(RobotVars& vars);
    MatrixXd<8,1> tau_min;
    MatrixXd<8,2> N;
    arma::mat Polygon;
+   int cnt;
 
 
    int ii=7;

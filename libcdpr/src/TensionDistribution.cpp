@@ -385,7 +385,7 @@ bool GF::updateCablesTensionGF(RobotVars& vars)
     MatrixXd<2,1> vf=fc;
 
     int aa=1;
-    int cnt=0;
+    cnt=0;
 
     while (aa==1)
     {
@@ -517,6 +517,7 @@ bool GF::updateCablesTensionGF(RobotVars& vars)
             else
             {
               vars.tension_vector=arma::ones<arma::vec>(8)*(maxTension+minTension)/2;
+              aa=0;
               return false;
             }
           }
@@ -524,7 +525,7 @@ bool GF::updateCablesTensionGF(RobotVars& vars)
       }
 
       cnt=cnt+1;
-      if (cnt==1000)
+      if (cnt==23)
       {aa=0;}
     }
 
