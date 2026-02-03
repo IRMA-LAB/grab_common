@@ -355,7 +355,16 @@ struct PulleyParams
     vers_j = vers_j / grabnum::Norm(vers_j);
   }
 };
-
+/**
+ * @brief Structure collecting parameters related to an inclinometer
+ * mounted on the platform of a CDPR.
+ */
+struct InclinometerParams
+{
+  double yaw_home = 0.0;            // yaw value in home
+  grabnum::Matrix3d Rot_imu_local;  // constant rotation matrix between the nclinometer
+                                   // and the local platform mobile frame
+};
 /**
  * @brief Structure collecting parameters related to a single winch of a CDPR.
  */
@@ -392,6 +401,7 @@ struct RobotParams
   PlatformParams platform; /**< parameters of a generic 6DoF platform. */
   std::vector<ActuatorParams>
     actuators; /**< vector of parameters of a single actuator in a CDPR. */
+  InclinometerParams inclinometer;
   arma::uvec6
     controlled_vars_mask; /**< actuation binary mask (1=actuated, 0=unactuated).*/
 
