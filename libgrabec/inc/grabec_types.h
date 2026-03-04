@@ -35,7 +35,7 @@ struct RtThreadsParams
 {
   int8_t main_cpu_id = 0; /**< CPU ID for main (parent) thread */
   std::vector<int8_t> rt_cpu_id {
-    2, grabrt::END_CORE};        /**< CPU ID for RT (child) master thread */
+    2,6, grabrt::END_CORE};        /**< CPU ID for RT (child) master thread */
   uint8_t rt_priority      = 98; /**< scheduler priority of RT (child) master thread */
   uint32_t cycle_time_nsec = 1000000; /**< RT master thread cycle time */
 };
