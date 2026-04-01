@@ -33,17 +33,41 @@ public:
   ~xsensahrsec() override;
 
   /**
-   * @brief Function to enable data transfer from the AHRS
+    * @brief Function to retrieve Roll measure
    */
   float getRoll() const {return BufferIn.Cust.ang_eul_roll; };
   /**
-   * @brief Function to enable data transfer from the AHRS
+   * @brief Function to retrieve Pitch measure
    */
   float getPitch() const {return BufferIn.Cust.ang_eul_pitch; };
   /**
-   * @brief Function to enable data transfer from the AHRS
+   * @brief Function to retrieve Yaw measure
    */
   float getYaw() const {return BufferIn.Cust.ang_eul_yaw; };
+  /**
+   * @brief Function to retrieve AccX measure
+   */
+  float getAccX() const {return BufferIn.Cust.acc_x; };
+  /**
+   * @brief Function to retrieve AccY measure
+   */
+  float getAccY() const {return BufferIn.Cust.acc_y; };
+  /**
+   * @brief Function to retrieve AccZ measure
+   */
+  float getAccZ() const {return BufferIn.Cust.acc_z; };
+  /**
+   * @brief Function to retrieve AngVelX measure
+   */
+  float getAngVelX() const {return BufferIn.Cust.rate_of_turn_x; };
+  /**
+   * @brief Function to retrieve AngVelY measure
+   */
+  float getAngVelY() const {return BufferIn.Cust.rate_of_turn_y; };
+  /**
+   * @brief Function to retrieve AngVelZ measure
+   */
+    float getAngVelZ() const {return BufferIn.Cust.rate_of_turn_z; };
   /**
   * @brief Function to enable data transfer from the AHRS
   */
@@ -126,12 +150,18 @@ public:
    */
   void writeOutputs() override final;
 
+
+  /**
+   * @brief Function to set motor command
+   */
+  void setCmdServo(uint8_t cmd_value)
+  {BufferOut.Cust.CMD_servo=cmd_value;}
   /**
    * @brief Output buffer union, i.e. data received from master (read).
    */
   union CustBufferOut
   {
-    uint8_t Byte[8]; /**< Raw output buffer content. */
+    uint8_t Byte[12]; /**< Raw output buffer content. */
     struct
     {
       uint8_t CMD_ID;
@@ -140,6 +170,9 @@ public:
       uint8_t byte3;
       uint8_t byte4;
       uint8_t CMD_ID_check;
+      uint8_t CMD_servo;
+      uint8_t trajectory_type_servo;
+      uint8_t speed_type_servo;
     } Cust; /**< Custom structure resembling output entries as defined in the config. */
   } BufferOut; /**< Output buffer, i.e. data received from master (read). */
 
@@ -148,7 +181,7 @@ public:
    */
   union CustBufferIn
   {
-    uint8_t Byte[64]; /**< Raw input buffer content. */
+    uint8_t Byte[62]; /**< Raw input buffer content. */
     struct
     {
       float ang_eul_pitch;
@@ -164,15 +197,16 @@ public:
       float quaternion_q2;
       float quaternion_q3;
       float quaternion_q4;
-      float snsr_temperature;
       uint32_t status_word;
       uint16_t selftest_result;
+      uint8_t state_servo;
+      uint8_t CMD_servo_check;
       uint8_t status_byte;
       uint8_t resp_CMD_ID;
     } Cust; /**< Custom structure resembling input entries as defined in the config. */
   } BufferIn; /**< Input buffer, i.e. data sent to master (write). */
 
-  enum ahrs_filters {
+ enum ahrs_filters {
   responsive = 0x01,
   robust = 0x02,
   general = 0x03
@@ -196,7 +230,7 @@ public:
 
 private:
   // EasyCAT slave device specific info
-  static constexpr uint16_t kDomainEntries_ = 24;
+  static constexpr uint16_t kDomainEntries_ = 28;
   static constexpr uint8_t kAlias_         = 0;
   static constexpr uint32_t kVendorID_     = 0x0000079a;
   static constexpr uint32_t kProductCode_  = 0xdeafbeef;
@@ -204,38 +238,41 @@ private:
   // Ethercat utilities, describing index, subindex and bit length of each
   // configured PDO entry.
   static constexpr ec_pdo_entry_info_t kPdoEntries_[kDomainEntries_] = {
-    {0x0005, 0x01, 8}, /* CMD_ID */
-    {0x0005, 0x02, 8}, /* byte1 */
-    {0x0005, 0x03, 8}, /* byte2 */
-    {0x0005, 0x04, 8}, /* byte3 */
-    {0x0005, 0x05, 8}, /* byte4 */
-    {0x0005, 0x06, 8}, /* CMD_ID_check */
-    {0x0006, 0x01, 32}, /* ang_eul_pitch */
-    {0x0006, 0x02, 32}, /* ang_eul_roll */
-    {0x0006, 0x03, 32}, /* ang_eul_yaw */
-    {0x0006, 0x04, 32}, /* acc_x */
-    {0x0006, 0x05, 32}, /* acc_y */
-    {0x0006, 0x06, 32}, /* acc_z */
-    {0x0006, 0x07, 32}, /* rate_of_turn_x */
-    {0x0006, 0x08, 32}, /* rate_of_turn_y */
-    {0x0006, 0x09, 32}, /* rate_of_turn_z */
-    {0x0006, 0x0a, 32}, /* quaternion_q1 */
-    {0x0006, 0x0b, 32}, /* quaternion_q2 */
-    {0x0006, 0x0c, 32}, /* quaternion_q3 */
-    {0x0006, 0x0d, 32}, /* quaternion_q4 */
-    {0x0006, 0x0e, 32}, /* snsr_temperature */
-    {0x0006, 0x0f, 32}, /* status_word */
-    {0x0006, 0x10, 16}, /* selftest_result */
-    {0x0006, 0x11, 8}, /* status_byte */
-    {0x0006, 0x12, 8}, /* resp_CMD_ID */
-};
-
+    {0x0005, 0x01, 8}, /**< output PDO: CMD_ID */
+    {0x0005, 0x02, 8}, /**< output PDO: byte1 */
+    {0x0005, 0x03, 8}, /**< output PDO: byte2 */
+    {0x0005, 0x04, 8}, /**< output PDO: byte3 */
+    {0x0005, 0x05, 8}, /**< output PDO: byte4 */
+    {0x0005, 0x06, 8}, /**< output PDO: CMD_ID_check */
+    {0x0005, 0x07, 8}, /**< output PDO: CMD_servo */
+    {0x0005, 0x08, 8}, /**< output PDO: trajectory_type_servo */
+    {0x0005, 0x09, 8}, /**< output PDO: speed_type_servo */
+    {0x0006, 0x01, 32}, /**< input PDO: ang_eul_pitch */
+    {0x0006, 0x02, 32}, /**< input PDO: ang_eul_roll */
+    {0x0006, 0x03, 32}, /**< input PDO: ang_eul_yaw */
+    {0x0006, 0x04, 32}, /**< input PDO: acc_x */
+    {0x0006, 0x05, 32}, /**< input PDO: acc_y */
+    {0x0006, 0x06, 32}, /**< input PDO: acc_z */
+    {0x0006, 0x07, 32}, /**< input PDO: rate_of_turn_x */
+    {0x0006, 0x08, 32}, /**< input PDO: rate_of_turn_y */
+    {0x0006, 0x09, 32}, /**< input PDO: rate_of_turn_z */
+    {0x0006, 0x0a, 32}, /**< input PDO: quaternion_q1 */
+    {0x0006, 0x0b, 32}, /**< input PDO: quaternion_q2 */
+    {0x0006, 0x0c, 32}, /**< input PDO: quaternion_q3 */
+    {0x0006, 0x0d, 32}, /**< input PDO: quaternion_q4 */
+    {0x0006, 0x0e, 32}, /**< input PDO: status_word */
+    {0x0006, 0x0f, 16}, /**< input PDO: selftest_result */
+    {0x0006, 0x10, 8}, /**< input PDO: state_servo */
+    {0x0006, 0x11, 8}, /**< input PDO: CMD_servo_check */
+    {0x0006, 0x12, 8}, /**< input PDO: status_byte */
+    {0x0006, 0x13, 8}, /**< input PDO: resp_CMD_ID */
+  };
 
   // Ethercat utilities, describing memory position of input and output PDOs
   // stack.
   static constexpr ec_pdo_info_t kPDOs_[2] = {
-    {0x1600, 6, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_)}, /**< Output PDOs */
-    {0x1A00, 18, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 6}, /**< Inputs PDOs */
+    {0x1600, 9, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_)}, /**< Output PDOs */
+    {0x1a00, 19, const_cast<ec_pdo_entry_info_t*>(kPdoEntries_) + 9}, /**< Inputs PDOs */
   };
 
   // Ethercat utilities, synchronization information
@@ -263,9 +300,10 @@ private:
     unsigned int quaternion_q2;
     unsigned int quaternion_q3;
     unsigned int quaternion_q4;
-    unsigned int snsr_temperature;
     unsigned int status_word;
     unsigned int selftest_result;
+    unsigned int state_servo;
+    unsigned int CMD_servo_check;
     unsigned int status_byte;
     unsigned int resp_CMD_ID;
   } offset_in_;
@@ -279,6 +317,9 @@ private:
     unsigned int byte3;
     unsigned int byte4;
     unsigned int CMD_ID_check;
+    unsigned int CMD_servo;
+    unsigned int trajectory_type_servo;
+    unsigned int speed_type_servo;
   } offset_out_;
 
   sync_dc_t xsens_sync_dc_ = {true, 0x300, 2000000,2000200000,0,0};

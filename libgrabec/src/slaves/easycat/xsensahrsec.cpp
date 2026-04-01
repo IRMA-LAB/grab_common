@@ -1,30 +1,32 @@
-/**
- * @file xsensahrsec.cpp
- * @author Filippo Zoffoli
- * @date Apr 2025
- * @modified by Anna Berger, 
- * @date Mar 2026
- * @brief File containing class implementation declared in xsensahrsec.h.
- */
+//---------------------------------------------------------------------------//
+//                                                                           //
+//   This file has been created by GRAB EasyCAT C++ class generation tool    //
+//                                                                           //
+//     Easy Configurator project ethercat_xsens_config_mdo.prj
+//     Easy Configurator XML ethercat_xsens_config_mdo.xml
+//                                                                           //
+//   You can either insert your code in the designated areas and extend it   //
+//   or inherit from this class.                                             //
+//                                                                           //
+//---------------------------------------------------------------------------//
 
 #include <cstring>
 
-#include "slaves/xsensahrsec.h"
+#include "slaves/easycat/xsensahrsec.h"
 
 namespace grabec
 {
 // Must provide redundant definition of static members as well
-constexpr ec_pdo_entry_info_t xsensahrsec::kPdoEntries_[];
-constexpr ec_pdo_info_t xsensahrsec::kPDOs_[];
-constexpr ec_sync_info_t xsensahrsec::kSyncs_[];
+constexpr ec_pdo_entry_info_t Ethercat_xsens_config_mdoSlave::kPdoEntries_[];
+constexpr ec_pdo_info_t Ethercat_xsens_config_mdoSlave::kPDOs_[];
+constexpr ec_sync_info_t Ethercat_xsens_config_mdoSlave::kSyncs_[];
 
-xsensahrsec::xsensahrsec(const uint8_t slave_position)
+Ethercat_xsens_config_mdoSlave::Ethercat_xsens_config_mdoSlave(const uint8_t slave_position)
 {
   alias_ = kAlias_;
   vendor_id_ = kVendorID_;
   product_code_ = kProductCode_;
   num_domain_entries_ = kDomainEntries_;
-  sync_dc_params_ = xsens_sync_dc_;
   position_ = slave_position;
   domain_registers_[0] = {alias_, position_, vendor_id_, product_code_,
                           kPdoEntries_[0].index, kPdoEntries_[0].subindex,
@@ -117,14 +119,21 @@ xsensahrsec::xsensahrsec(const uint8_t slave_position)
   slave_sync_ptr_ = const_cast<ec_sync_info_t*>(kSyncs_);
 }
 
-xsensahrsec::~xsensahrsec()
+Ethercat_xsens_config_mdoSlave::~Ethercat_xsens_config_mdoSlave()
 {
   /*
    * Your code here..
    */
 }
 
-void xsensahrsec::readInputs()
+void Ethercat_xsens_config_mdoSlave::DoWork()
+{
+  /*
+   * Your code here..
+   */
+}
+
+void Ethercat_xsens_config_mdoSlave::ReadInputs()
 {
   // This is the way we can read the PDOs, according to ecrt.h
   int32_t ang_eul_pitch = EC_READ_S32(domain_data_ptr_ + offset_in_.ang_eul_pitch);
@@ -161,7 +170,7 @@ void xsensahrsec::readInputs()
   BufferIn.Cust.resp_CMD_ID = EC_READ_U8(domain_data_ptr_ + offset_in_.resp_CMD_ID);
 }
 
-void xsensahrsec::writeOutputs()
+void Ethercat_xsens_config_mdoSlave::WriteOutputs()
 {
   // This is the way we can write the PDOs, according to ecrt.h
   EC_WRITE_U8(domain_data_ptr_ + offset_out_.CMD_ID, BufferOut.Cust.CMD_ID);
@@ -175,179 +184,27 @@ void xsensahrsec::writeOutputs()
   EC_WRITE_U8(domain_data_ptr_ + offset_out_.speed_type_servo, BufferOut.Cust.speed_type_servo);
 }
 
-bool xsensahrsec::SendData()
+void Ethercat_xsens_config_mdoSlave::SafeExit()
 {
-  BufferOut.Cust.CMD_ID = 0x00;
-  BufferOut.Cust.CMD_ID_check = 0x00;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x00)
-  {
-    return true;
-  }
-  else
-    return false;
+  /*
+   * Your code here..
+   */
 }
 
-bool xsensahrsec::GoToConfig()
+bool Ethercat_xsens_config_mdoSlave::IsReadyToShutDown() const
 {
-  BufferOut.Cust.CMD_ID = 0x01;
-  BufferOut.Cust.CMD_ID_check = 0x01;
-
-  if (BufferIn.Cust.resp_CMD_ID==0x01)
-  {
-    return true;
-  }
-  else
-    return false;
+  /*
+   * Your code here..
+   * Return bool accordingly..
+   */
+  return true;
 }
 
-bool xsensahrsec::GoToMeasurement()
+void Ethercat_xsens_config_mdoSlave::InitFun()
 {
-  BufferOut.Cust.CMD_ID = 0x02;
-  BufferOut.Cust.CMD_ID_check = 0x02;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x01)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::Reset()
-{
-  BufferOut.Cust.CMD_ID = 0x03;
-  BufferOut.Cust.CMD_ID_check = 0x03;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x03)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::FilterSelection(uint8_t filter, uint8_t bias)
-{
-  BufferOut.Cust.CMD_ID = 0x04;
-  BufferOut.Cust.CMD_ID_check = 0x04;
-  BufferOut.Cust.byte1 = filter;
-  BufferOut.Cust.byte2 = bias;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x04)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::RunSelfTest()
-{
-  BufferOut.Cust.CMD_ID = 0x05;
-  BufferOut.Cust.CMD_ID_check = 0x05;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x05 && BufferIn.Cust.selftest_result)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::AlignmentRotLocal()
-{
-  BufferOut.Cust.CMD_ID = 0x06;
-  BufferOut.Cust.CMD_ID_check = 0x06;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x06)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::AlignmentRotSensor()
-{
-  BufferOut.Cust.CMD_ID = 0x07;
-  BufferOut.Cust.CMD_ID_check = 0x07;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x07)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::ResetOrientation(uint8_t reset_mode)
-{
-  BufferOut.Cust.CMD_ID = 0x08;
-  BufferOut.Cust.CMD_ID_check = 0x08;
-  BufferOut.Cust.byte1 = 0x00;
-  BufferOut.Cust.byte2 = reset_mode;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x08)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::ResetStoreOrientation(uint8_t reset_mode)
-{
-  BufferOut.Cust.CMD_ID = 0x09;
-  BufferOut.Cust.CMD_ID_check = 0x09;
-  BufferOut.Cust.byte1 = 0x00;
-  BufferOut.Cust.byte2 = reset_mode;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x09)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::NoRotation(uint16_t bias_compute_time)
-{
-  BufferOut.Cust.CMD_ID = 0x0A;
-  BufferOut.Cust.CMD_ID_check = 0x0A;
-  BufferOut.Cust.byte1 = 0x00;
-  BufferOut.Cust.byte1 = bias_compute_time; // TODO: correct this assigment, you have to shift the bytes
-
-   if (BufferIn.Cust.resp_CMD_ID==0x0B)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::Null()
-{
-  BufferOut.Cust.CMD_ID = 0x0B;
-  BufferOut.Cust.CMD_ID_check = 0x0B;
-
-   if (BufferIn.Cust.resp_CMD_ID==0x0B)
-  {
-    return true;
-  }
-  else
-    return false;
-}
-
-bool xsensahrsec::CheckErrorAHRS()
-{
-
-   if (BufferIn.Cust.resp_CMD_ID==0xFF)
-  {
-    return true;
-  }
-  else
-    return false;
+  /*
+   * Your code here..
+   */
 }
 
 } // end namespace grabec
