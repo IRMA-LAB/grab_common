@@ -239,13 +239,88 @@ std::string GoldSoloWhistleDrive::getDriveStateStr(const std::bitset<16>& status
 
 //----- Overwritten virtual functions from base class --------------------------------//
 
+// RetVal GoldSoloWhistleDrive::sdoRequests(ec_slave_config_t* config_ptr)
+// {
+//   static ec_sdo_request_t* sdo_ptr = nullptr;
+
+//   if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(
+//           config_ptr, kOpModeIdx, kOpModeSubIdx,
+//           GoldSoloWhistleOperationModes::CYCLIC_POSITION)))
+//   {
+//     std::string msg;
+// #if USE_QT
+//     msg = QString("Drive %1 failed to create OpMode SDO request").arg(id_).toStdString();
+// #else
+//     std::ostringstream msg_stream;
+//     msg_stream << "Drive " << id_ << " failed to create OpMode SDO request";
+//     msg = msg_stream.str();
+// #endif
+//     ecPrintCb(msg, 'r');
+//     return ECONFIG;
+//   }
+//   ecrt_sdo_request_timeout(sdo_ptr, 500);
+//   if (ecrt_slave_config_sdo8(config_ptr, kOpModeIdx, kOpModeSubIdx,
+//                              GoldSoloWhistleOperationModes::CYCLIC_POSITION) != 0)
+//   {
+//     std::string msg;
+// #if USE_QT
+//     msg = QString("Drive %1 failed to add a config value to OpMode SDO")
+//             .arg(id_)
+//             .toStdString();
+// #else
+//     std::ostringstream msg_stream;
+//     msg_stream << "Drive " << id_ << " failed to add a config value to OpMode SDO";
+//     msg = msg_stream.str();
+// #endif
+//     ecPrintCb(msg, 'r');
+//     return ECONFIG;
+//   }
+
+//   if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(
+//           config_ptr, kHomingMethodIdx, kHomingMethodSubIdx, kHomingOnPosMethod)))
+//   {
+//     std::string msg;
+// #if USE_QT
+//     msg = QString("Drive %1 failed to create HomingMethod SDO request")
+//             .arg(id_)
+//             .toStdString();
+// #else
+//     std::ostringstream msg_stream;
+//     msg_stream << "Drive " << id_ << " failed to create HomingMethod SDO request";
+//     msg = msg_stream.str();
+// #endif
+//     ecPrintCb(msg, 'r');
+//     return ECONFIG;
+//   }
+//   ecrt_sdo_request_timeout(sdo_ptr, 500);
+//   if (ecrt_slave_config_sdo8(config_ptr, kHomingMethodIdx, kHomingMethodSubIdx,
+//                              kHomingOnPosMethod) != 0)
+//   {
+//     std::string msg;
+// #if USE_QT
+//     msg = QString("Drive %1 failed to add a config value to HomingMethod SDO")
+//             .arg(id_)
+//             .toStdString();
+// #else
+//     std::ostringstream msg_stream;
+//     msg_stream << "Drive " << id_ << " failed to add a config value to HomingMethod SDO";
+//     msg = msg_stream.str();
+// #endif
+//     ecPrintCb(msg, 'r');
+//     return ECONFIG;
+//   }
+
+//   return OK;
+// }
+
+
+
+
 RetVal GoldSoloWhistleDrive::sdoRequests(ec_slave_config_t* config_ptr)
 {
-  static ec_sdo_request_t* sdo_ptr = nullptr;
-
-  if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(
-          config_ptr, kOpModeIdx, kOpModeSubIdx,
-          GoldSoloWhistleOperationModes::CYCLIC_POSITION)))
+  // --- 1. OpMode Setup ---
+  // Note: size is 1 byte for OpMode (0x6060)
+  if (!ecrt_slave_config_create_sdo_request(config_ptr, kOpModeIdx, kOpModeSubIdx, 1))
   {
     std::string msg;
 #if USE_QT
@@ -258,15 +333,14 @@ RetVal GoldSoloWhistleDrive::sdoRequests(ec_slave_config_t* config_ptr)
     ecPrintCb(msg, 'r');
     return ECONFIG;
   }
-  ecrt_sdo_request_timeout(sdo_ptr, 500);
+
+  // Write the actual configuration value for startup
   if (ecrt_slave_config_sdo8(config_ptr, kOpModeIdx, kOpModeSubIdx,
                              GoldSoloWhistleOperationModes::CYCLIC_POSITION) != 0)
   {
     std::string msg;
 #if USE_QT
-    msg = QString("Drive %1 failed to add a config value to OpMode SDO")
-            .arg(id_)
-            .toStdString();
+    msg = QString("Drive %1 failed to add a config value to OpMode SDO").arg(id_).toStdString();
 #else
     std::ostringstream msg_stream;
     msg_stream << "Drive " << id_ << " failed to add a config value to OpMode SDO";
@@ -276,42 +350,140 @@ RetVal GoldSoloWhistleDrive::sdoRequests(ec_slave_config_t* config_ptr)
     return ECONFIG;
   }
 
-  if (!(sdo_ptr = ecrt_slave_config_create_sdo_request(
-          config_ptr, kHomingMethodIdx, kHomingMethodSubIdx, kHomingOnPosMethod)))
+         // --- 2. Homing Method Setup ---
+         // Note: size is 1 byte for Homing Method (0x6098)
+  if (!ecrt_slave_config_create_sdo_request(config_ptr, kHomingMethodIdx, kHomingMethodSubIdx, 1))
   {
-    std::string msg;
-#if USE_QT
-    msg = QString("Drive %1 failed to create HomingMethod SDO request")
-            .arg(id_)
-            .toStdString();
-#else
-    std::ostringstream msg_stream;
-    msg_stream << "Drive " << id_ << " failed to create HomingMethod SDO request";
-    msg = msg_stream.str();
-#endif
-    ecPrintCb(msg, 'r');
+    // ... (Your existing Homing error logging) ...
     return ECONFIG;
   }
-  ecrt_sdo_request_timeout(sdo_ptr, 500);
-  if (ecrt_slave_config_sdo8(config_ptr, kHomingMethodIdx, kHomingMethodSubIdx,
-                             kHomingOnPosMethod) != 0)
+
+  if (ecrt_slave_config_sdo8(config_ptr, kHomingMethodIdx, kHomingMethodSubIdx, kHomingOnPosMethod) != 0)
+  {
+    // ... (Your existing Homing error logging) ...
+    return ECONFIG;
+  }
+
+         // --- 3. Error Code Request Initialization (0x603F) ---
+         // Size is 2 bytes (uint16_t). We assign this to our class member pointer!
+  if (!(error_sdo_req_ = ecrt_slave_config_create_sdo_request(
+          config_ptr, kErrorCodeIdx, kErrorCodeSubIdx, 2)))
   {
     std::string msg;
 #if USE_QT
-    msg = QString("Drive %1 failed to add a config value to HomingMethod SDO")
-            .arg(id_)
-            .toStdString();
+    msg = QString("Drive %1 failed to create Error Code SDO request").arg(id_).toStdString();
 #else
     std::ostringstream msg_stream;
-    msg_stream << "Drive " << id_ << " failed to add a config value to HomingMethod SDO";
+    msg_stream << "Drive " << id_ << " failed to create Error Code SDO request";
     msg = msg_stream.str();
 #endif
     ecPrintCb(msg, 'r');
     return ECONFIG;
   }
 
+  // Give it a reasonable timeout for runtime fetching
+  ecrt_sdo_request_timeout(error_sdo_req_, 500);
+
   return OK;
 }
+
+
+
+void GoldSoloWhistleDrive::fetchErrorCodeCyclic()
+{
+  if (!error_sdo_req_) {
+    return; // Safety check in case it wasn't initialized
+  }
+
+         // Check the current state of the SDO request
+  ec_request_state_t state = ecrt_sdo_request_state(error_sdo_req_);
+
+  if (state == EC_REQUEST_UNUSED)
+  {
+    // The request is idle. Trigger the read.
+    ecrt_sdo_request_read(error_sdo_req_);
+  }
+  else if (state == EC_REQUEST_SUCCESS)
+  {
+    // The data has arrived from the drive!
+    uint16_t error_code = EC_READ_U16(ecrt_sdo_request_data(error_sdo_req_));
+
+    std::string msg;
+#if USE_QT
+    // Format as 4-character hex with zero padding
+    msg = QString("Drive %1 FAULT! Error Code: 0x%2")
+            .arg(id_)
+            .arg(error_code, 4, 16, QChar('0'))
+            .toStdString();
+#else
+    std::ostringstream msg_stream;
+    msg_stream << "Drive " << id_ << " FAULT! Error Code: 0x"
+               << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << error_code;
+    msg = msg_stream.str();
+#endif
+    ecPrintCb(msg, 'e'); // Assuming 'e' is for error/critical
+
+           // Note: Once read successfully, we don't want to spam the bus.
+           // You should implement a boolean flag in your class (e.g., bool is_error_handled_)
+           // to stop calling this function until the fault is cleared.
+  }
+  else if (state == EC_REQUEST_ERROR)
+  {
+    std::string msg;
+#if USE_QT
+    msg = QString("Drive %1 failed to fetch Error Code SDO during runtime").arg(id_).toStdString();
+#else
+    std::ostringstream msg_stream;
+    msg_stream << "Drive " << id_ << " failed to fetch Error Code SDO during runtime";
+    msg = msg_stream.str();
+#endif
+    ecPrintCb(msg, 'e');
+  }
+  // If state == EC_REQUEST_BUSY, do nothing and let the next cycle handle it.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void GoldSoloWhistleDrive::readInputs()
 {

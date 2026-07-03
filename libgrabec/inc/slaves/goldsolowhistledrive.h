@@ -59,6 +59,7 @@ struct GSWDriveInPdos
   int16_t analog_input;        /**< analog_input */
   uint digital_inputs;         /**< digital_inputs */
   int aux_pos_actual_value;    /**< aux_pos_actual_value */
+ // uint16_t error_code;         /**< drive error code */
 };
 
 /**
@@ -177,6 +178,14 @@ class GoldSoloWhistleDrive:
                        QObject* parent = nullptr
 #endif
   );
+
+
+
+
+  void fetchErrorCodeCyclic();
+
+
+
 
   /**
    * @brief Get latest known physical drive state.
@@ -472,6 +481,8 @@ class GoldSoloWhistleDrive:
   static constexpr uint16_t kDigInIndex             = 0x60FD;
   static constexpr uint8_t kDigInSubIndex           = 0x00;
 
+
+
   static constexpr uint16_t kDigOutIndex             = 0x60FE;
   static constexpr uint8_t kDigOutSubIndex           = 0x01;
 
@@ -568,6 +579,14 @@ class GoldSoloWhistleDrive:
   void ecPrintCb(const std::string& msg, const char color = 'w') const override;
 
  private:
+
+
+
+  ec_sdo_request_t* error_sdo_req_ = nullptr;
+
+  // Constants for the Error Code (assuming they aren't already defined)
+  static const uint16_t kErrorCodeIdx = 0x603F;
+  static const uint8_t kErrorCodeSubIdx = 0x00;
   //--------- State machine ----------------------------------------------------------//
 
   // clang-format off
