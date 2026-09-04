@@ -108,6 +108,83 @@ bool updateCablesTensionDistribution(RobotVars& vars);
  };
 
 
+
+        // ============================================================================
+        // TurnAround tension-distribution implementation (Gouttefarde et al., 2015)
+        // Implemented by Nicolas Testard
+        // ============================================================================
+
+ // /!\ For mode 5, robot kinematic must have been updated before
+
+ /**
+  * @brief Tension selection mode used by the TurnAround algorithm.
+  *   * Values follow the MATLAB / paper convention:
+  *  1 = centroid,
+  *  2 = weighted barycenter,
+  *  3 = minimum L1 tension,
+  *  4 = minimum L2 tension.
+  *  5 = maximum directional geometric stiffness along global +Y
+  *      (e = [0 1 0 0 0 0]^T).
+  */
+ enum class TurnaroundMode : int
+ {
+   Centroid = 1,
+   WeightedBarycenter = 2,
+   MinL1 = 3,
+   MinL2 = 4,
+   MaxDirectionalStiffnessY = 5
+ };
+
+ /**
+  * @brief Two-dimensional affine tension space t = tp + N*lambda.
+  *   * The rows are stored in physical cable order [T1 ... T8].
+  * N is an orthonormal basis of ker(W), tp is the minimum-norm
+  * particular solution, and qmin/qmax define the inequalities
+  *   *     qmin <= N*lambda <= qmax.
+  *   * polygon is filled by the TurnAround traversal for the centroid and
+  * weighted-barycenter modes.  The maximum number of vertices is 2*m = 16.
+  */
+ struct LambdaSpaceTurnaround
+ {
+   MatrixXd<8,2> N;
+   MatrixXd<8,1> tp;
+   MatrixXd<8,1> qmin;
+   MatrixXd<8,1> qmax;
+   MatrixXd<2,16> polygon;
+   unsigned int vertex_count;
+ };
+
+ /**
+  * @brief Compute the 2-D lambda space used by the TurnAround algorithm.
+  *   * The admissible tension limits are explicit inputs.  This function only
+  * builds N, tp and the inequality bounds; the polygon traversal and the
+  * selected optimum are performed by UpdateCablesTensionTurnaround().
+  *   * @param[in] vars Current robot variables.
+  * @param[in] min_tension Minimum admissible cable tension.
+  * @param[in] max_tension Maximum admissible cable tension.
+  * @param[out] space Computed affine lambda space.
+  * @return true if the lambda-space construction succeeds.
+  */
+ bool InitializeLambdaSpaceTurnaround(const RobotVars& vars,
+                                   const double min_tension,
+                                   const double max_tension,
+                                   LambdaSpaceTurnaround& space);
+
+ /**
+  * @brief Compute the cable tensions with the original TurnAround traversal.
+  *   * The function obtains the project tension bounds from
+  * Index_and_limits::CTL_for_TD, calls ComputeLambdaSpaceTurnaround(), follows
+  * the inequality lines according to the TurnAround algorithm, and computes
+  * the selected solution.  GF and the pre-existing tension-distribution
+  * functions are untouched.
+  *   * @param[in,out] vars Robot variables; tension_vector is updated on success.
+  * @param[in] mode Desired tension selection mode.
+  * @return true when a feasible tension distribution is obtained.
+  */
+ bool UpdateCablesTensionTurnaround(
+   RobotVars& vars,
+   TurnaroundMode mode = TurnaroundMode::WeightedBarycenter);
+
 }
 
 
